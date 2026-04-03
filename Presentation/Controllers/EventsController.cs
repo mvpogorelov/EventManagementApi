@@ -2,10 +2,13 @@
 using EventManagmentApi.Models;
 using EventManagmentApi.Presentation.Dto;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Diagnostics;
 
 namespace EventManagmentApi.Presentation.Controllers;
 
+/// <summary>
+/// Контроллер обработки событий
+/// </summary>
+/// <param name="eventService"></param>
 [ApiController]
 [Route("api/[controller]")]
 public class EventsController(IEventService eventService) : ControllerBase
@@ -25,8 +28,8 @@ public class EventsController(IEventService eventService) : ControllerBase
     /// </summary>
     /// <param name="id">Идентификатор события</param>
     /// <returns>Событие</returns>
-    /// <response code="200">Событие</response>
-    /// <response code="404">Ошибка</response>
+    /// <response code="200">Событие получено</response>
+    /// <response code="404">Неверные данные события</response>
     [HttpGet("{id:int}")]
     [Produces("application/json")]
     [ProducesResponseType(typeof(ActionResult<Event>), StatusCodes.Status200OK)]
@@ -49,22 +52,17 @@ public class EventsController(IEventService eventService) : ControllerBase
     /// </summary>
     /// <param name="eventDto">Данные события</param>
     /// <returns>Событие</returns>
-    /// <response code="201">Событие</response>
-    /// <response code="400">Ошибка</response>
+    /// <response code="201">Событие создано</response>
+    /// <response code="400">Неверные данные события</response>
     [HttpPost]
     [Consumes("application/json")]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
     public IActionResult Post([FromBody] EventDto eventDto)
     {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(ModelState);
-        }
-
         try
         {
-            var @event = eventService.Create(eventDto.Title, eventDto.StartAt, eventDto.EndAt, eventDto.Description);
+            var @event = eventService.Create(eventDto.Title, eventDto.StartAt.Value, eventDto.EndAt.Value, eventDto.Description);
 
             return CreatedAtAction(nameof(Get), new { id = @event.Id }, @event);
         }
@@ -80,7 +78,7 @@ public class EventsController(IEventService eventService) : ControllerBase
     /// <param name="id">Идентификатор события</param>
     /// <param name="eventDto">Данные события</param>
     /// <response code="204"></response>
-    /// <response code="400">Ошибка</response>
+    /// <response code="400">Неверные данные события</response>
     /// <response code="404">Событие не найдено</response>
     [HttpPut("{id:int}")]
     [Consumes("application/json")]
@@ -89,14 +87,9 @@ public class EventsController(IEventService eventService) : ControllerBase
     [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
     public IActionResult Put(int id, [FromBody] EventDto eventDto)
     {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(ModelState);
-        }
-
         try
         {
-            eventService.Update(id, eventDto.Title, eventDto.StartAt, eventDto.EndAt, eventDto.Description);
+            eventService.Update(id, eventDto.Title, eventDto.StartAt.Value, eventDto.EndAt.Value, eventDto.Description);
 
             return NoContent();
         }
@@ -115,7 +108,7 @@ public class EventsController(IEventService eventService) : ControllerBase
     /// </summary>
     /// <param name="id">Идентификатор события</param>
     /// <returns></returns>
-    /// <response code="204"></response>
+    /// <response code="204">Событие удалено</response>
     /// <response code="404">Событие не найдено</response>
     [HttpDelete("{id:int}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]

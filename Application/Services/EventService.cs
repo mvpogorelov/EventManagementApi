@@ -9,7 +9,7 @@ namespace EventManagmentApi.Application.Services;
 /// </summary>
 public class EventService : IEventService
 {
-    private readonly Dictionary<int, Event> _events = new();
+    private static Dictionary<int, Event> _events = new();
 
     /// <summary>
     /// Получение всех событий
@@ -22,7 +22,15 @@ public class EventService : IEventService
     /// </summary>
     /// <param name="id">Идентификатор события</param>
     /// <returns>Событие</returns>
-    public Event Get(int id) => _events[id] ?? throw new KeyNotFoundException($"Событие с Id: {id} не найдено");
+    public Event Get(int id)
+    {
+        if (_events.TryGetValue(id, out var @event))
+        {
+            return @event;
+        }
+
+        throw new KeyNotFoundException($"Событие с Id: {id} не найдено");
+    }
 
 
     /// <summary>
@@ -40,7 +48,7 @@ public class EventService : IEventService
 
         var @event = new Event
         {
-            Id = _events.Keys.Max() + 1,
+            Id = _events.Count + 1,
             Title = title,
             StartAt = startAt,
             EndAt = endAt,
@@ -66,9 +74,7 @@ public class EventService : IEventService
     {
         ValidateEventDataAndThrow(title, startAt, endAt);
 
-        var @event = _events[id];
-
-        if (@event is null)
+        if (!_events.TryGetValue(id, out var @event))
         {
             throw new KeyNotFoundException($"Событие с Id: {id} не найдено");
         }
@@ -86,9 +92,7 @@ public class EventService : IEventService
     /// <exception cref="KeyNotFoundException">Если событие не найдено</exception>
     public void Remove(int id)
     {
-        var @event = _events[id];
-
-        if (@event is null)
+        if (!_events.TryGetValue(id, out var @event))
         {
             throw new KeyNotFoundException($"Событие с Id: {id} не найдено");
         }
