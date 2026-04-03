@@ -48,7 +48,7 @@ public class EventService : IEventService
 
         var @event = new Event
         {
-            Id = _events.Count + 1,
+            Id = _events.Keys.Count == 0 ? 1 : _events.Keys.Max() + 1,
             Title = title,
             StartAt = startAt,
             EndAt = endAt,
