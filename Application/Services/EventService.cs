@@ -10,6 +10,7 @@ namespace EventManagmentApi.Application.Services;
 public class EventService : IEventService
 {
     private static Dictionary<int, Event> _events = new();
+    private static int _lastId = 1;
 
     /// <summary>
     /// Получение всех событий
@@ -48,7 +49,7 @@ public class EventService : IEventService
 
         var @event = new Event
         {
-            Id = _events.Keys.Count == 0 ? 1 : _events.Keys.Max() + 1,
+            Id = _lastId++,
             Title = title,
             StartAt = startAt,
             EndAt = endAt,
