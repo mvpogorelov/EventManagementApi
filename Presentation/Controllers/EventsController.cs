@@ -12,7 +12,7 @@ namespace EventManagmentApi.Presentation.Controllers;
 /// </summary>
 /// <param name="eventService"></param>
 [ApiController]
-[Route("api/events")]
+[Route("[controller]")]
 public class EventsController(IEventService eventService) : ControllerBase
 {
     /// <summary>

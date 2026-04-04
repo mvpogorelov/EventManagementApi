@@ -22,7 +22,7 @@ Swagger: `https://localhost:7202/swagger/index.html`, `http://localhost:7203/swa
 
 ### Работа с событиями
 
-URL: `/api/events`
+URL: `/events`
 
 | Метод | Эндпоинт | Описание | Статус |
 | --- | --- | --- | --- |
