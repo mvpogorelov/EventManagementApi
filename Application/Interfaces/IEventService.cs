@@ -1,4 +1,4 @@
-﻿using EventManagmentApi.Models;
+using EventManagmentApi.Models;
 
 namespace EventManagmentApi.Application.Interfaces;
 
@@ -45,6 +45,5 @@ public interface IEventService
     /// Удаление события
     /// </summary>
     /// <param name="id">Идентификатор события</param>
-    /// <exception cref="KeyNotFoundException">Если событие не найдено</exception>
     void Remove(int id);
 }

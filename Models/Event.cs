@@ -1,4 +1,4 @@
-﻿namespace EventManagmentApi.Models;
+namespace EventManagmentApi.Models;
 
 /// <summary>
 /// Модель события

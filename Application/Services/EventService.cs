@@ -1,4 +1,5 @@
-﻿using EventManagmentApi.Application.Interfaces;
+using EventManagmentApi.Application.Exceptions;
+using EventManagmentApi.Application.Interfaces;
 using EventManagmentApi.Models;
 using EventManagmentApi.Presentation.Dto;
 
@@ -30,7 +31,7 @@ public class EventService : IEventService
             return @event;
         }
 
-        throw new KeyNotFoundException($"Событие с Id: {id} не найдено");
+        throw new NotFoundException($"Событие с Id: {id} не найдено");
     }
 
 
@@ -69,7 +70,7 @@ public class EventService : IEventService
     /// <param name="startAt">Дата начала</param>
     /// <param name="endAt">Дата окончания</param>
     /// <param name="description">Описание события</param>
-    /// <exception cref="KeyNotFoundException">Если событие не найдено</exception>
+    /// <exception cref="NotFoundException">Если событие не найдено</exception>
     /// <exception cref="ArgumentException">Если некорректные данные о событии</exception>
     public void Update(int id, string title, DateTime startAt, DateTime endAt, string? description = null)
     {
@@ -77,7 +78,7 @@ public class EventService : IEventService
 
         if (!_events.TryGetValue(id, out var @event))
         {
-            throw new KeyNotFoundException($"Событие с Id: {id} не найдено");
+            throw new NotFoundException($"Событие с Id: {id} не найдено");
         }
 
         @event.Title = title;
@@ -90,12 +91,12 @@ public class EventService : IEventService
     /// Удаление события
     /// </summary>
     /// <param name="id">Идентификатор события</param>
-    /// <exception cref="KeyNotFoundException">Если событие не найдено</exception>
+    /// <exception cref="NotFoundException">Если событие не найдено</exception>
     public void Remove(int id)
     {
         if (!_events.TryGetValue(id, out var @event))
         {
-            throw new KeyNotFoundException($"Событие с Id: {id} не найдено");
+            throw new NotFoundException($"Событие с Id: {id} не найдено");
         }
 
         _events.Remove(id);

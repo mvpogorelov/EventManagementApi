@@ -1,4 +1,5 @@
-﻿using EventManagmentApi.Application.Interfaces;
+using EventManagmentApi.Application.Exceptions;
+using EventManagmentApi.Application.Interfaces;
 using EventManagmentApi.Models;
 using EventManagmentApi.Presentation.Dto;
 using Microsoft.AspNetCore.Mvc;
@@ -11,7 +12,7 @@ namespace EventManagmentApi.Presentation.Controllers;
 /// </summary>
 /// <param name="eventService"></param>
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/events")]
 public class EventsController(IEventService eventService) : ControllerBase
 {
     /// <summary>
@@ -52,7 +53,7 @@ public class EventsController(IEventService eventService) : ControllerBase
                 StatusCode= HttpStatusCode.OK
             };
         }
-        catch (KeyNotFoundException e)
+        catch (NotFoundException e)
         {
             return new ApiResult
             {
@@ -124,7 +125,7 @@ public class EventsController(IEventService eventService) : ControllerBase
                 StatusCode = HttpStatusCode.NoContent
             };
         }
-        catch (KeyNotFoundException e)
+        catch (NotFoundException e)
         {
             return new ApiResult
             {
@@ -166,7 +167,7 @@ public class EventsController(IEventService eventService) : ControllerBase
                 StatusCode = HttpStatusCode.NoContent
             };
         }
-        catch (KeyNotFoundException e)
+        catch (NotFoundException e)
         {
             return new ApiResult
             {
