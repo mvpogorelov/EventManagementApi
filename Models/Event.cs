@@ -1,5 +1,8 @@
 ﻿namespace EventManagmentApi.Models;
 
+/// <summary>
+/// Модель события
+/// </summary>
 public class Event
 {
     /// <summary>
