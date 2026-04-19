@@ -1,4 +1,5 @@
 using EventManagmentApi.Models;
+using Microsoft.AspNetCore.Mvc;
 
 namespace EventManagmentApi.Application.Interfaces;
 
@@ -10,8 +11,11 @@ public interface IEventService
     /// <summary>
     /// Получение всех событий
     /// </summary>
+    /// <param name="title">Фильтр по названию</param>
+    /// <param name="from">С даты</param>
+    /// <param name="to">По дату</param>
     /// <returns></returns>
-    IReadOnlyList<Event> GetAll();
+    IReadOnlyList<Event> GetAll(string? title, DateTime? from, DateTime? to);
 
     /// <summary>
     /// Получение события по идентификатору

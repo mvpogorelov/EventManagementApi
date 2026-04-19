@@ -16,8 +16,31 @@ public class EventService : IEventService
     /// <summary>
     /// Получение всех событий
     /// </summary>
+    /// <param name="title">Фильтр по названию</param>
+    /// <param name="from">С даты</param>
+    /// <param name="to">По дату</param>
     /// <returns>Список событий</returns>
-    public IReadOnlyList<Event> GetAll() => _events.Values.ToList();
+    public IReadOnlyList<Event> GetAll(string? title, DateTime? from, DateTime? to)
+    {
+        var events = _events.Values as IEnumerable<Event>;
+
+        if (!string.IsNullOrEmpty(title))
+        {
+            events = events.Where(e => e.Title.ToLower().Contains(title.ToLower()));
+        }
+        
+        if (from.HasValue)
+        {
+            events = events.Where(e => e.StartAt >= from);
+        }
+        
+        if (to.HasValue)
+        {
+            events = events.Where(e => e.EndAt <= to);
+        }
+
+        return events.ToList();
+    }
 
     /// <summary>
     /// Получение события по идентификатору

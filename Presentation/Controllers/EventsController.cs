@@ -4,6 +4,7 @@ using EventManagmentApi.Models;
 using EventManagmentApi.Presentation.Dto;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
+using static System.Net.WebRequestMethods;
 
 namespace EventManagmentApi.Presentation.Controllers;
 
@@ -18,18 +19,24 @@ public class EventsController(IEventService eventService) : ControllerBase
     /// <summary>
     /// Получение всего списка событий
     /// </summary>
+    /// <param name="title">Фильтр по названию</param>
+    /// <param name="from">С даты</param>
+    /// <param name="to">По дату</param>
     /// <returns>Весь список событий</returns>
     /// <response code="200">Весь список событий</response>
     [HttpGet]
     [Produces("application/json")]
     [ProducesResponseType(typeof(ApiResult<IReadOnlyList<Event>>), StatusCodes.Status200OK)]
-    public ApiResult<IReadOnlyList<Event>> GetAll() =>
-        new ApiResult<IReadOnlyList<Event>>
-        {
-            Data = eventService.GetAll(),
-            Success = true,
-            StatusCode = HttpStatusCode.OK
-        };
+    public ApiResult<IReadOnlyList<Event>> GetAll(
+        [FromQuery] string? title,
+        [FromQuery] DateTime? from,
+        [FromQuery] DateTime? to) =>
+            new ApiResult<IReadOnlyList<Event>>
+            {
+                Data = eventService.GetAll(title, from, to),
+                Success = true,
+                StatusCode = HttpStatusCode.OK
+            };
 
     /// <summary>
     /// Получение события по идентификатору
