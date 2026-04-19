@@ -1,6 +1,6 @@
 using EventManagmentApi.Application.Exceptions;
 using EventManagmentApi.Application.Interfaces;
-using EventManagmentApi.Models;
+using EventManagmentApi.Application.Models;
 using EventManagmentApi.Presentation.Dto;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
@@ -17,26 +17,38 @@ namespace EventManagmentApi.Presentation.Controllers;
 public class EventsController(IEventService eventService) : ControllerBase
 {
     /// <summary>
-    /// Получение всего списка событий
+    /// Получение списка событий
     /// </summary>
     /// <param name="title">Фильтр по названию</param>
     /// <param name="from">С даты</param>
     /// <param name="to">По дату</param>
-    /// <returns>Весь список событий</returns>
-    /// <response code="200">Весь список событий</response>
+    /// <param name="page">Номер страницы</param>
+    /// <param name="pageSize">Размер страницы</param>
+    /// <returns>Cписок событий</returns>
+    /// <response code="200">Список событий</response>
     [HttpGet]
     [Produces("application/json")]
-    [ProducesResponseType(typeof(ApiResult<IReadOnlyList<Event>>), StatusCodes.Status200OK)]
-    public ApiResult<IReadOnlyList<Event>> GetAll(
+    [ProducesResponseType(typeof(PaginatedResultDto<IReadOnlyList<Event>>), StatusCodes.Status200OK)]
+    public PaginatedResultDto<IReadOnlyList<Event>> GetAll(
         [FromQuery] string? title,
         [FromQuery] DateTime? from,
-        [FromQuery] DateTime? to) =>
-            new ApiResult<IReadOnlyList<Event>>
-            {
-                Data = eventService.GetAll(title, from, to),
-                Success = true,
-                StatusCode = HttpStatusCode.OK
-            };
+        [FromQuery] DateTime? to,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10)
+    {
+        var result = eventService.GetAll(title, from, to, page, pageSize);
+
+        return new PaginatedResultDto<IReadOnlyList<Event>>
+        {
+            Data = result.Items,
+            Success = true,
+            StatusCode = HttpStatusCode.OK,
+            Page = result.Page,
+            PageSize = result.PageSize,
+            TotalItems = result.TotalItems,
+            TotalPages = result.TotalPages
+        };
+    }
 
     /// <summary>
     /// Получение события по идентификатору
@@ -47,10 +59,10 @@ public class EventsController(IEventService eventService) : ControllerBase
     /// <response code="404">Неверные данные события</response>
     [HttpGet("{id:int}")]
     [Produces("application/json")]
-    [ProducesResponseType(typeof(ApiResult<Event>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiResult), StatusCodes.Status404NotFound)]
-    public ApiResult Get(int id) =>
-        new ApiResult<Event>
+    [ProducesResponseType(typeof(ApiResultDto<Event>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status404NotFound)]
+    public ApiResultDto Get(int id) =>
+        new ApiResultDto<Event>
         {
             Data = eventService.Get(id),
             Success = true,
@@ -67,15 +79,15 @@ public class EventsController(IEventService eventService) : ControllerBase
     /// <response code="400">Неверные данные события</response>
     [HttpPost]
     [Consumes("application/json")]
-    [ProducesResponseType(typeof(ApiResult<Event>), StatusCodes.Status201Created)]
-    [ProducesResponseType(typeof(ApiResult), StatusCodes.Status400BadRequest)]
-    public ActionResult<ApiResult> Post([FromBody] EventDto eventDto)
+    [ProducesResponseType(typeof(ApiResultDto<Event>), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status400BadRequest)]
+    public ActionResult<ApiResultDto> Post([FromBody] EventDto eventDto)
     {
         var @event = eventService.Create(eventDto.Title, eventDto.StartAt, eventDto.EndAt, eventDto.Description);
 
         return CreatedAtAction(nameof(Get),
             new { id = @event.Id },
-            new ApiResult<Event>
+            new ApiResultDto<Event>
             {
                 Data = @event,
                 Success = true,
@@ -94,8 +106,8 @@ public class EventsController(IEventService eventService) : ControllerBase
     [HttpPut("{id:int}")]
     [Consumes("application/json")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(typeof(ApiResult), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ApiResult), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status404NotFound)]
     public NoContentResult Put(int id, [FromBody] EventDto eventDto)
     {
         eventService.Update(id, eventDto.Title, eventDto.StartAt, eventDto.EndAt, eventDto.Description);
@@ -112,7 +124,7 @@ public class EventsController(IEventService eventService) : ControllerBase
     /// <response code="404">Событие не найдено</response>
     [HttpDelete("{id:int}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(typeof(ApiResult), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status404NotFound)]
     public NoContentResult Delete(int id)
     {
         eventService.Remove(id);

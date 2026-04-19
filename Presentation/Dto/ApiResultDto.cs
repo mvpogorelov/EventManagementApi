@@ -1,12 +1,12 @@
 using System.Net;
 
-namespace EventManagmentApi.Presentation;
+namespace EventManagmentApi.Presentation.Dto;
 
 /// <summary>
 /// Результат работы API c возвращаемыми данными
 /// </summary>
 /// <typeparam name="T">Тип возвращаемых данных</typeparam>
-public class ApiResult<T> : ApiResult
+public class ApiResultDto<T> : ApiResultDto
 {
     /// <summary>
     /// Возвращаемые данные
@@ -17,12 +17,12 @@ public class ApiResult<T> : ApiResult
 /// <summary>
 /// Результат работы API без возвращаемых данных
 /// </summary>
-public class ApiResult : ApiResultBase { }
+public class ApiResultDto : ApiResultBaseDto { }
 
 /// <summary>
 /// Базовый класс результата работы API
 /// </summary>
-public class ApiResultBase
+public class ApiResultBaseDto
 {
     /// <summary>
     /// Флаг, указывающий на успешность выполненного запроса

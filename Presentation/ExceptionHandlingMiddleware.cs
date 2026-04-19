@@ -1,5 +1,5 @@
 ﻿using EventManagmentApi.Application.Exceptions;
-using Microsoft.AspNetCore.Mvc;
+using EventManagmentApi.Presentation.Dto;
 using System.ComponentModel.DataAnnotations;
 using System.Net;
 
@@ -47,7 +47,7 @@ public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Exception
         httpContext.Response.StatusCode = statusCode;
         httpContext.Response.ContentType = "application/json";
 
-        var error = new ApiResult
+        var error = new ApiResultDto
         {
             Success = false,
             StatusCode = (HttpStatusCode)statusCode,

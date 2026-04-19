@@ -1,7 +1,6 @@
 using EventManagmentApi.Application.Exceptions;
 using EventManagmentApi.Application.Interfaces;
-using EventManagmentApi.Models;
-using EventManagmentApi.Presentation.Dto;
+using EventManagmentApi.Application.Models;
 
 namespace EventManagmentApi.Application.Services;
 
@@ -19,8 +18,10 @@ public class EventService : IEventService
     /// <param name="title">Фильтр по названию</param>
     /// <param name="from">С даты</param>
     /// <param name="to">По дату</param>
+    /// <param name="page">Номер страницы</param>
+    /// <param name="pageSize">Размер страницы</param>
     /// <returns>Список событий</returns>
-    public IReadOnlyList<Event> GetAll(string? title, DateTime? from, DateTime? to)
+    public PaginatedResult<Event> GetAll(string? title, DateTime? from, DateTime? to, int page = 1, int pageSize = 10)
     {
         var events = _events.Values as IEnumerable<Event>;
 
@@ -39,7 +40,14 @@ public class EventService : IEventService
             events = events.Where(e => e.EndAt <= to);
         }
 
-        return events.ToList();
+        var totalItems = events.Count();
+        var totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+        var items = events
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+
+        return new PaginatedResult<Event>(items, page, pageSize, totalItems, totalPages);
     }
 
     /// <summary>

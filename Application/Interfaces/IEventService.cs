@@ -1,5 +1,4 @@
-using EventManagmentApi.Models;
-using Microsoft.AspNetCore.Mvc;
+using EventManagmentApi.Application.Models;
 
 namespace EventManagmentApi.Application.Interfaces;
 
@@ -14,8 +13,10 @@ public interface IEventService
     /// <param name="title">Фильтр по названию</param>
     /// <param name="from">С даты</param>
     /// <param name="to">По дату</param>
+    /// <param name="page">Номер страницы</param>
+    /// <param name="pageSize">Размер страницы</param>
     /// <returns></returns>
-    IReadOnlyList<Event> GetAll(string? title, DateTime? from, DateTime? to);
+    PaginatedResult<Event> GetAll(string? title, DateTime? from, DateTime? to, int page = 1, int pageSize = 10);
 
     /// <summary>
     /// Получение события по идентификатору
