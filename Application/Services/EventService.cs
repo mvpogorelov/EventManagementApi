@@ -1,7 +1,6 @@
 using EventManagmentApi.Application.Exceptions;
 using EventManagmentApi.Application.Interfaces;
-using EventManagmentApi.Models;
-using EventManagmentApi.Presentation.Dto;
+using EventManagmentApi.Application.Models;
 
 namespace EventManagmentApi.Application.Services;
 
@@ -14,10 +13,57 @@ public class EventService : IEventService
     private static int _lastId = 1;
 
     /// <summary>
-    /// Получение всех событий
+    /// Получение списка событий
     /// </summary>
+    /// <param name="title">Фильтр по названию</param>
+    /// <param name="from">С даты</param>
+    /// <param name="to">По дату</param>
+    /// <param name="page">Номер страницы</param>
+    /// <param name="pageSize">Размер страницы</param>
     /// <returns>Список событий</returns>
-    public IReadOnlyList<Event> GetAll() => _events.Values.ToList();
+    public PaginatedResult<Event> GetAll(
+        string? title = null,
+        DateTime? from = null,
+        DateTime? to = null,
+        int page = 1,
+        int pageSize = 10)
+    {
+        if (page < 1)
+        {
+            throw new ArgumentOutOfRangeException($"Неверный номер страницы: {nameof(page)}");
+        }
+
+        if (pageSize < 1)
+        {
+            throw new ArgumentOutOfRangeException($"Неверный размер страницы: {nameof(pageSize)}");
+        }
+
+        var events = _events.Values as IEnumerable<Event>;
+
+        if (!string.IsNullOrEmpty(title))
+        {
+            events = events.Where(e => e.Title.ToLower().Contains(title.ToLower()));
+        }
+        
+        if (from.HasValue)
+        {
+            events = events.Where(e => e.StartAt >= from);
+        }
+        
+        if (to.HasValue)
+        {
+            events = events.Where(e => e.EndAt <= to);
+        }
+
+        var totalItems = events.Count();
+        var totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+        var items = events
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+
+        return new PaginatedResult<Event>(items, page, pageSize, totalItems, totalPages);
+    }
 
     /// <summary>
     /// Получение события по идентификатору
@@ -34,7 +80,6 @@ public class EventService : IEventService
         throw new NotFoundException($"Событие с Id: {id} не найдено");
     }
 
-
     /// <summary>
     /// Создание события
     /// </summary>
@@ -44,18 +89,20 @@ public class EventService : IEventService
     /// <param name="description">Описание события</param>
     /// <returns>Событие</returns>
     /// <exception cref="ArgumentException">Не корректные аргументы</exception>
-    public Event Create(string title, DateTime startAt, DateTime endAt, string? description = null)
+    public Event Create(string title, DateTime? startAt, DateTime? endAt, string? description = null)
     {
         ValidateEventDataAndThrow(title, startAt, endAt);
 
+#pragma warning disable CS8629 // Тип значения, допускающего NULL, может быть NULL.
         var @event = new Event
         {
             Id = _lastId++,
             Title = title,
-            StartAt = startAt,
-            EndAt = endAt,
+            StartAt = startAt.Value,
+            EndAt = endAt.Value,
             Description = description
         };
+#pragma warning restore CS8629 // Тип значения, допускающего NULL, может быть NULL.
 
         _events.Add(@event.Id, @event);
 
@@ -72,7 +119,7 @@ public class EventService : IEventService
     /// <param name="description">Описание события</param>
     /// <exception cref="NotFoundException">Если событие не найдено</exception>
     /// <exception cref="ArgumentException">Если некорректные данные о событии</exception>
-    public void Update(int id, string title, DateTime startAt, DateTime endAt, string? description = null)
+    public void Update(int id, string title, DateTime? startAt, DateTime? endAt, string? description = null)
     {
         ValidateEventDataAndThrow(title, startAt, endAt);
 
@@ -82,8 +129,10 @@ public class EventService : IEventService
         }
 
         @event.Title = title;
-        @event.StartAt = startAt;
-        @event.EndAt = endAt;
+#pragma warning disable CS8629 // Тип значения, допускающего NULL, может быть NULL.
+        @event.StartAt = startAt.Value;
+        @event.EndAt = endAt.Value;
+#pragma warning restore CS8629 // Тип значения, допускающего NULL, может быть NULL.
         @event.Description = description;
     }
 
@@ -102,16 +151,37 @@ public class EventService : IEventService
         _events.Remove(id);
     }
 
-    private void ValidateEventDataAndThrow(string title, DateTime startAt, DateTime endAt, string? description = null)
+    private void ValidateEventDataAndThrow(string title, DateTime? startAt, DateTime? endAt, string? description = null)
     {
         if (string.IsNullOrEmpty(title))
         {
-            throw new ArgumentException("Название не должно быть пустым");
+            throw new ArgumentException($"Название должно быть заполнено: {nameof(title)}");
+        }
+
+        if (!startAt.HasValue)
+        {
+            throw new ArgumentException($"Дата начала должна быть заполнена: {nameof(startAt)}");
+        }
+        
+        if (!endAt.HasValue)
+        {
+            throw new ArgumentException($"Дата окончания должна быть заполнена: {nameof(endAt)}");
         }
 
         if (startAt > endAt)
         {
-            throw new ArgumentException("Дата начала не должна быть больше даты окончания");
+            throw new ArgumentException($"Дата начала не должна быть больше даты окончания");
         }
+    }
+
+    /// <summary>
+    /// Инициализация данных
+    /// </summary>
+    /// <param name="events"></param>
+    /// <param name="lastId"></param>
+    public void InitData(Dictionary<int, Event> events, int lastId)
+    {
+        _events = events;
+        _lastId = lastId;
     }
 }

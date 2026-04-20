@@ -1,4 +1,4 @@
-using EventManagmentApi.Models;
+using EventManagmentApi.Application.Models;
 
 namespace EventManagmentApi.Application.Interfaces;
 
@@ -10,8 +10,13 @@ public interface IEventService
     /// <summary>
     /// Получение всех событий
     /// </summary>
+    /// <param name="title">Фильтр по названию</param>
+    /// <param name="from">С даты</param>
+    /// <param name="to">По дату</param>
+    /// <param name="page">Номер страницы</param>
+    /// <param name="pageSize">Размер страницы</param>
     /// <returns></returns>
-    IReadOnlyList<Event> GetAll();
+    PaginatedResult<Event> GetAll(string? title, DateTime? from, DateTime? to, int page = 1, int pageSize = 10);
 
     /// <summary>
     /// Получение события по идентификатору
@@ -28,7 +33,7 @@ public interface IEventService
     /// <param name="endAt">Дата окончания</param>
     /// <param name="description">Описание события</param>
     /// <returns>Событие</returns>
-    Event Create(string title, DateTime startAt, DateTime endAt, string? description = null);
+    Event Create(string title, DateTime? startAt, DateTime? endAt, string? description = null);
 
     /// <summary>
     /// Обновление события
@@ -38,7 +43,7 @@ public interface IEventService
     /// <param name="startAt">Дата начала</param>
     /// <param name="endAt">Дата окончания</param>
     /// <param name="description">Описание события</param>
-    void Update(int id, string title, DateTime startAt, DateTime endAt, string? description = null);
+    void Update(int id, string title, DateTime? startAt, DateTime? endAt, string? description = null);
 
 
     /// <summary>

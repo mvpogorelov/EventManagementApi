@@ -1,9 +1,10 @@
 using EventManagmentApi.Application.Exceptions;
 using EventManagmentApi.Application.Interfaces;
-using EventManagmentApi.Models;
+using EventManagmentApi.Application.Models;
 using EventManagmentApi.Presentation.Dto;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
+using static System.Net.WebRequestMethods;
 
 namespace EventManagmentApi.Presentation.Controllers;
 
@@ -16,20 +17,39 @@ namespace EventManagmentApi.Presentation.Controllers;
 public class EventsController(IEventService eventService) : ControllerBase
 {
     /// <summary>
-    /// Получение всего списка событий
+    /// Получение списка событий
     /// </summary>
-    /// <returns>Весь список событий</returns>
-    /// <response code="200">Весь список событий</response>
+    /// <param name="title">Фильтр по названию</param>
+    /// <param name="from">С даты</param>
+    /// <param name="to">По дату</param>
+    /// <param name="page">Номер страницы</param>
+    /// <param name="pageSize">Размер страницы</param>
+    /// <returns>Cписок событий</returns>
+    /// <response code="200">Список событий</response>
     [HttpGet]
     [Produces("application/json")]
-    [ProducesResponseType(typeof(ApiResult<IReadOnlyList<Event>>), StatusCodes.Status200OK)]
-    public ApiResult<IReadOnlyList<Event>> GetAll() =>
-        new ApiResult<IReadOnlyList<Event>>
+    [ProducesResponseType(typeof(PaginatedResultDto<IReadOnlyList<Event>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status400BadRequest)]
+    public PaginatedResultDto<IReadOnlyList<Event>> GetAll(
+        [FromQuery] string? title,
+        [FromQuery] DateTime? from,
+        [FromQuery] DateTime? to,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10)
+    {
+        var result = eventService.GetAll(title, from, to, page, pageSize);
+
+        return new PaginatedResultDto<IReadOnlyList<Event>>
         {
-            Data = eventService.GetAll(),
+            Data = result.Items,
             Success = true,
-            StatusCode = HttpStatusCode.OK
+            StatusCode = HttpStatusCode.OK,
+            Page = result.Page,
+            PageSize = result.PageSize,
+            TotalItems = result.TotalItems,
+            TotalPages = result.TotalPages
         };
+    }
 
     /// <summary>
     /// Получение события по идентификатору
@@ -40,29 +60,15 @@ public class EventsController(IEventService eventService) : ControllerBase
     /// <response code="404">Неверные данные события</response>
     [HttpGet("{id:int}")]
     [Produces("application/json")]
-    [ProducesResponseType(typeof(ApiResult<Event>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiResult), StatusCodes.Status404NotFound)]
-    public ApiResultBase Get(int id)
-    {
-        try
+    [ProducesResponseType(typeof(ApiResultDto<Event>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status404NotFound)]
+    public ApiResultDto Get(int id) =>
+        new ApiResultDto<Event>
         {
-            return new ApiResult<Event>
-            {
-                Data = eventService.Get(id),
-                Success = true,
-                StatusCode= HttpStatusCode.OK
-            };
-        }
-        catch (NotFoundException e)
-        {
-            return new ApiResult
-            {
-                Success = false,
-                StatusCode = HttpStatusCode.NotFound,
-                Message = e.Message
-            };
-        }
-    }
+            Data = eventService.Get(id),
+            Success = true,
+            StatusCode = HttpStatusCode.OK
+        };
 
 
     /// <summary>
@@ -74,30 +80,20 @@ public class EventsController(IEventService eventService) : ControllerBase
     /// <response code="400">Неверные данные события</response>
     [HttpPost]
     [Consumes("application/json")]
-    [ProducesResponseType(typeof(ApiResult<Event>), StatusCodes.Status201Created)]
-    [ProducesResponseType(typeof(ApiResult), StatusCodes.Status400BadRequest)]
-    public ApiResultBase Post([FromBody] EventDto eventDto)
+    [ProducesResponseType(typeof(ApiResultDto<Event>), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status400BadRequest)]
+    public ActionResult<ApiResultDto> Post([FromBody] EventDto eventDto)
     {
-        try
-        {
-            var @event = eventService.Create(eventDto.Title, eventDto.StartAt.Value, eventDto.EndAt.Value, eventDto.Description);
+        var @event = eventService.Create(eventDto.Title, eventDto.StartAt, eventDto.EndAt, eventDto.Description);
 
-            return new ApiResult<Event>
+        return CreatedAtAction(nameof(Get),
+            new { id = @event.Id },
+            new ApiResultDto<Event>
             {
                 Data = @event,
                 Success = true,
                 StatusCode = HttpStatusCode.Created
-            };
-        }
-        catch (Exception e)
-        {
-            return new ApiResult
-            {
-                Success = false,
-                StatusCode = HttpStatusCode.BadRequest,
-                Message = e.Message
-            };
-        }
+            });
     }
 
     /// <summary>
@@ -105,44 +101,19 @@ public class EventsController(IEventService eventService) : ControllerBase
     /// </summary>
     /// <param name="id">Идентификатор события</param>
     /// <param name="eventDto">Данные события</param>
-    /// <response code="204"></response>
+    /// <response code="204">Успешное обновление</response>
     /// <response code="400">Неверные данные события</response>
     /// <response code="404">Событие не найдено</response>
     [HttpPut("{id:int}")]
     [Consumes("application/json")]
-    [ProducesResponseType(typeof(ApiResult), StatusCodes.Status204NoContent)]
-    [ProducesResponseType(typeof(ApiResult), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ApiResult), StatusCodes.Status404NotFound)]
-    public ApiResult Put(int id, [FromBody] EventDto eventDto)
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status404NotFound)]
+    public NoContentResult Put(int id, [FromBody] EventDto eventDto)
     {
-        try
-        {
-            eventService.Update(id, eventDto.Title, eventDto.StartAt.Value, eventDto.EndAt.Value, eventDto.Description);
+        eventService.Update(id, eventDto.Title, eventDto.StartAt, eventDto.EndAt, eventDto.Description);
 
-            return new ApiResult
-            {
-                Success = true,
-                StatusCode = HttpStatusCode.NoContent
-            };
-        }
-        catch (NotFoundException e)
-        {
-            return new ApiResult
-            {
-                Success = false,
-                StatusCode = HttpStatusCode.NotFound,
-                Message = e.Message
-            };
-        }
-        catch (Exception e)
-        {
-            return new ApiResult
-            {
-                Success = false,
-                StatusCode = HttpStatusCode.BadRequest,
-                Message = e.Message
-            };
-        }
+        return NoContent();
     }
 
     /// <summary>
@@ -153,28 +124,12 @@ public class EventsController(IEventService eventService) : ControllerBase
     /// <response code="204">Событие удалено</response>
     /// <response code="404">Событие не найдено</response>
     [HttpDelete("{id:int}")]
-    [ProducesResponseType(typeof(ApiResult), StatusCodes.Status204NoContent)]
-    [ProducesResponseType(typeof(ApiResult), StatusCodes.Status404NotFound)]
-    public ApiResult Delete(int id)
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status404NotFound)]
+    public NoContentResult Delete(int id)
     {
-        try
-        {
-            eventService.Remove(id);
+        eventService.Remove(id);
 
-            return new ApiResult
-            {
-                Success = true,
-                StatusCode = HttpStatusCode.NoContent
-            };
-        }
-        catch (NotFoundException e)
-        {
-            return new ApiResult
-            {
-                Success = false,
-                StatusCode = HttpStatusCode.NotFound,
-                Message = e.Message
-            };
-        }
+        return NoContent();
     }
 }
