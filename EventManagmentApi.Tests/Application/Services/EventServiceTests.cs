@@ -256,6 +256,7 @@ public class EventServiceTests
         // ToDo: добавить проверки, когда перейдём на другой источник данных
     }
 
+#pragma warning disable CS8625 // Литерал, равный NULL, не может быть преобразован в ссылочный тип, не допускающий значение NULL.
     public static IEnumerable<object[]> WrongEventParams() =>
         [
             [string.Empty, null, null],
@@ -263,4 +264,5 @@ public class EventServiceTests
             ["test", new DateTime(2026, 4, 1), null],
             ["test", new DateTime(2026, 4, 1), new DateTime(2026, 3, 1)],
         ];
+#pragma warning restore CS8625 // Литерал, равный NULL, не может быть преобразован в ссылочный тип, не допускающий значение NULL.
 }
