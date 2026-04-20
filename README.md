@@ -59,22 +59,22 @@ URL: `/events`
 ```json
 {
   "success": true,
-  "statusCode": 100,
+  "statusCode": 200,
   "dateTime": "2026-04-20T08:10:30.249Z",
   "message": "string",
   "data": [
     {
-      "id": 0,
+      "id": 1,
       "title": "string",
       "description": "string",
       "startAt": "2026-04-20T08:10:30.249Z",
       "endAt": "2026-04-20T08:10:30.249Z"
     }
   ],
-  "page": 0,
-  "pageSize": 0,
-  "totalItems": 0,
-  "totalPages": 0
+  "page": 1,
+  "pageSize": 10,
+  "totalItems": 1,
+  "totalPages": 1
 }
 ```
 
