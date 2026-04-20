@@ -13,7 +13,7 @@ public class EventService : IEventService
     private static int _lastId = 1;
 
     /// <summary>
-    /// Получение всех событий
+    /// Получение списка событий
     /// </summary>
     /// <param name="title">Фильтр по названию</param>
     /// <param name="from">С даты</param>
@@ -21,8 +21,23 @@ public class EventService : IEventService
     /// <param name="page">Номер страницы</param>
     /// <param name="pageSize">Размер страницы</param>
     /// <returns>Список событий</returns>
-    public PaginatedResult<Event> GetAll(string? title, DateTime? from, DateTime? to, int page = 1, int pageSize = 10)
+    public PaginatedResult<Event> GetAll(
+        string? title = null,
+        DateTime? from = null,
+        DateTime? to = null,
+        int page = 1,
+        int pageSize = 10)
     {
+        if (page < 1)
+        {
+            throw new ArgumentOutOfRangeException($"Неверный номер страницы: {nameof(page)}");
+        }
+
+        if (pageSize < 1)
+        {
+            throw new ArgumentOutOfRangeException($"Неверный размер страницы: {nameof(pageSize)}");
+        }
+
         var events = _events.Values as IEnumerable<Event>;
 
         if (!string.IsNullOrEmpty(title))
@@ -64,7 +79,6 @@ public class EventService : IEventService
 
         throw new NotFoundException($"Событие с Id: {id} не найдено");
     }
-
 
     /// <summary>
     /// Создание события
@@ -158,5 +172,16 @@ public class EventService : IEventService
         {
             throw new ArgumentException($"Дата начала не должна быть больше даты окончания");
         }
+    }
+
+    /// <summary>
+    /// Инициализация данных
+    /// </summary>
+    /// <param name="events"></param>
+    /// <param name="lastId"></param>
+    public void InitData(Dictionary<int, Event> events, int lastId)
+    {
+        _events = events;
+        _lastId = lastId;
     }
 }

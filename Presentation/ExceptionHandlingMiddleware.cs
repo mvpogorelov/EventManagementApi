@@ -60,6 +60,7 @@ public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Exception
     private static int MapStatusCode(Exception ex) =>
         ex switch
         {
+            ArgumentOutOfRangeException aore => StatusCodes.Status400BadRequest,
             ArgumentException ae => StatusCodes.Status400BadRequest,
             ValidationException ve => StatusCodes.Status400BadRequest,
             NotFoundException nfe => StatusCodes.Status404NotFound,

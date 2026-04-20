@@ -29,6 +29,7 @@ public class EventsController(IEventService eventService) : ControllerBase
     [HttpGet]
     [Produces("application/json")]
     [ProducesResponseType(typeof(PaginatedResultDto<IReadOnlyList<Event>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status400BadRequest)]
     public PaginatedResultDto<IReadOnlyList<Event>> GetAll(
         [FromQuery] string? title,
         [FromQuery] DateTime? from,
