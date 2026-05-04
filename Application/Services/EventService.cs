@@ -9,8 +9,7 @@ namespace EventManagmentApi.Application.Services;
 /// </summary>
 public class EventService : IEventService
 {
-    private static Dictionary<int, Event> _events = new();
-    private static int _lastId = 1;
+    private static Dictionary<Guid, Event> _events = new();
 
     /// <summary>
     /// Получение списка событий
@@ -70,7 +69,7 @@ public class EventService : IEventService
     /// </summary>
     /// <param name="id">Идентификатор события</param>
     /// <returns>Событие</returns>
-    public Event Get(int id)
+    public Event Get(Guid id)
     {
         if (_events.TryGetValue(id, out var @event))
         {
@@ -96,7 +95,7 @@ public class EventService : IEventService
 #pragma warning disable CS8629 // Тип значения, допускающего NULL, может быть NULL.
         var @event = new Event
         {
-            Id = _lastId++,
+            Id = Guid.NewGuid(),
             Title = title,
             StartAt = startAt.Value,
             EndAt = endAt.Value,
@@ -119,7 +118,7 @@ public class EventService : IEventService
     /// <param name="description">Описание события</param>
     /// <exception cref="NotFoundException">Если событие не найдено</exception>
     /// <exception cref="ArgumentException">Если некорректные данные о событии</exception>
-    public void Update(int id, string title, DateTime? startAt, DateTime? endAt, string? description = null)
+    public void Update(Guid id, string title, DateTime? startAt, DateTime? endAt, string? description = null)
     {
         ValidateEventDataAndThrow(title, startAt, endAt);
 
@@ -141,7 +140,7 @@ public class EventService : IEventService
     /// </summary>
     /// <param name="id">Идентификатор события</param>
     /// <exception cref="NotFoundException">Если событие не найдено</exception>
-    public void Remove(int id)
+    public void Remove(Guid id)
     {
         if (!_events.TryGetValue(id, out var @event))
         {
@@ -178,10 +177,8 @@ public class EventService : IEventService
     /// Инициализация данных
     /// </summary>
     /// <param name="events"></param>
-    /// <param name="lastId"></param>
-    public void InitData(Dictionary<int, Event> events, int lastId)
+    public void InitData(Dictionary<Guid, Event> events)
     {
         _events = events;
-        _lastId = lastId;
     }
 }

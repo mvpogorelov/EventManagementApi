@@ -58,11 +58,11 @@ public class EventsController(IEventService eventService) : ControllerBase
     /// <returns>Событие</returns>
     /// <response code="200">Событие получено</response>
     /// <response code="404">Неверные данные события</response>
-    [HttpGet("{id:int}")]
+    [HttpGet("{id:Guid}")]
     [Produces("application/json")]
     [ProducesResponseType(typeof(ApiResultDto<Event>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status404NotFound)]
-    public ApiResultDto Get(int id) =>
+    public ApiResultDto Get(Guid id) =>
         new ApiResultDto<Event>
         {
             Data = eventService.Get(id),
@@ -104,12 +104,12 @@ public class EventsController(IEventService eventService) : ControllerBase
     /// <response code="204">Успешное обновление</response>
     /// <response code="400">Неверные данные события</response>
     /// <response code="404">Событие не найдено</response>
-    [HttpPut("{id:int}")]
+    [HttpPut("{id:Guid}")]
     [Consumes("application/json")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status404NotFound)]
-    public NoContentResult Put(int id, [FromBody] EventDto eventDto)
+    public NoContentResult Put(Guid id, [FromBody] EventDto eventDto)
     {
         eventService.Update(id, eventDto.Title, eventDto.StartAt, eventDto.EndAt, eventDto.Description);
 
@@ -123,10 +123,10 @@ public class EventsController(IEventService eventService) : ControllerBase
     /// <returns></returns>
     /// <response code="204">Событие удалено</response>
     /// <response code="404">Событие не найдено</response>
-    [HttpDelete("{id:int}")]
+    [HttpDelete("{id:Guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status404NotFound)]
-    public NoContentResult Delete(int id)
+    public NoContentResult Delete(Guid id)
     {
         eventService.Remove(id);
 

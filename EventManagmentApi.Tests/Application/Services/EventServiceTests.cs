@@ -8,20 +8,25 @@ namespace EventManagmentApi.Tests.Application.Services;
 public class EventServiceTests
 {
     private readonly EventService _eventService;
+    private readonly Guid _id1 = Guid.NewGuid();
 
     public EventServiceTests()
     {
         _eventService = new EventService();
 
-        Dictionary<int, Event> events = new()
+        var id2 = Guid.NewGuid();
+        var id3 = Guid.NewGuid();
+        var id4 = Guid.NewGuid();
+
+        Dictionary<Guid, Event> events = new()
         {
-            {1, new Event { Id = 1, Title = "Aa", Description = "AAaa", StartAt = new DateTime(2026, 4, 1), EndAt = new DateTime(2026, 4, 10) } },
-            {2, new Event { Id = 2, Title = "Bb", Description = "BBbb", StartAt = new DateTime(2026, 3, 1), EndAt = new DateTime(2026, 3, 10) } },
-            {3, new Event { Id = 3, Title = "Cc", Description = "CCcc", StartAt = new DateTime(2026, 2, 1), EndAt = new DateTime(2026, 2, 10) } },
-            {4, new Event { Id = 4, Title = "Ccc", Description = "CCCccc", StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 10) } },
+            {_id1, new Event { Id = _id1, Title = "Aa", Description = "AAaa", StartAt = new DateTime(2026, 4, 1), EndAt = new DateTime(2026, 4, 10) } },
+            {id2, new Event { Id = id2, Title = "Bb", Description = "BBbb", StartAt = new DateTime(2026, 3, 1), EndAt = new DateTime(2026, 3, 10) } },
+            {id3, new Event { Id = id3, Title = "Cc", Description = "CCcc", StartAt = new DateTime(2026, 2, 1), EndAt = new DateTime(2026, 2, 10) } },
+            {id4, new Event { Id = id4, Title = "Ccc", Description = "CCCccc", StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 10) } },
         };
 
-        _eventService.InitData(events, 5);
+        _eventService.InitData(events);
     }
 
     [Theory(DisplayName = "Создание: Если переданы неверные параметры, то должно выбрасываться исключение")]
@@ -159,9 +164,9 @@ public class EventServiceTests
     }
 
     [Theory(DisplayName = "Получение события по id: Если передан несущестующий id, то должно выбрасываться исключение")]
-    [InlineData(6)]
-    [InlineData(125)]
-    public void Get_WhenIdIsIncorrect_ShouldThrowException(int id)
+    [InlineData("3f2504e0-4f89-11d3-9a0c-0305e82c3301")]
+    [InlineData("b0d4ce5d-2757-4699-948c-cfa72ba94f86")]
+    public void Get_WhenIdIsIncorrect_ShouldThrowException(Guid id)
     {
         // Act
         var ex = Record.Exception(() => _eventService.Get(id));
@@ -175,7 +180,7 @@ public class EventServiceTests
     public void Get_WhenIdIsСorrect_ShouldReturnEvent()
     {
         // Act
-        var @event = _eventService.Get(1);
+        var @event = _eventService.Get(_id1);
 
         // Assert
         Assert.NotNull(@event);
@@ -187,7 +192,7 @@ public class EventServiceTests
     public void Update_WhenParamsAreWrong_ShouldThrowException(string title, DateTime? startAt, DateTime? endAt)
     {
         // Act
-        var ex = Record.Exception(() => _eventService.Update(1, title, startAt, endAt));
+        var ex = Record.Exception(() => _eventService.Update(_id1, title, startAt, endAt));
 
         // Assert
         Assert.NotNull(ex);
@@ -195,9 +200,9 @@ public class EventServiceTests
     }
     
     [Theory(DisplayName = "Обновление: Если переданы несуществующий id, то должно выбрасываться исключение")]
-    [InlineData(13)]
-    [InlineData(284)]
-    public void Update_WhenIdIsMissing_ShouldThrowException(int id)
+    [InlineData("b0d4ce5d-2757-4699-948c-cfa72ba94f86")]
+    [InlineData("3f2504e0-4f89-11d3-9a0c-0305e82c3301")]
+    public void Update_WhenIdIsMissing_ShouldThrowException(Guid id)
     {
         // Arrange
         var title = "Title";
@@ -216,7 +221,7 @@ public class EventServiceTests
     public void Update_WhenParamsAreСorrect_ShouldUpdateEvent()
     {
         // Arrange
-        var id = 1;
+        var id = _id1;
         var title = "Title";
         var startAt = new DateTime(2026, 1, 1);
         var endAt = new DateTime(2026, 3, 1);
@@ -230,9 +235,9 @@ public class EventServiceTests
     }
 
     [Theory(DisplayName = "Удаление: Если переданы несуществующий id, то должно выбрасываться исключение")]
-    [InlineData(13)]
-    [InlineData(284)]
-    public void Remove_WhenIdIsMissing_ShouldThrowException(int id)
+    [InlineData("b0d4ce5d-2757-4699-948c-cfa72ba94f86")]
+    [InlineData("3f2504e0-4f89-11d3-9a0c-0305e82c3301")]
+    public void Remove_WhenIdIsMissing_ShouldThrowException(Guid id)
     {
         // Act
         var ex = Record.Exception(() => _eventService.Remove(id));
@@ -246,7 +251,7 @@ public class EventServiceTests
     public void Remove_WhenParamsAreСorrect_ShouldRemoveEvent()
     {
         // Arrange
-        var id = 1;
+        var id = _id1;
 
         // Act
         var ex = Record.Exception(() => _eventService.Remove(id));
