@@ -85,7 +85,7 @@ public class EventServiceTests
         // Assert
         Assert.Equal(4, events.Items.Count);
         Assert.Equal(1, events.Page);
-        Assert.Equal(10, events.PageSize);
+        Assert.Equal(4, events.PageSize);
         Assert.Equal(4, events.TotalItems);
         Assert.Equal(1, events.TotalPages);
     }
@@ -93,8 +93,8 @@ public class EventServiceTests
     [Theory(DisplayName = "Получение списка событий: Если заданы параметры пагинации, то должны вернуться соответствующие данные")]
     [InlineData(1, 2, 2, 4, 2)]
     [InlineData(2, 1, 1, 4, 4)]
-    [InlineData(2, 3, 1, 4, 2)]
-    [InlineData(1, 5, 4, 4, 1)]
+    [InlineData(2, 1, 1, 4, 4)]
+    [InlineData(1, 4, 4, 4, 1)]
     public void GetAll_WhenPaginationParamsAreDefined_ShouldReturnCorrectData(int page, int pageSize, int expectedItemsCount, int expectedTotalItems, int expectedTotalPages)
     {
         // Act

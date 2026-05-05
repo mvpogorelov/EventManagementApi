@@ -76,7 +76,7 @@ public class BookingService(IEventService eventService) : IBookingService
             }
         }
 
-        throw new ArgumentException($"Не удалось создать бронь для события: {eventId}");
+        throw new NotFoundException($"Не удалось создать бронь для события: {eventId}");
     }
 
     /// <summary>
