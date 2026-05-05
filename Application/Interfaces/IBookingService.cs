@@ -1,5 +1,6 @@
 using EventManagmentApi.Application.Enums;
 using EventManagmentApi.Application.Models;
+using System.Collections.ObjectModel;
 
 namespace EventManagmentApi.Application.Interfaces;
 
@@ -11,33 +12,34 @@ public interface IBookingService
     /// <summary>
     /// Получение списка брони
     /// </summary>
-    /// <param name="eventId">Фильтр по событию</param>
-    /// <param name="page">Номер страницы</param>
-    /// <param name="pageSize">Размер страницы</param>
-    /// <returns></returns>
-    PaginatedResult<Booking> GetAll(Guid? eventId, int page = 1, int pageSize = 10);
+    /// <param name="status">Фильтр по статусу</param>
+    /// <param name="ct">Токен отмены</param>
+    /// <returns>Список брони</returns>
+    Task<IReadOnlyList<Booking>> GetByStatusAsync(BookingStatusEnum status, CancellationToken ct);
 
     /// <summary>
     /// Получение брони по идентификатору
     /// </summary>
     /// <param name="bookingId">Идентификатор брони</param>
+    /// <param name="ct">Токен отмены</param>
     /// <returns>Бронь</returns>
-    Task<Booking> GetBookingByIdAsync(Guid bookingId);
+    Task<Booking> GetBookingByIdAsync(Guid bookingId, CancellationToken ct);
 
     /// <summary>
     /// Создание брони
     /// </summary>
     /// <param name="eventId">Идентификатор события</param>
+    /// <param name="ct">Токен отмены</param>
     /// <returns>Бронь</returns>
-    Task<Booking> CreateBookingAsync(Guid eventId);
+    Task<Booking> CreateBookingAsync(Guid eventId, CancellationToken ct);
 
     /// <summary>
     /// Обновление брони
     /// </summary>
     /// <param name="id">Идентификатор брони</param>
     /// <param name="status">Статус брони</param>
-    Task UpdateStatusAsync(Guid id, BookingStatusEnum status);
-
+    /// <param name="ct">Токен отмены</param>
+    Task UpdateStatusAsync(Guid id, BookingStatusEnum status, CancellationToken ct);
 
     /// <summary>
     /// Удаление брони
