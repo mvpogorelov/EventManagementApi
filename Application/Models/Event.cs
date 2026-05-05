@@ -3,7 +3,7 @@ namespace EventManagmentApi.Application.Models;
 /// <summary>
 /// Модель события
 /// </summary>
-public class Event
+public record Event
 {
     /// <summary>
     /// Уникальный идентификатор события

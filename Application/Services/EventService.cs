@@ -61,7 +61,7 @@ public class EventService : IEventService
             .Take(pageSize)
             .ToList();
 
-        return new PaginatedResult<Event>(items, page, pageSize, totalItems, totalPages);
+        return new PaginatedResult<Event>(items, page, items.Count, totalItems, totalPages);
     }
 
     /// <summary>
