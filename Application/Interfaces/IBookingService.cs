@@ -15,7 +15,7 @@ public interface IBookingService
     /// <param name="status">Фильтр по статусу</param>
     /// <param name="ct">Токен отмены</param>
     /// <returns>Список брони</returns>
-    Task<IReadOnlyList<Booking>> GetByStatusAsync(BookingStatusEnum status, CancellationToken ct);
+    Task<ReadOnlyCollection<Booking>> GetByStatusAsync(BookingStatus status, CancellationToken ct);
 
     /// <summary>
     /// Получение брони по идентификатору
@@ -39,7 +39,7 @@ public interface IBookingService
     /// <param name="id">Идентификатор брони</param>
     /// <param name="status">Статус брони</param>
     /// <param name="ct">Токен отмены</param>
-    Task UpdateStatusAsync(Guid id, BookingStatusEnum status, CancellationToken ct);
+    Task UpdateStatusAsync(Guid id, BookingStatus status, CancellationToken ct);
 
     /// <summary>
     /// Удаление брони

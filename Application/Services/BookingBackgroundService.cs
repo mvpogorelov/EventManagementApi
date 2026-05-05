@@ -28,12 +28,12 @@ namespace EventManagmentApi.Application.Services
                 {
                     using var scope = scopeFactory.CreateScope();
                     var bookingService = scope.ServiceProvider.GetRequiredService<IBookingService>();
-                    var pendingBookings = await bookingService.GetByStatusAsync(BookingStatusEnum.Pending, ct);
+                    var pendingBookings = await bookingService.GetByStatusAsync(BookingStatus.Pending, ct);
 
                     foreach ( var pendingBooking in pendingBookings)
                     {
                         await Task.Delay(TimeSpan.FromSeconds(2), ct);
-                        await bookingService.UpdateStatusAsync(pendingBooking.Id, BookingStatusEnum.Confirmed, ct);
+                        await bookingService.UpdateStatusAsync(pendingBooking.Id, BookingStatus.Confirmed, ct);
                     }
 
                     await Task.Delay(TimeSpan.FromSeconds(10), ct);

@@ -93,7 +93,6 @@ public class EventServiceTests
     [Theory(DisplayName = "Получение списка событий: Если заданы параметры пагинации, то должны вернуться соответствующие данные")]
     [InlineData(1, 2, 2, 4, 2)]
     [InlineData(2, 1, 1, 4, 4)]
-    [InlineData(2, 1, 1, 4, 4)]
     [InlineData(1, 4, 4, 4, 1)]
     public void GetAll_WhenPaginationParamsAreDefined_ShouldReturnCorrectData(int page, int pageSize, int expectedItemsCount, int expectedTotalItems, int expectedTotalPages)
     {

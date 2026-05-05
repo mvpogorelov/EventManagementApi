@@ -24,14 +24,18 @@ namespace EventManagmentApi.Presentation.Controllers
         /// <response code="404">Неверные данные события</response>
         [HttpGet("{bookingId:Guid}")]
         [Produces("application/json")]
-        [ProducesResponseType(typeof(ApiResultDto<Booking>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResultDto<BookingOutDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status404NotFound)]
-        public async Task<ApiResultDto> Get(Guid bookingId, CancellationToken ct) =>
-            new ApiResultDto<Booking>
+        public async Task<ApiResultDto<BookingOutDto>> Get(Guid bookingId, CancellationToken ct)
+        {
+            var booking = await bookingService.GetBookingByIdAsync(bookingId, ct);
+
+            return new ApiResultDto<BookingOutDto>
             {
-                Data = await bookingService.GetBookingByIdAsync(bookingId, ct),
+                Data = new BookingOutDto(booking.Id, booking.EventId, booking.Status.ToString()),
                 Success = true,
                 StatusCode = HttpStatusCode.OK
             };
+        }
     }
 }

@@ -20,7 +20,7 @@ namespace EventManagmentApi.Application.Models
         /// <summary>
         /// Текущий статус брони
         /// </summary>
-        public required BookingStatusEnum Status { get; set; }
+        public required BookingStatus Status { get; set; }
 
         /// <summary>
         /// Дата и время создания брони

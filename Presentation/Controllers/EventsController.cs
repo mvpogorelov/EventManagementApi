@@ -143,7 +143,7 @@ public class EventsController(IEventService eventService, IBookingService bookin
     /// <response code="404">Событие не найдено</response>
     [HttpPost("{id:Guid}/book")]
     [Produces("application/json")]
-    [ProducesResponseType(typeof(ApiResultDto<Booking>), StatusCodes.Status202Accepted)]
+    [ProducesResponseType(typeof(ApiResultDto<BookingOutDto>), StatusCodes.Status202Accepted)]
     [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ApiResultDto>> CreateBookingAsync(Guid id, CancellationToken ct = default)
@@ -154,9 +154,9 @@ public class EventsController(IEventService eventService, IBookingService bookin
             actionName: "Get",
             controllerName: "Bookings",
             routeValues: new { bookingId = booking.Id },
-            value: new ApiResultDto<Booking>
+            value: new ApiResultDto<BookingOutDto>
                 {
-                    Data = booking,
+                    Data = new BookingOutDto(booking.Id, booking.EventId, booking.Status.ToString()),
                     StatusCode = HttpStatusCode.Accepted,
                     Success = true
                 }

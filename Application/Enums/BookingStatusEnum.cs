@@ -3,7 +3,7 @@
     /// <summary>
     /// Статус брони
     /// </summary>
-    public enum BookingStatusEnum
+    public enum BookingStatus
     {
         /// <summary>
         /// Бронь создана, ожидает обработки

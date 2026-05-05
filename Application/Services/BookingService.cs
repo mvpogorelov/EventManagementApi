@@ -3,6 +3,7 @@ using EventManagmentApi.Application.Exceptions;
 using EventManagmentApi.Application.Interfaces;
 using EventManagmentApi.Application.Models;
 using System.Collections.Concurrent;
+using System.Collections.ObjectModel;
 
 namespace EventManagmentApi.Application.Services;
 
@@ -19,15 +20,16 @@ public class BookingService(IEventService eventService) : IBookingService
     /// <param name="status">Фильтр по статусу</param>
     /// <param name="ct">Токен отмены</param>
     /// <returns>Список брони</returns>
-    public async Task<IReadOnlyList<Booking>> GetByStatusAsync(BookingStatusEnum status, CancellationToken ct)
+    public Task<ReadOnlyCollection<Booking>> GetByStatusAsync(BookingStatus status, CancellationToken ct)
     {
         ct.ThrowIfCancellationRequested();
 
         var booking = _booking.Values as IEnumerable<Booking>;
 
-        return booking
+        return Task.FromResult(booking
             .Where(b => b.Status == status)
-            .ToList();
+            .ToList()
+            .AsReadOnly());
     }
 
     /// <summary>
@@ -36,13 +38,13 @@ public class BookingService(IEventService eventService) : IBookingService
     /// <param name="bookingId">Идентификатор брони</param>
     /// <param name="ct">Токен отмены</param>
     /// <returns>Бронь</returns>
-    public async Task<Booking> GetBookingByIdAsync(Guid bookingId, CancellationToken ct)
+    public Task<Booking> GetBookingByIdAsync(Guid bookingId, CancellationToken ct)
     {
         ct.ThrowIfCancellationRequested();
 
         if (_booking.TryGetValue(bookingId, out var booking))
         {
-            return booking;
+            return Task.FromResult(booking);
         }
 
         throw new NotFoundException($"Бронь с Id: {bookingId} не найдена");
@@ -54,7 +56,7 @@ public class BookingService(IEventService eventService) : IBookingService
     /// <param name="eventId">Идентификатор события</param>
     /// /// <param name="ct">Токен отмены</param>
     /// <returns>Бронь</returns>
-    public async Task<Booking> CreateBookingAsync(Guid eventId, CancellationToken ct)
+    public Task<Booking> CreateBookingAsync(Guid eventId, CancellationToken ct)
     {
         ct.ThrowIfCancellationRequested();
 
@@ -66,13 +68,13 @@ public class BookingService(IEventService eventService) : IBookingService
             {
                 Id = Guid.NewGuid(),
                 EventId = @event.Id,
-                Status = BookingStatusEnum.Pending,
+                Status = BookingStatus.Pending,
                 CreatedAt = DateTime.UtcNow
             };
 
             if (_booking.TryAdd(booking.Id, booking))
             {
-                return booking;
+                return Task.FromResult(booking);
             }
         }
 
@@ -86,7 +88,7 @@ public class BookingService(IEventService eventService) : IBookingService
     /// <param name="status">Статус брони</param>
     /// <param name="ct">Токен отмены</param>
     /// <exception cref="NotFoundException">Если бронь не найдена</exception>
-    public async Task UpdateStatusAsync(Guid id, BookingStatusEnum status, CancellationToken ct)
+    public Task UpdateStatusAsync(Guid id, BookingStatus status, CancellationToken ct)
     {
         while (true)
         {
@@ -104,6 +106,8 @@ public class BookingService(IEventService eventService) : IBookingService
                 break;
             }
         }
+
+        return Task.CompletedTask;
     }
 
     /// <summary>

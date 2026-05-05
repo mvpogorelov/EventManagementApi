@@ -3,7 +3,9 @@ using EventManagmentApi.Application.Exceptions;
 using EventManagmentApi.Application.Interfaces;
 using EventManagmentApi.Application.Models;
 using EventManagmentApi.Application.Services;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 
 namespace EventManagmentApi.Tests.Application.Services;
 
@@ -37,7 +39,7 @@ public class BookingServiceTests
 
         // Assert
         Assert.Equal(eventId, booking.EventId);
-        Assert.Equal(BookingStatusEnum.Pending, booking.Status);
+        Assert.Equal(BookingStatus.Pending, booking.Status);
     }
     
     [Fact(DisplayName = "Создание нескольких броней для одного события — все создаются с уникальными Id")]
@@ -106,14 +108,14 @@ public class BookingServiceTests
         var bookingAfterCreateStatus = bookingAfterCreate.Status;
         var bookingAfterCreateProcessedAt = bookingAfterCreate.ProcessedAt;
 
-        await _bookingService.UpdateStatusAsync(bookingAfterCreate.Id, BookingStatusEnum.Confirmed, CancellationToken.None);
+        await _bookingService.UpdateStatusAsync(bookingAfterCreate.Id, BookingStatus.Confirmed, CancellationToken.None);
 
         var bookingAfterChangeStatus = await _bookingService.GetBookingByIdAsync(bookingAfterCreate.Id, CancellationToken.None);
 
         // Assert
-        Assert.Equal(BookingStatusEnum.Pending, bookingAfterCreateStatus);
+        Assert.Equal(BookingStatus.Pending, bookingAfterCreateStatus);
         Assert.Null(bookingAfterCreateProcessedAt);
-        Assert.Equal(BookingStatusEnum.Confirmed, bookingAfterChangeStatus.Status);
+        Assert.Equal(BookingStatus.Confirmed, bookingAfterChangeStatus.Status);
         Assert.NotNull(bookingAfterChangeStatus.ProcessedAt);
     }
 
@@ -139,6 +141,22 @@ public class BookingServiceTests
 
         // Act
         var ex = await Record.ExceptionAsync(async () => await _bookingService.GetBookingByIdAsync(bookingId, CancellationToken.None));
+
+        // Assert
+        Assert.NotNull(ex);
+        Assert.IsType<NotFoundException>(ex);
+    }
+
+    [Fact(DisplayName = "Для удалённого события должна выбрасываться ошибка")]
+    public async Task Create_WhenEventDeleted_ShouldRiseException()
+    {
+        // Arrange
+        var eventId = Guid.NewGuid();
+
+        _eventService.Get(eventId).Throws(new NotFoundException());
+
+        // Act
+        var ex = await Record.ExceptionAsync(async () => await _bookingService.CreateBookingAsync(eventId, CancellationToken.None));
 
         // Assert
         Assert.NotNull(ex);
