@@ -3,12 +3,12 @@ namespace EventManagmentApi.Application.Models;
 /// <summary>
 /// Модель события
 /// </summary>
-public class Event
+public record Event
 {
     /// <summary>
     /// Уникальный идентификатор события
     /// </summary>
-    public required int Id { get; init; }
+    public required Guid Id { get; init; }
 
     /// <summary>
     /// Название события
