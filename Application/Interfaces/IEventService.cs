@@ -29,11 +29,12 @@ public interface IEventService
     /// Создание события
     /// </summary>
     /// <param name="title">Название события</param>
+    /// <param name="totalSeats">Общее количество мест на событии</param>
     /// <param name="startAt">Дата начала</param>
     /// <param name="endAt">Дата окончания</param>
     /// <param name="description">Описание события</param>
     /// <returns>Событие</returns>
-    Event Create(string title, DateTime? startAt, DateTime? endAt, string? description = null);
+    Event Create(string title, DateTime? startAt, DateTime? endAt, int totalSeats, string? description = null);
 
     /// <summary>
     /// Обновление события
@@ -42,8 +43,9 @@ public interface IEventService
     /// <param name="title">Название события</param>
     /// <param name="startAt">Дата начала</param>
     /// <param name="endAt">Дата окончания</param>
+    /// <param name="totalSeats">Общее количество мест на событии</param>
     /// <param name="description">Описание события</param>
-    void Update(int id, string title, DateTime? startAt, DateTime? endAt, string? description = null);
+    void Update(int id, string title, DateTime? startAt, DateTime? endAt,int totalSeats, string? description = null);
 
 
     /// <summary>

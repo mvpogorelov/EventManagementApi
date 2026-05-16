@@ -84,14 +84,15 @@ public class EventService : IEventService
     /// Создание события
     /// </summary>
     /// <param name="title">Название события</param>
+    /// <param name="totalSeats">Общее количество мест на событии</param>
     /// <param name="startAt">Дата начала</param>
     /// <param name="endAt">Дата окончания</param>
     /// <param name="description">Описание события</param>
     /// <returns>Событие</returns>
     /// <exception cref="ArgumentException">Не корректные аргументы</exception>
-    public Event Create(string title, DateTime? startAt, DateTime? endAt, string? description = null)
+    public Event Create(string title, DateTime? startAt, DateTime? endAt, int totalSeats, string? description = null)
     {
-        ValidateEventDataAndThrow(title, startAt, endAt);
+        ValidateEventDataAndThrow(title, startAt, endAt, totalSeats);
 
 #pragma warning disable CS8629 // Тип значения, допускающего NULL, может быть NULL.
         var @event = new Event
@@ -100,7 +101,9 @@ public class EventService : IEventService
             Title = title,
             StartAt = startAt.Value,
             EndAt = endAt.Value,
-            Description = description
+            Description = description,
+            TotalSeats = totalSeats,
+            AvailableSeats = totalSeats
         };
 #pragma warning restore CS8629 // Тип значения, допускающего NULL, может быть NULL.
 
@@ -116,12 +119,13 @@ public class EventService : IEventService
     /// <param name="title">Название события</param>
     /// <param name="startAt">Дата начала</param>
     /// <param name="endAt">Дата окончания</param>
+    /// <param name="totalSeats">Общее количество мест на событии</param>
     /// <param name="description">Описание события</param>
     /// <exception cref="NotFoundException">Если событие не найдено</exception>
     /// <exception cref="ArgumentException">Если некорректные данные о событии</exception>
-    public void Update(int id, string title, DateTime? startAt, DateTime? endAt, string? description = null)
+    public void Update(int id, string title, DateTime? startAt, DateTime? endAt, int totalSeats, string? description = null)
     {
-        ValidateEventDataAndThrow(title, startAt, endAt);
+        ValidateEventDataAndThrow(title, startAt, endAt, totalSeats);
 
         if (!_events.TryGetValue(id, out var @event))
         {
@@ -134,6 +138,8 @@ public class EventService : IEventService
         @event.EndAt = endAt.Value;
 #pragma warning restore CS8629 // Тип значения, допускающего NULL, может быть NULL.
         @event.Description = description;
+        @event.TotalSeats = totalSeats;
+        @event.AvailableSeats = totalSeats;
     }
 
     /// <summary>
@@ -151,7 +157,7 @@ public class EventService : IEventService
         _events.Remove(id);
     }
 
-    private void ValidateEventDataAndThrow(string title, DateTime? startAt, DateTime? endAt, string? description = null)
+    private void ValidateEventDataAndThrow(string title, DateTime? startAt, DateTime? endAt, int totalSeats, string? description = null)
     {
         if (string.IsNullOrEmpty(title))
         {
@@ -170,7 +176,12 @@ public class EventService : IEventService
 
         if (startAt > endAt)
         {
-            throw new ArgumentException($"Дата начала не должна быть больше даты окончания");
+            throw new ArgumentException("Дата начала не должна быть больше даты окончания");
+        }
+
+        if (totalSeats <= 0)
+        {
+            throw new ArgumentException($"Общее количество мест должно быть больше нуля: {nameof(totalSeats)}");
         }
     }
 
