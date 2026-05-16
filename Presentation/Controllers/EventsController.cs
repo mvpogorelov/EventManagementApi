@@ -1,10 +1,8 @@
-using EventManagmentApi.Application.Exceptions;
 using EventManagmentApi.Application.Interfaces;
 using EventManagmentApi.Application.Models;
 using EventManagmentApi.Presentation.Dto;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
-using static System.Net.WebRequestMethods;
 
 namespace EventManagmentApi.Presentation.Controllers;
 
@@ -12,9 +10,10 @@ namespace EventManagmentApi.Presentation.Controllers;
 /// Контроллер обработки событий
 /// </summary>
 /// <param name="eventService"></param>
+/// <param name="bookingService"></param>
 [ApiController]
 [Route("[controller]")]
-public class EventsController(IEventService eventService) : ControllerBase
+public class EventsController(IEventService eventService, IBookingService bookingService) : ControllerBase
 {
     /// <summary>
     /// Получение списка событий
@@ -58,11 +57,11 @@ public class EventsController(IEventService eventService) : ControllerBase
     /// <returns>Событие</returns>
     /// <response code="200">Событие получено</response>
     /// <response code="404">Неверные данные события</response>
-    [HttpGet("{id:int}")]
+    [HttpGet("{id:Guid}")]
     [Produces("application/json")]
     [ProducesResponseType(typeof(ApiResultDto<Event>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status404NotFound)]
-    public ApiResultDto Get(int id) =>
+    public ApiResultDto Get(Guid id) =>
         new ApiResultDto<Event>
         {
             Data = eventService.Get(id),
@@ -104,12 +103,12 @@ public class EventsController(IEventService eventService) : ControllerBase
     /// <response code="204">Успешное обновление</response>
     /// <response code="400">Неверные данные события</response>
     /// <response code="404">Событие не найдено</response>
-    [HttpPut("{id:int}")]
+    [HttpPut("{id:Guid}")]
     [Consumes("application/json")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status404NotFound)]
-    public NoContentResult Put(int id, [FromBody] EventDto eventDto)
+    public NoContentResult Put(Guid id, [FromBody] EventDto eventDto)
     {
         eventService.Update(id, eventDto.Title, eventDto.StartAt, eventDto.EndAt, eventDto.Description);
 
@@ -123,13 +122,44 @@ public class EventsController(IEventService eventService) : ControllerBase
     /// <returns></returns>
     /// <response code="204">Событие удалено</response>
     /// <response code="404">Событие не найдено</response>
-    [HttpDelete("{id:int}")]
+    [HttpDelete("{id:Guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status404NotFound)]
-    public NoContentResult Delete(int id)
+    public NoContentResult Delete(Guid id)
     {
         eventService.Remove(id);
 
         return NoContent();
+    }
+
+    /// <summary>
+    /// Создание брони
+    /// </summary>
+    /// <param name="id">Идентификатор события</param>
+    /// <param name="ct">Токен отмены</param>
+    /// <returns>Бронь</returns>
+    /// <response code="202">Принято в обработку</response>
+    /// <response code="400">Не корректный запрос</response>
+    /// <response code="404">Событие не найдено</response>
+    [HttpPost("{id:Guid}/book")]
+    [Produces("application/json")]
+    [ProducesResponseType(typeof(ApiResultDto<BookingOutDto>), StatusCodes.Status202Accepted)]
+    [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ApiResultDto>> CreateBookingAsync(Guid id, CancellationToken ct = default)
+    {
+        var booking = await bookingService.CreateBookingAsync(id, ct);
+
+        return AcceptedAtAction(
+            actionName: "Get",
+            controllerName: "Bookings",
+            routeValues: new { bookingId = booking.Id },
+            value: new ApiResultDto<BookingOutDto>
+                {
+                    Data = new BookingOutDto(booking.Id, booking.EventId, booking.Status.ToString()),
+                    StatusCode = HttpStatusCode.Accepted,
+                    Success = true
+                }
+        );
     }
 }

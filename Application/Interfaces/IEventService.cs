@@ -23,7 +23,7 @@ public interface IEventService
     /// </summary>
     /// <param name="id">Идентификатор события</param>
     /// <returns>Событие</returns>
-    Event Get(int id);
+    Event Get(Guid id);
 
     /// <summary>
     /// Создание события
@@ -45,12 +45,12 @@ public interface IEventService
     /// <param name="endAt">Дата окончания</param>
     /// <param name="totalSeats">Общее количество мест на событии</param>
     /// <param name="description">Описание события</param>
-    void Update(int id, string title, DateTime? startAt, DateTime? endAt,int totalSeats, string? description = null);
+    void Update(Guid id, string title, DateTime? startAt, DateTime? endAt,int totalSeats, string? description = null);
 
 
     /// <summary>
     /// Удаление события
     /// </summary>
     /// <param name="id">Идентификатор события</param>
-    void Remove(int id);
+    void Remove(Guid id);
 }
