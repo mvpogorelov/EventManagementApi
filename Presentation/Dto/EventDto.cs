@@ -26,4 +26,9 @@ public class EventDto
     /// Дата окончания
     /// </summary>
     public DateTime? EndAt { get; set; }
+
+    /// <summary>
+    /// Общее количество мест на событии
+    /// </summary>
+    public int TotalSeats { get; set; }
 }

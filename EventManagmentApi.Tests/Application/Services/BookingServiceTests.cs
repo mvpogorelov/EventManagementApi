@@ -30,6 +30,7 @@ public class BookingServiceTests
             Title = "Title",
             StartAt = DateTime.UtcNow,
             EndAt = DateTime.UtcNow.AddDays(10),
+            TotalSeats = 1,
         };
 
         _eventService.Get(eventId).Returns(@event);
@@ -52,6 +53,7 @@ public class BookingServiceTests
             Title = "Title",
             StartAt = DateTime.UtcNow,
             EndAt = DateTime.UtcNow.AddDays(10),
+            TotalSeats = 1,
         };
 
         _eventService.Get(eventId).Returns(@event);
@@ -77,6 +79,7 @@ public class BookingServiceTests
             Title = "Title",
             StartAt = DateTime.UtcNow,
             EndAt = DateTime.UtcNow.AddDays(10),
+            TotalSeats = 1,
         };
 
         _eventService.Get(eventId).Returns(@event);
@@ -99,6 +102,7 @@ public class BookingServiceTests
             Title = "Title",
             StartAt = DateTime.UtcNow,
             EndAt = DateTime.UtcNow.AddDays(10),
+            TotalSeats = 1,
         };
 
         _eventService.Get(eventId).Returns(@event);

@@ -20,10 +20,10 @@ public class EventServiceTests
 
         Dictionary<Guid, Event> events = new()
         {
-            {_id1, new Event { Id = _id1, Title = "Aa", Description = "AAaa", StartAt = new DateTime(2026, 4, 1), EndAt = new DateTime(2026, 4, 10) } },
-            {id2, new Event { Id = id2, Title = "Bb", Description = "BBbb", StartAt = new DateTime(2026, 3, 1), EndAt = new DateTime(2026, 3, 10) } },
-            {id3, new Event { Id = id3, Title = "Cc", Description = "CCcc", StartAt = new DateTime(2026, 2, 1), EndAt = new DateTime(2026, 2, 10) } },
-            {id4, new Event { Id = id4, Title = "Ccc", Description = "CCCccc", StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 10) } },
+            {_id1, new Event { Id = _id1, Title = "Aa", Description = "AAaa", StartAt = new DateTime(2026, 4, 1), EndAt = new DateTime(2026, 4, 10), TotalSeats = 1 } },
+            {id2, new Event { Id = id2, Title = "Bb", Description = "BBbb", StartAt = new DateTime(2026, 3, 1), EndAt = new DateTime(2026, 3, 10), TotalSeats = 1 } },
+            {id3, new Event { Id = id3, Title = "Cc", Description = "CCcc", StartAt = new DateTime(2026, 2, 1), EndAt = new DateTime(2026, 2, 10), TotalSeats = 1 } },
+            {id4, new Event { Id = id4, Title = "Ccc", Description = "CCCccc", StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 10), TotalSeats = 1 } },
         };
 
         _eventService.InitData(events);
@@ -31,10 +31,10 @@ public class EventServiceTests
 
     [Theory(DisplayName = "Создание: Если переданы неверные параметры, то должно выбрасываться исключение")]
     [MemberData(nameof(WrongEventParams))]
-    public void Create_WhenParamsAreWrong_ShouldThrowException(string title, DateTime? startAt, DateTime? endAt)
+    public void Create_WhenParamsAreWrong_ShouldThrowException(string title, DateTime? startAt, DateTime? endAt, int totalSeats)
     {
         // Act
-        var ex = Record.Exception(() => _eventService.Create(title, startAt, endAt));
+        var ex = Record.Exception(() => _eventService.Create(title, startAt, endAt, totalSeats));
 
         // Assert
         Assert.NotNull(ex);
@@ -48,10 +48,11 @@ public class EventServiceTests
         var title = "Title";
         var startAt = new DateTime(2026, 4, 1);
         var endAt = new DateTime(2026, 4, 10);
+        var totalSeats = 1;
         var description = "Description";
 
         // Act
-        var @event = _eventService.Create(title, startAt, endAt, description);
+        var @event = _eventService.Create(title, startAt, endAt, totalSeats, description);
 
         // Assert
         Assert.NotNull(@event);
@@ -188,10 +189,10 @@ public class EventServiceTests
 
     [Theory(DisplayName = "Обновление: Если переданы неверные параметры, то должно выбрасываться исключение")]
     [MemberData(nameof(WrongEventParams))]
-    public void Update_WhenParamsAreWrong_ShouldThrowException(string title, DateTime? startAt, DateTime? endAt)
+    public void Update_WhenParamsAreWrong_ShouldThrowException(string title, DateTime? startAt, DateTime? endAt, int totalSeats)
     {
         // Act
-        var ex = Record.Exception(() => _eventService.Update(_id1, title, startAt, endAt));
+        var ex = Record.Exception(() => _eventService.Update(_id1, title, startAt, endAt, totalSeats));
 
         // Assert
         Assert.NotNull(ex);
@@ -207,9 +208,10 @@ public class EventServiceTests
         var title = "Title";
         var startAt = new DateTime(2026, 1, 1);
         var endAt = new DateTime(2026, 3, 1);
+        var totalSeats = 1;
 
         // Act
-        var ex = Record.Exception(() => _eventService.Update(id, title, startAt, endAt));
+        var ex = Record.Exception(() => _eventService.Update(id, title, startAt, endAt, totalSeats));
 
         // Assert
         Assert.NotNull(ex);
@@ -224,9 +226,10 @@ public class EventServiceTests
         var title = "Title";
         var startAt = new DateTime(2026, 1, 1);
         var endAt = new DateTime(2026, 3, 1);
+        var totalSeats = 1;
 
         // Act
-        var ex = Record.Exception(() => _eventService.Update(id, title, startAt, endAt));
+        var ex = Record.Exception(() => _eventService.Update(id, title, startAt, endAt, totalSeats));
 
         // Assert
         Assert.Null(ex);
@@ -263,10 +266,11 @@ public class EventServiceTests
 #pragma warning disable CS8625 // Литерал, равный NULL, не может быть преобразован в ссылочный тип, не допускающий значение NULL.
     public static IEnumerable<object[]> WrongEventParams() =>
         [
-            [string.Empty, null, null],
-            ["test", null, null],
-            ["test", new DateTime(2026, 4, 1), null],
-            ["test", new DateTime(2026, 4, 1), new DateTime(2026, 3, 1)],
+            [string.Empty, null, null, 0],
+            ["test", null, null, 0],
+            ["test", new DateTime(2026, 4, 1), null, 0],
+            ["test", new DateTime(2026, 4, 1), new DateTime(2026, 3, 1), 0],
+            ["test", new DateTime(2026, 2, 1), new DateTime(2026, 3, 1), 0],
         ];
 #pragma warning restore CS8625 // Литерал, равный NULL, не может быть преобразован в ссылочный тип, не допускающий значение NULL.
 }

@@ -83,7 +83,7 @@ public class EventsController(IEventService eventService, IBookingService bookin
     [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status400BadRequest)]
     public ActionResult<ApiResultDto> Post([FromBody] EventDto eventDto)
     {
-        var @event = eventService.Create(eventDto.Title, eventDto.StartAt, eventDto.EndAt, eventDto.Description);
+        var @event = eventService.Create(eventDto.Title, eventDto.StartAt, eventDto.EndAt, eventDto.TotalSeats, eventDto.Description);
 
         return CreatedAtAction(nameof(Get),
             new { id = @event.Id },
@@ -110,7 +110,7 @@ public class EventsController(IEventService eventService, IBookingService bookin
     [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status404NotFound)]
     public NoContentResult Put(Guid id, [FromBody] EventDto eventDto)
     {
-        eventService.Update(id, eventDto.Title, eventDto.StartAt, eventDto.EndAt, eventDto.Description);
+        eventService.Update(id, eventDto.Title, eventDto.StartAt, eventDto.EndAt, eventDto.TotalSeats, eventDto.Description);
 
         return NoContent();
     }
