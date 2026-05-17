@@ -39,4 +39,33 @@ public record Event
     /// Текущее количество свободных мест
     /// </summary>
     public int AvailableSeats { get; set; }
+
+    /// <summary>
+    /// Попытка резервирования мест
+    /// </summary>
+    /// <param name="count">Количество мест</param>
+    /// <returns>true - если удачно</returns>
+    public bool TryReserveSeats(int count = 1)
+    {
+        if (AvailableSeats - count < 0)
+        {
+            return false;
+        }
+
+        AvailableSeats -= count;
+
+        return true;
+    }
+
+    /// <summary>
+    /// Освобождение мест для резервирования
+    /// </summary>
+    /// <param name="count">Количество мест для освобождения</param>
+    public void ReleaseSeats(int count = 1)
+    {
+        AvailableSeats =
+            AvailableSeats + count > TotalSeats
+            ? TotalSeats
+            : AvailableSeats + count;
+    }
 }

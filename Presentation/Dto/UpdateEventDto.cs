@@ -5,7 +5,7 @@ namespace EventManagmentApi.Presentation.Dto;
 /// <summary>
 /// DTO события
 /// </summary>
-public class EventDto
+public class UpdateEventDto
 {
     /// <summary>
     /// Название события

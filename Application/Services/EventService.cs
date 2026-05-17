@@ -1,6 +1,8 @@
 using EventManagmentApi.Application.Exceptions;
 using EventManagmentApi.Application.Interfaces;
 using EventManagmentApi.Application.Models;
+using EventManagmentApi.Presentation.Dto;
+using System.ComponentModel.DataAnnotations;
 
 namespace EventManagmentApi.Application.Services;
 
@@ -20,7 +22,7 @@ public class EventService : IEventService
     /// <param name="page">Номер страницы</param>
     /// <param name="pageSize">Размер страницы</param>
     /// <returns>Список событий</returns>
-    public PaginatedResult<Event> GetAll(
+    public PaginatedResult<EventInfoDto> GetAll(
         string? title = null,
         DateTime? from = null,
         DateTime? to = null,
@@ -59,9 +61,20 @@ public class EventService : IEventService
         var items = events
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
+            .Select(e =>
+                new EventInfoDto {
+                    AvailableSeats = e.AvailableSeats,
+                    Description = e.Description ?? string.Empty,
+                    EndAt = e.EndAt,
+                    Id = e.Id,
+                    StartAt = e.StartAt,
+                    Title = e.Title,
+                    TotalSeats = e.TotalSeats
+                }
+            )
             .ToList();
 
-        return new PaginatedResult<Event>(items, page, items.Count, totalItems, totalPages);
+        return new PaginatedResult<EventInfoDto>(items, page, items.Count, totalItems, totalPages);
     }
 
     /// <summary>
@@ -69,11 +82,20 @@ public class EventService : IEventService
     /// </summary>
     /// <param name="id">Идентификатор события</param>
     /// <returns>Событие</returns>
-    public Event Get(Guid id)
+    public EventInfoDto Get(Guid id)
     {
         if (_events.TryGetValue(id, out var @event))
         {
-            return @event;
+            return new EventInfoDto
+                {
+                    AvailableSeats = @event.AvailableSeats,
+                    Description = @event.Description ?? string.Empty,
+                    EndAt = @event.EndAt,
+                    Id = @event.Id,
+                    StartAt = @event.StartAt,
+                    Title = @event.Title,
+                    TotalSeats = @event.TotalSeats
+                };
         }
 
         throw new NotFoundException($"Событие с Id: {id} не найдено");
@@ -160,27 +182,27 @@ public class EventService : IEventService
     {
         if (string.IsNullOrEmpty(title))
         {
-            throw new ArgumentException($"Название должно быть заполнено: {nameof(title)}");
+            throw new ValidationException($"Название должно быть заполнено: {nameof(title)}");
         }
 
         if (!startAt.HasValue)
         {
-            throw new ArgumentException($"Дата начала должна быть заполнена: {nameof(startAt)}");
+            throw new ValidationException($"Дата начала должна быть заполнена: {nameof(startAt)}");
         }
         
         if (!endAt.HasValue)
         {
-            throw new ArgumentException($"Дата окончания должна быть заполнена: {nameof(endAt)}");
+            throw new ValidationException($"Дата окончания должна быть заполнена: {nameof(endAt)}");
         }
 
         if (startAt > endAt)
         {
-            throw new ArgumentException("Дата начала не должна быть больше даты окончания");
+            throw new ValidationException("Дата начала не должна быть больше даты окончания");
         }
 
         if (totalSeats <= 0)
         {
-            throw new ArgumentException($"Общее количество мест должно быть больше нуля: {nameof(totalSeats)}");
+            throw new ValidationException($"Общее количество мест должно быть больше нуля: {nameof(totalSeats)}");
         }
     }
 

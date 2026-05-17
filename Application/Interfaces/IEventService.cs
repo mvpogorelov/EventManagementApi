@@ -1,4 +1,5 @@
 using EventManagmentApi.Application.Models;
+using EventManagmentApi.Presentation.Dto;
 
 namespace EventManagmentApi.Application.Interfaces;
 
@@ -16,14 +17,14 @@ public interface IEventService
     /// <param name="page">Номер страницы</param>
     /// <param name="pageSize">Размер страницы</param>
     /// <returns></returns>
-    PaginatedResult<Event> GetAll(string? title, DateTime? from, DateTime? to, int page = 1, int pageSize = 10);
+    PaginatedResult<EventInfoDto> GetAll(string? title, DateTime? from, DateTime? to, int page = 1, int pageSize = 10);
 
     /// <summary>
     /// Получение события по идентификатору
     /// </summary>
     /// <param name="id">Идентификатор события</param>
     /// <returns>Событие</returns>
-    Event Get(Guid id);
+    EventInfoDto Get(Guid id);
 
     /// <summary>
     /// Создание события

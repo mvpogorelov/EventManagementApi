@@ -27,9 +27,9 @@ public class EventsController(IEventService eventService, IBookingService bookin
     /// <response code="200">Список событий</response>
     [HttpGet]
     [Produces("application/json")]
-    [ProducesResponseType(typeof(PaginatedResultDto<IReadOnlyList<Event>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PaginatedResultDto<IReadOnlyList<EventInfoDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status400BadRequest)]
-    public PaginatedResultDto<IReadOnlyList<Event>> GetAll(
+    public PaginatedResultDto<IReadOnlyList<EventInfoDto>> GetAll(
         [FromQuery] string? title,
         [FromQuery] DateTime? from,
         [FromQuery] DateTime? to,
@@ -38,7 +38,7 @@ public class EventsController(IEventService eventService, IBookingService bookin
     {
         var result = eventService.GetAll(title, from, to, page, pageSize);
 
-        return new PaginatedResultDto<IReadOnlyList<Event>>
+        return new PaginatedResultDto<IReadOnlyList<EventInfoDto>>
         {
             Data = result.Items,
             Success = true,
@@ -59,10 +59,10 @@ public class EventsController(IEventService eventService, IBookingService bookin
     /// <response code="404">Неверные данные события</response>
     [HttpGet("{id:Guid}")]
     [Produces("application/json")]
-    [ProducesResponseType(typeof(ApiResultDto<Event>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResultDto<EventInfoDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status404NotFound)]
     public ApiResultDto Get(Guid id) =>
-        new ApiResultDto<Event>
+        new ApiResultDto<EventInfoDto>
         {
             Data = eventService.Get(id),
             Success = true,
@@ -81,7 +81,7 @@ public class EventsController(IEventService eventService, IBookingService bookin
     [Consumes("application/json")]
     [ProducesResponseType(typeof(ApiResultDto<Event>), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status400BadRequest)]
-    public ActionResult<ApiResultDto> Post([FromBody] EventDto eventDto)
+    public ActionResult<ApiResultDto> Post([FromBody] CreateEventDto eventDto)
     {
         var @event = eventService.Create(eventDto.Title, eventDto.StartAt, eventDto.EndAt, eventDto.TotalSeats, eventDto.Description);
 
@@ -108,7 +108,7 @@ public class EventsController(IEventService eventService, IBookingService bookin
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status404NotFound)]
-    public NoContentResult Put(Guid id, [FromBody] EventDto eventDto)
+    public NoContentResult Put(Guid id, [FromBody] UpdateEventDto eventDto)
     {
         eventService.Update(id, eventDto.Title, eventDto.StartAt, eventDto.EndAt, eventDto.TotalSeats, eventDto.Description);
 
