@@ -151,12 +151,20 @@ public class BookingService(IEventService eventService, ILogger<BookingService> 
             }
 
         }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            logger.LogInformation("Обработка прервана");
+
+            throw;
+        }
         catch (Exception e)
         {
             await UpdateStatusAsync(booking.Id, BookingStatus.Rejected, ct);
             eventService.ReleaseSeats(booking.EventId);
 
             logger.LogError($"Неожиданная ошибка при обработке брони {booking.Id}: {e}");
+
+            throw;
         }
         finally
         {
