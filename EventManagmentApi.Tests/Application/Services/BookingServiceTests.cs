@@ -24,22 +24,15 @@ public class BookingServiceTests
     public async Task Create_WhenEventExists_ShouldCreateBookingWithPendingStatus()
     {
         // Arrange
-        var eventId = Guid.NewGuid();
-        var @event = new Event {
-            Id = eventId,
-            Title = "Title",
-            StartAt = DateTime.UtcNow,
-            EndAt = DateTime.UtcNow.AddDays(10),
-            TotalSeats = 1,
-        };
+        var @event = new Event("Title", DateTime.UtcNow, DateTime.UtcNow.AddDays(10), 1);
 
-        _eventService.Get(eventId).Returns(@event);
+        _eventService.Get(@event.Id).Returns(@event);
 
         // Act
-        var booking = await _bookingService.CreateBookingAsync(eventId, CancellationToken.None);
+        var booking = await _bookingService.CreateBookingAsync(@event.Id, CancellationToken.None);
 
         // Assert
-        Assert.Equal(eventId, booking.EventId);
+        Assert.Equal(@event.Id, booking.EventId);
         Assert.Equal(BookingStatus.Pending, booking.Status);
     }
     
@@ -47,21 +40,14 @@ public class BookingServiceTests
     public async Task Create_MultipleBookingForSingleEvent_ShouldCreateBookingWithUniqueId()
     {
         // Arrange
-        var eventId = Guid.NewGuid();
-        var @event = new Event {
-            Id = eventId,
-            Title = "Title",
-            StartAt = DateTime.UtcNow,
-            EndAt = DateTime.UtcNow.AddDays(10),
-            TotalSeats = 1,
-        };
+        var @event = new Event("Title", DateTime.UtcNow, DateTime.UtcNow.AddDays(10), 1);
 
-        _eventService.Get(eventId).Returns(@event);
+        _eventService.Get(@event.Id).Returns(@event);
 
         // Act
-        var booking1 = await _bookingService.CreateBookingAsync(eventId, CancellationToken.None);
-        var booking2 = await _bookingService.CreateBookingAsync(eventId, CancellationToken.None);
-        var booking3 = await _bookingService.CreateBookingAsync(eventId, CancellationToken.None);
+        var booking1 = await _bookingService.CreateBookingAsync(@event.Id, CancellationToken.None);
+        var booking2 = await _bookingService.CreateBookingAsync(@event.Id, CancellationToken.None);
+        var booking3 = await _bookingService.CreateBookingAsync(@event.Id, CancellationToken.None);
 
         // Assert
         Assert.NotEqual(booking1.Id, booking2.Id);
@@ -73,19 +59,12 @@ public class BookingServiceTests
     public async Task Create_GetBookingById_ShouldReturnCorrectData()
     {
         // Arrange
-        var eventId = Guid.NewGuid();
-        var @event = new Event {
-            Id = eventId,
-            Title = "Title",
-            StartAt = DateTime.UtcNow,
-            EndAt = DateTime.UtcNow.AddDays(10),
-            TotalSeats = 1,
-        };
+        var @event = new Event("Title", DateTime.UtcNow, DateTime.UtcNow.AddDays(10), 1);
 
-        _eventService.Get(eventId).Returns(@event);
+        _eventService.Get(@event.Id).Returns(@event);
 
         // Act
-        var booking = await _bookingService.CreateBookingAsync(eventId, CancellationToken.None);
+        var booking = await _bookingService.CreateBookingAsync(@event.Id, CancellationToken.None);
         var getByIdBooking = await _bookingService.GetBookingByIdAsync(booking.Id, CancellationToken.None);
 
         // Assert
@@ -96,19 +75,12 @@ public class BookingServiceTests
     public async Task Create_ChangeStatus_ShouldReflectChanges()
     {
         // Arrange
-        var eventId = Guid.NewGuid();
-        var @event = new Event {
-            Id = eventId,
-            Title = "Title",
-            StartAt = DateTime.UtcNow,
-            EndAt = DateTime.UtcNow.AddDays(10),
-            TotalSeats = 1,
-        };
+        var @event = new Event("Title", DateTime.UtcNow, DateTime.UtcNow.AddDays(10), 1);
 
-        _eventService.Get(eventId).Returns(@event);
+        _eventService.Get(@event.Id).Returns(@event);
 
         // Act
-        var bookingAfterCreate = await _bookingService.CreateBookingAsync(eventId, CancellationToken.None);
+        var bookingAfterCreate = await _bookingService.CreateBookingAsync(@event.Id, CancellationToken.None);
         var bookingAfterCreateStatus = bookingAfterCreate.Status;
         var bookingAfterCreateProcessedAt = bookingAfterCreate.ProcessedAt;
 
@@ -128,6 +100,8 @@ public class BookingServiceTests
     {
         // Arrange
         var eventId = Guid.NewGuid();
+
+        _eventService.TryReserveSeats(eventId).Throws(new NotFoundException());
 
         // Act
         var ex = await Record.ExceptionAsync(async () => await _bookingService.CreateBookingAsync(eventId, CancellationToken.None));
@@ -156,6 +130,8 @@ public class BookingServiceTests
     {
         // Arrange
         var eventId = Guid.NewGuid();
+
+        _eventService.TryReserveSeats(eventId).Throws(new NotFoundException());
 
         // Act
         var ex = await Record.ExceptionAsync(async () => await _bookingService.CreateBookingAsync(eventId, CancellationToken.None));

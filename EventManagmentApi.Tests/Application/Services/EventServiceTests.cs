@@ -1,6 +1,7 @@
 ﻿using EventManagmentApi.Application.Exceptions;
 using EventManagmentApi.Application.Models;
 using EventManagmentApi.Application.Services;
+using System.ComponentModel.DataAnnotations;
 using static System.Net.WebRequestMethods;
 
 namespace EventManagmentApi.Tests.Application.Services;
@@ -20,10 +21,10 @@ public class EventServiceTests
 
         Dictionary<Guid, Event> events = new()
         {
-            {_id1, new Event { Id = _id1, Title = "Aa", Description = "AAaa", StartAt = new DateTime(2026, 4, 1), EndAt = new DateTime(2026, 4, 10), TotalSeats = 1 } },
-            {id2, new Event { Id = id2, Title = "Bb", Description = "BBbb", StartAt = new DateTime(2026, 3, 1), EndAt = new DateTime(2026, 3, 10), TotalSeats = 1 } },
-            {id3, new Event { Id = id3, Title = "Cc", Description = "CCcc", StartAt = new DateTime(2026, 2, 1), EndAt = new DateTime(2026, 2, 10), TotalSeats = 1 } },
-            {id4, new Event { Id = id4, Title = "Ccc", Description = "CCCccc", StartAt = new DateTime(2026, 1, 1), EndAt = new DateTime(2026, 1, 10), TotalSeats = 1 } },
+            {_id1, new Event("Aa", new DateTime(2026, 4, 1), new DateTime(2026, 4, 10), 1, "AAaa" ) { Id = _id1 } },
+            {id2, new Event("Bb", new DateTime(2026, 3, 1), new DateTime(2026, 3, 10), 1, "BBbb" ) { Id = id2 } },
+            {id3, new Event("Cc", new DateTime(2026, 2, 1), new DateTime(2026, 2, 10), 1, "CCcc" ) { Id = id3 } },
+            {id4, new Event("Ccc", new DateTime(2026, 1, 1), new DateTime(2026, 1, 10), 1, "CCCccc" ) { Id = id4 } },
         };
 
         _eventService.InitData(events);
@@ -38,7 +39,7 @@ public class EventServiceTests
 
         // Assert
         Assert.NotNull(ex);
-        Assert.IsType<ArgumentException>(ex);
+        Assert.IsType<ValidationException>(ex);
     }
 
     [Fact(DisplayName = "Создание: Если параметры верны, то должно создаться событие")]
@@ -163,17 +164,16 @@ public class EventServiceTests
         Assert.Equal(2, events.Items.Count);
     }
 
-    [Theory(DisplayName = "Получение события по id: Если передан несущестующий id, то должно выбрасываться исключение")]
+    [Theory(DisplayName = "Получение события по id: Если передан несущестующий id, то должен вернуться null")]
     [InlineData("3f2504e0-4f89-11d3-9a0c-0305e82c3301")]
     [InlineData("b0d4ce5d-2757-4699-948c-cfa72ba94f86")]
     public void Get_WhenIdIsIncorrect_ShouldThrowException(Guid id)
     {
         // Act
-        var ex = Record.Exception(() => _eventService.Get(id));
+        var @event = _eventService.Get(id);
 
         // Assert
-        Assert.NotNull(ex);
-        Assert.IsType<NotFoundException>(ex);
+        Assert.Null(@event);
     }
     
     [Fact(DisplayName = "Получение события по id: Если передан сущестующий id, то должно вернуться событие")]
@@ -196,7 +196,7 @@ public class EventServiceTests
 
         // Assert
         Assert.NotNull(ex);
-        Assert.IsType<ArgumentException>(ex);
+        Assert.IsType<ValidationException>(ex);
     }
     
     [Theory(DisplayName = "Обновление: Если переданы несуществующий id, то должно выбрасываться исключение")]
