@@ -1,5 +1,4 @@
 using EventManagmentApi.Application.Models;
-using EventManagmentApi.Presentation.Dto;
 
 namespace EventManagmentApi.Application.Interfaces;
 
@@ -17,14 +16,14 @@ public interface IEventService
     /// <param name="page">Номер страницы</param>
     /// <param name="pageSize">Размер страницы</param>
     /// <returns></returns>
-    PaginatedResult<EventInfoDto> GetAll(string? title, DateTime? from, DateTime? to, int page = 1, int pageSize = 10);
+    PaginatedResult<Event> GetAll(string? title, DateTime? from, DateTime? to, int page = 1, int pageSize = 10);
 
     /// <summary>
     /// Получение события по идентификатору
     /// </summary>
     /// <param name="id">Идентификатор события</param>
     /// <returns>Событие</returns>
-    EventInfoDto Get(Guid id);
+    Event? Get(Guid id);
 
     /// <summary>
     /// Создание события
@@ -54,4 +53,19 @@ public interface IEventService
     /// </summary>
     /// <param name="id">Идентификатор события</param>
     void Remove(Guid id);
+
+    /// <summary>
+    /// Попытка резервирования мест
+    /// </summary>
+    /// <param name="id">Идентификатор события</param>
+    /// <param name="count">Количество мест</param>
+    /// <returns>true - если удачно</returns>
+    bool TryReserveSeats(Guid id, int count = 1);
+
+    /// <summary>
+    /// Освобождение мест для резервирования
+    /// </summary>
+    /// <param name="id">Идентификатор события</param>
+    /// <param name="count">Количество мест для освобождения</param>
+    void ReleaseSeats(Guid id, int count = 1);
 }

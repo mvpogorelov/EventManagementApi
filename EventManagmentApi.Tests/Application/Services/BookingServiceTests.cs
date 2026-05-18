@@ -157,8 +157,6 @@ public class BookingServiceTests
         // Arrange
         var eventId = Guid.NewGuid();
 
-        _eventService.Get(eventId).Throws(new NotFoundException());
-
         // Act
         var ex = await Record.ExceptionAsync(async () => await _bookingService.CreateBookingAsync(eventId, CancellationToken.None));
 

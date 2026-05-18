@@ -12,6 +12,7 @@ namespace EventManagmentApi.Application.Services;
 /// </summary>
 public class BookingService(IEventService eventService) : IBookingService
 {
+    private readonly object _bookingLock = new();
     private static ConcurrentDictionary<Guid, Booking> _booking = new();
 
     /// <summary>
@@ -60,25 +61,21 @@ public class BookingService(IEventService eventService) : IBookingService
     {
         ct.ThrowIfCancellationRequested();
 
-        var @event = eventService.Get(eventId);
-
-        if (@event is not null)
+        lock (_bookingLock)
         {
-            var booking = new Booking
-            {
-                Id = Guid.NewGuid(),
-                EventId = @event.Id,
-                Status = BookingStatus.Pending,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            if (_booking.TryAdd(booking.Id, booking))
-            {
-                return Task.FromResult(booking);
-            }
+            eventService.TryReserveSeats(eventId);
         }
 
-        throw new NotFoundException($"Не удалось создать бронь для события: {eventId}");
+        var booking = new Booking
+        {
+            Id = Guid.NewGuid(),
+            EventId = eventId,
+            Status = BookingStatus.Pending,
+            CreatedAt = DateTime.UtcNow
+        };
+        _booking.AddOrUpdate(booking.Id, booking, (key, existing) => existing);
+
+        return Task.FromResult(booking);
     }
 
     /// <summary>

@@ -1,3 +1,4 @@
+using EventManagmentApi.Application.Exceptions;
 using EventManagmentApi.Application.Interfaces;
 using EventManagmentApi.Application.Models;
 using EventManagmentApi.Presentation.Dto;
@@ -40,7 +41,18 @@ public class EventsController(IEventService eventService, IBookingService bookin
 
         return new PaginatedResultDto<IReadOnlyList<EventInfoDto>>
         {
-            Data = result.Items,
+            Data = result.Items
+                .Select(e => new EventInfoDto
+                {
+                    AvailableSeats = e.AvailableSeats,
+                    Description = e.Description ?? string.Empty,
+                    EndAt = e.EndAt,
+                    Id = e.Id,
+                    StartAt = e.StartAt,
+                    Title = e.Title,
+                    TotalSeats = e.TotalSeats
+                })
+                .ToList(),
             Success = true,
             StatusCode = HttpStatusCode.OK,
             Page = result.Page,
@@ -61,13 +73,31 @@ public class EventsController(IEventService eventService, IBookingService bookin
     [Produces("application/json")]
     [ProducesResponseType(typeof(ApiResultDto<EventInfoDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status404NotFound)]
-    public ApiResultDto Get(Guid id) =>
-        new ApiResultDto<EventInfoDto>
+    public ApiResultDto Get(Guid id)
+    {
+        var @event = eventService.Get(@id);
+
+        if (@event is null)
         {
-            Data = eventService.Get(id),
+            throw new NotFoundException($"Cобытие не найдено: {id}");
+        }
+
+        return new ApiResultDto<EventInfoDto>
+        {
+            Data = new EventInfoDto
+            {
+                AvailableSeats = @event.AvailableSeats,
+                Description = @event.Description ?? string.Empty,
+                EndAt = @event.EndAt,
+                Id = @event.Id,
+                StartAt = @event.StartAt,
+                Title = @event.Title,
+                TotalSeats = @event.TotalSeats
+            },
             Success = true,
             StatusCode = HttpStatusCode.OK
         };
+    }
 
 
     /// <summary>
@@ -146,6 +176,7 @@ public class EventsController(IEventService eventService, IBookingService bookin
     [ProducesResponseType(typeof(ApiResultDto<BookingOutDto>), StatusCodes.Status202Accepted)]
     [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status409Conflict)]
     public async Task<ActionResult<ApiResultDto>> CreateBookingAsync(Guid id, CancellationToken ct = default)
     {
         var booking = await bookingService.CreateBookingAsync(id, ct);

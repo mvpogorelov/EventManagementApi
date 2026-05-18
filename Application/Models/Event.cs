@@ -1,10 +1,33 @@
+using EventManagmentApi.Application.Exceptions;
+using System.Diagnostics.CodeAnalysis;
+
 namespace EventManagmentApi.Application.Models;
 
 /// <summary>
 /// Модель события
 /// </summary>
-public record Event
+public class Event
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="title"></param>
+    /// <param name="startAt"></param>
+    /// <param name="endAt"></param>
+    /// <param name="totalSeats"></param>
+    /// <param name="description"></param>
+    [SetsRequiredMembers]
+    public Event(string title, DateTime startAt, DateTime endAt, int totalSeats, string? description = null)
+    {
+        Id = Guid.NewGuid();
+        Title = title;
+        StartAt = startAt;
+        EndAt = endAt;
+        Description = description;
+        TotalSeats = totalSeats;
+        AvailableSeats = totalSeats;
+    }
+
     /// <summary>
     /// Уникальный идентификатор события
     /// </summary>
@@ -33,12 +56,26 @@ public record Event
     /// <summary>
     /// Общее количество мест на событии
     /// </summary>
-    public required int TotalSeats { get; set; }
+    public required int TotalSeats {
+        get;
+        set
+        {
+            var diff = value - field;
+
+            if (AvailableSeats + diff < 0)
+            {
+                throw new NoAvailableSeatsException($"Уже забронировано {AvailableSeats}. Общее количество {field} не может быть изменено на {value}");
+            }
+
+            field = value;
+            AvailableSeats += diff;
+        }
+    }
 
     /// <summary>
     /// Текущее количество свободных мест
     /// </summary>
-    public int AvailableSeats { get; set; }
+    public int AvailableSeats { get; private set; }
 
     /// <summary>
     /// Попытка резервирования мест

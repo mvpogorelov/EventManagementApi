@@ -22,7 +22,7 @@ public class EventService : IEventService
     /// <param name="page">Номер страницы</param>
     /// <param name="pageSize">Размер страницы</param>
     /// <returns>Список событий</returns>
-    public PaginatedResult<EventInfoDto> GetAll(
+    public PaginatedResult<Event> GetAll(
         string? title = null,
         DateTime? from = null,
         DateTime? to = null,
@@ -61,20 +61,9 @@ public class EventService : IEventService
         var items = events
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .Select(e =>
-                new EventInfoDto {
-                    AvailableSeats = e.AvailableSeats,
-                    Description = e.Description ?? string.Empty,
-                    EndAt = e.EndAt,
-                    Id = e.Id,
-                    StartAt = e.StartAt,
-                    Title = e.Title,
-                    TotalSeats = e.TotalSeats
-                }
-            )
             .ToList();
 
-        return new PaginatedResult<EventInfoDto>(items, page, items.Count, totalItems, totalPages);
+        return new PaginatedResult<Event>(items, page, items.Count, totalItems, totalPages);
     }
 
     /// <summary>
@@ -82,23 +71,14 @@ public class EventService : IEventService
     /// </summary>
     /// <param name="id">Идентификатор события</param>
     /// <returns>Событие</returns>
-    public EventInfoDto Get(Guid id)
+    public Event? Get(Guid id)
     {
         if (_events.TryGetValue(id, out var @event))
         {
-            return new EventInfoDto
-                {
-                    AvailableSeats = @event.AvailableSeats,
-                    Description = @event.Description ?? string.Empty,
-                    EndAt = @event.EndAt,
-                    Id = @event.Id,
-                    StartAt = @event.StartAt,
-                    Title = @event.Title,
-                    TotalSeats = @event.TotalSeats
-                };
+            return @event;
         }
 
-        throw new NotFoundException($"Событие с Id: {id} не найдено");
+        return null;
     }
 
     /// <summary>
@@ -115,18 +95,7 @@ public class EventService : IEventService
     {
         ValidateEventDataAndThrow(title, startAt, endAt, totalSeats);
 
-#pragma warning disable CS8629 // Тип значения, допускающего NULL, может быть NULL.
-        var @event = new Event
-        {
-            Id = Guid.NewGuid(),
-            Title = title,
-            StartAt = startAt.Value,
-            EndAt = endAt.Value,
-            Description = description,
-            TotalSeats = totalSeats,
-            AvailableSeats = totalSeats
-        };
-#pragma warning restore CS8629 // Тип значения, допускающего NULL, может быть NULL.
+        var @event = new Event(title, startAt.Value, endAt.Value, totalSeats, description);
 
         _events.Add(@event.Id, @event);
 
@@ -154,13 +123,10 @@ public class EventService : IEventService
         }
 
         @event.Title = title;
-#pragma warning disable CS8629 // Тип значения, допускающего NULL, может быть NULL.
         @event.StartAt = startAt.Value;
         @event.EndAt = endAt.Value;
-#pragma warning restore CS8629 // Тип значения, допускающего NULL, может быть NULL.
         @event.Description = description;
         @event.TotalSeats = totalSeats;
-        @event.AvailableSeats = totalSeats;
     }
 
     /// <summary>
@@ -203,6 +169,44 @@ public class EventService : IEventService
         if (totalSeats <= 0)
         {
             throw new ValidationException($"Общее количество мест должно быть больше нуля: {nameof(totalSeats)}");
+        }
+    }
+
+    /// <summary>
+    /// Попытка резервирования мест
+    /// </summary>
+    /// <param name="id">Идентификатор события</param>
+    /// <param name="count">Количество мест</param>
+    /// <returns>true - если удачно</returns>
+    public bool TryReserveSeats(Guid id, int count = 1)
+    {
+        var @event = Get(id);
+
+        if (@event is null)
+        {
+            throw new NotFoundException($"Cобытие не найдено: {id}");
+        }
+
+        if (!@event.TryReserveSeats(count))
+        {
+            throw new NoAvailableSeatsException($"Нет доступных мест для события: {id}");
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Освобождение мест для резервирования
+    /// </summary>
+    /// <param name="id">Идентификатор события</param>
+    /// <param name="count">Количество мест для освобождения</param>
+    public void ReleaseSeats(Guid id, int count = 1)
+    {
+        var @event = Get(id);
+
+        if (@event is not null)
+        {
+            @event.ReleaseSeats(count);
         }
     }
 
