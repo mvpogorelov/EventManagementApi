@@ -71,8 +71,10 @@ public class BookingServiceTests
         Assert.Equal(booking, getByIdBooking);
     }
     
-    [Fact(DisplayName = "Получение брони отражает изменение статуса")]
-    public async Task Create_ChangeStatus_ShouldReflectChanges()
+    [Theory(DisplayName = "Получение брони отражает изменение статуса")]
+    [InlineData(BookingStatus.Confirmed)]
+    [InlineData(BookingStatus.Rejected)]
+    public async Task Create_ChangeStatus_ShouldReflectChanges(BookingStatus status)
     {
         // Arrange
         var @event = new Event("Title", DateTime.UtcNow, DateTime.UtcNow.AddDays(10), 1);
@@ -84,14 +86,14 @@ public class BookingServiceTests
         var bookingAfterCreateStatus = bookingAfterCreate.Status;
         var bookingAfterCreateProcessedAt = bookingAfterCreate.ProcessedAt;
 
-        await _bookingService.UpdateStatusAsync(bookingAfterCreate.Id, BookingStatus.Confirmed, CancellationToken.None);
+        await _bookingService.UpdateStatusAsync(bookingAfterCreate.Id, status, CancellationToken.None);
 
         var bookingAfterChangeStatus = await _bookingService.GetBookingByIdAsync(bookingAfterCreate.Id, CancellationToken.None);
 
         // Assert
         Assert.Equal(BookingStatus.Pending, bookingAfterCreateStatus);
         Assert.Null(bookingAfterCreateProcessedAt);
-        Assert.Equal(BookingStatus.Confirmed, bookingAfterChangeStatus.Status);
+        Assert.Equal(status, bookingAfterChangeStatus.Status);
         Assert.NotNull(bookingAfterChangeStatus.ProcessedAt);
     }
 
@@ -140,4 +142,6 @@ public class BookingServiceTests
         Assert.NotNull(ex);
         Assert.IsType<NotFoundException>(ex);
     }
+
+
 }

@@ -21,7 +21,7 @@ public class EventServiceTests
 
         Dictionary<Guid, Event> events = new()
         {
-            {_id1, new Event("Aa", new DateTime(2026, 4, 1), new DateTime(2026, 4, 10), 1, "AAaa" ) { Id = _id1 } },
+            {_id1, new Event("Aa", new DateTime(2026, 4, 1), new DateTime(2026, 4, 10), 2, "AAaa" ) { Id = _id1 } },
             {id2, new Event("Bb", new DateTime(2026, 3, 1), new DateTime(2026, 3, 10), 1, "BBbb" ) { Id = id2 } },
             {id3, new Event("Cc", new DateTime(2026, 2, 1), new DateTime(2026, 2, 10), 1, "CCcc" ) { Id = id3 } },
             {id4, new Event("Ccc", new DateTime(2026, 1, 1), new DateTime(2026, 1, 10), 1, "CCCccc" ) { Id = id4 } },
@@ -262,6 +262,70 @@ public class EventServiceTests
         Assert.Null(ex);
         // ToDo: добавить проверки, когда перейдём на другой источник данных
     }
+
+
+    [Fact(DisplayName = "Попытка резервирования мест уменьшает AvailableSeats на 1")]
+    public void ReserveSeats_WhenReserve_ShouldReduceAvailableSeats()
+    {
+        // Arrange
+        var id = _id1;
+        var @event = _eventService.Get(id);
+        var avilableSeats = @event.AvailableSeats;
+
+        // Act
+        var res = _eventService.TryReserveSeats(id);
+
+        // Assert
+        Assert.True(res);
+        Assert.Equal(avilableSeats - 1, @event.AvailableSeats);
+    }
+    
+    
+    [Fact(DisplayName = "При попытке резервирования до лимита должно выбрасываться исключение NoAvailableSeatsException")]
+    public void ReserveSeats_WhenReserveToLimit_ShouldRiseException()
+    {
+        // Arrange
+        var id = _id1;
+        Exception? ex;
+
+        // Act
+        do
+        {
+            ex = Record.Exception(() => _eventService.TryReserveSeats(id));
+        }
+        while (ex is null);
+
+        // Assert
+        Assert.IsType<NoAvailableSeatsException>(ex);
+    }
+    
+    [Fact(DisplayName = "При попытке резервирования для несуществующего события должно выбрасываться исключение NotFoundException")]
+    public void ReserveSeats_WhenEventIsMissing_ShouldRiseException()
+    {
+        // Arrange
+        var id = Guid.NewGuid();
+
+        // Act
+        var ex = Record.Exception(() => _eventService.TryReserveSeats(id));
+
+        // Assert
+        Assert.NotNull(ex);
+        Assert.IsType<NotFoundException>(ex);
+    }
+
+    [Fact(DisplayName = "При попытке резервирования при отсутствии мест должно выбрасываться исключение NoAvailableSeatsException")]
+    public void ReserveSeats_WhenNoAvailableSeats_ShouldRiseException()
+    {
+        // Arrange
+        var id = _id1;
+
+        // Act
+        var ex = Record.Exception(() => _eventService.TryReserveSeats(id, 1000));
+
+        // Assert
+        Assert.IsType<NoAvailableSeatsException>(ex);
+    }
+
 
 #pragma warning disable CS8625 // Литерал, равный NULL, не может быть преобразован в ссылочный тип, не допускающий значение NULL.
     public static IEnumerable<object[]> WrongEventParams() =>

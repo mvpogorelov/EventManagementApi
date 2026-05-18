@@ -10,10 +10,11 @@ namespace EventManagmentApi.Application.Services;
 /// <summary>
 /// Сервис для работы с бронью
 /// </summary>
-public class BookingService(IEventService eventService) : IBookingService
+public class BookingService(IEventService eventService, ILogger<BookingService> logger) : IBookingService
 {
     private readonly object _bookingLock = new();
     private static ConcurrentDictionary<Guid, Booking> _booking = new();
+    private readonly SemaphoreSlim _processingSemaphore = new(1, 1);
 
     /// <summary>
     /// Получение списка брони
@@ -120,5 +121,46 @@ public class BookingService(IEventService eventService) : IBookingService
         }
 
         _booking.TryRemove(new KeyValuePair<Guid, Booking>(id, booking));
+    }
+
+
+    /// <summary>
+    /// Обработка брони
+    /// </summary>
+    /// <param name="booking">Бронь</param>
+    /// <param name="ct"></param>
+    /// <returns></returns>
+    public async Task ProcessBookingAsync(Booking booking, CancellationToken ct)
+    {
+        await Task.Delay(TimeSpan.FromSeconds(2), ct);
+
+        await _processingSemaphore.WaitAsync(ct);
+        try
+        {
+            var @event = eventService.Get(booking.EventId);
+
+            if (@event is null)
+            {
+                await UpdateStatusAsync(booking.Id, BookingStatus.Rejected, ct);
+
+                logger.LogWarning($"Бронь {booking.Id} отклонена, отсутствует событие {booking.EventId}");
+            }
+            else
+            {
+                await UpdateStatusAsync(booking.Id, BookingStatus.Confirmed, ct);
+            }
+
+        }
+        catch (Exception e)
+        {
+            await UpdateStatusAsync(booking.Id, BookingStatus.Rejected, ct);
+            eventService.ReleaseSeats(booking.EventId);
+
+            logger.LogError($"Неожиданная ошибка при обработке брони {booking.Id}: {e}");
+        }
+        finally
+        {
+            _processingSemaphore.Release();
+        }
     }
 }
