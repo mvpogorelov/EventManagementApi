@@ -23,17 +23,18 @@ public interface IEventService
     /// </summary>
     /// <param name="id">Идентификатор события</param>
     /// <returns>Событие</returns>
-    Event Get(Guid id);
+    Event? Get(Guid id);
 
     /// <summary>
     /// Создание события
     /// </summary>
     /// <param name="title">Название события</param>
+    /// <param name="totalSeats">Общее количество мест на событии</param>
     /// <param name="startAt">Дата начала</param>
     /// <param name="endAt">Дата окончания</param>
     /// <param name="description">Описание события</param>
     /// <returns>Событие</returns>
-    Event Create(string title, DateTime? startAt, DateTime? endAt, string? description = null);
+    Event Create(string title, DateTime? startAt, DateTime? endAt, int totalSeats, string? description = null);
 
     /// <summary>
     /// Обновление события
@@ -42,8 +43,9 @@ public interface IEventService
     /// <param name="title">Название события</param>
     /// <param name="startAt">Дата начала</param>
     /// <param name="endAt">Дата окончания</param>
+    /// <param name="totalSeats">Общее количество мест на событии</param>
     /// <param name="description">Описание события</param>
-    void Update(Guid id, string title, DateTime? startAt, DateTime? endAt, string? description = null);
+    void Update(Guid id, string title, DateTime? startAt, DateTime? endAt,int totalSeats, string? description = null);
 
 
     /// <summary>
@@ -51,4 +53,19 @@ public interface IEventService
     /// </summary>
     /// <param name="id">Идентификатор события</param>
     void Remove(Guid id);
+
+    /// <summary>
+    /// Попытка резервирования мест
+    /// </summary>
+    /// <param name="id">Идентификатор события</param>
+    /// <param name="count">Количество мест</param>
+    /// <returns>true - если удачно</returns>
+    bool TryReserveSeats(Guid id, int count = 1);
+
+    /// <summary>
+    /// Освобождение мест для резервирования
+    /// </summary>
+    /// <param name="id">Идентификатор события</param>
+    /// <param name="count">Количество мест для освобождения</param>
+    void ReleaseSeats(Guid id, int count = 1);
 }

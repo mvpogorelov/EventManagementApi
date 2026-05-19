@@ -13,6 +13,8 @@ namespace EventManagmentApi.Application.Services
         IServiceScopeFactory scopeFactory)
             : BackgroundService
     {
+        private const int PollingInterval = 10000;
+
         /// <summary>
         /// 
         /// </summary>
@@ -28,15 +30,12 @@ namespace EventManagmentApi.Application.Services
                 {
                     using var scope = scopeFactory.CreateScope();
                     var bookingService = scope.ServiceProvider.GetRequiredService<IBookingService>();
+
                     var pendingBookings = await bookingService.GetByStatusAsync(BookingStatus.Pending, ct);
+                    var tasks = pendingBookings.Select(booking => bookingService.ProcessBookingAsync(booking, ct));
 
-                    foreach ( var pendingBooking in pendingBookings)
-                    {
-                        await Task.Delay(TimeSpan.FromSeconds(2), ct);
-                        await bookingService.UpdateStatusAsync(pendingBooking.Id, BookingStatus.Confirmed, ct);
-                    }
-
-                    await Task.Delay(TimeSpan.FromSeconds(10), ct);
+                    await Task.WhenAll(tasks);
+                    await Task.Delay(PollingInterval, ct);
                 }
                 catch (OperationCanceledException) when (ct.IsCancellationRequested)
                 {

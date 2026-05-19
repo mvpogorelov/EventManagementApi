@@ -33,7 +33,7 @@ Swagger: `https://localhost:7202/swagger/index.html`, `http://localhost:7203/swa
 /// <summary>
 /// Модель события
 /// </summary>
-public record Event
+public class Event
 {
     /// <summary>
     /// Уникальный идентификатор события
@@ -59,6 +59,16 @@ public record Event
     /// Дата окончания
     /// </summary>
     public required DateTime EndAt { get; set; }
+
+    /// <summary>
+    /// Общее количество мест на событии
+    /// </summary>
+    public required int TotalSeats { get; set; }
+
+    /// <summary>
+    /// Текущее количество свободных мест
+    /// </summary>
+    public int AvailableSeats { get; private set; }
 }
 ```
 ```
@@ -128,7 +138,7 @@ URL: `/events`
 | `POST`   | `/`      | Создание нового события             |                             | 201 Created, 400 BadRequest                 |
 | `PUT`    | `/{id}`  | Обновление события                  |                             | 204 NoContent, 400 BadRequest, 404 NotFound |
 | `DELETE` | `/{id}`  | Удаление события                    |                             | 204 NoContent, 404 NotFound                 |
-| `POST`   | `/{id}/book` | Создание брони для события      |                             | 202 Accepted, 400 BadRequest, 404 NotFound  |
+| `POST`   | `/{id}/book` | Создание брони для события      |                             | 202 Accepted, 400 BadRequest, 404 NotFound, 409 Conflict  |
 
 ## Работа с бронью
 
@@ -193,3 +203,9 @@ URL: `/bookings`
 Для работы с бронью в системе реализован паттерн «быстрый ответ + отложенная обработка». 
 Отложенной обработкой занимается BookingBackgroundService: С интервалом в 10 секунд из хранилища достаются все заявки на бронировыание в статусе Pending (ожидает обработки), Заявка обрабатывается 2 секунды (пока имитация), в результате статус меняется на Confirmed (подтверждено) и проставляется время обработки ProcessedAt.
 **Сценарий использования:** путём создания события (POST: `/events`) либо поиска существующего (GET `/events`), получить идентификатор события. Далее создать бронь (POST `/events/{id}/book`, где id - идентификатор события). По истечении небольшого времени (максимум 10 секунд) убедится, что бронь обработана (GET `/bookings/{bookingId}`, где bookingId - идентификатор брони, полученный на предыдущем этапе), т.е. у неё изменился статус.
+
+## Примитивы синхронизации
+При разработке были использованы следующие примитивы синхронизации:
+- lock - для синхронной работы
+- SemaphoreSlim - для асинхронной блокировки
+

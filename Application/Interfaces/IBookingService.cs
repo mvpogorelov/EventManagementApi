@@ -46,4 +46,11 @@ public interface IBookingService
     /// </summary>
     /// <param name="id">Идентификатор брони</param>
     void Remove(Guid id);
+
+    /// <summary>
+    /// Обработка брони
+    /// </summary>
+    /// <param name="booking">Бронь</param>
+    /// <param name="ct">Токен отмены</param>
+    Task ProcessBookingAsync(Booking booking, CancellationToken ct);
 }

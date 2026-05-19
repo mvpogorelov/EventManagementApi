@@ -5,7 +5,7 @@ namespace EventManagmentApi.Presentation.Dto;
 /// <summary>
 /// DTO события
 /// </summary>
-public class EventDto
+public class UpdateEventDto
 {
     /// <summary>
     /// Название события
@@ -26,4 +26,9 @@ public class EventDto
     /// Дата окончания
     /// </summary>
     public DateTime? EndAt { get; set; }
+
+    /// <summary>
+    /// Общее количество мест на событии
+    /// </summary>
+    public int TotalSeats { get; set; }
 }
