@@ -1,6 +1,5 @@
 ﻿using EventManagmentApi.Application.Enums;
 using EventManagmentApi.Application.Interfaces;
-using EventManagmentApi.Application.Models;
 
 namespace EventManagmentApi.Application.Services
 {
@@ -14,7 +13,7 @@ namespace EventManagmentApi.Application.Services
         IServiceScopeFactory scopeFactory)
             : BackgroundService
     {
-        private readonly SemaphoreSlim _processingSemaphore = new(1, 1);
+        private const int PollingInterval = 10000;
 
         /// <summary>
         /// 
@@ -36,7 +35,7 @@ namespace EventManagmentApi.Application.Services
                     var tasks = pendingBookings.Select(booking => bookingService.ProcessBookingAsync(booking, ct));
 
                     await Task.WhenAll(tasks);
-                    await Task.Delay(TimeSpan.FromSeconds(10), ct);
+                    await Task.Delay(PollingInterval, ct);
                 }
                 catch (OperationCanceledException) when (ct.IsCancellationRequested)
                 {

@@ -12,6 +12,8 @@ namespace EventManagmentApi.Application.Services;
 /// </summary>
 public class BookingService(IEventService eventService, ILogger<BookingService> logger) : IBookingService
 {
+    private const int ProcessBookingDelay = 2000;
+
     private readonly object _bookingLock = new();
     private static ConcurrentDictionary<Guid, Booking> _booking = new();
     private readonly SemaphoreSlim _processingSemaphore = new(1, 1);
@@ -58,9 +60,11 @@ public class BookingService(IEventService eventService, ILogger<BookingService> 
     /// <param name="eventId">Идентификатор события</param>
     /// /// <param name="ct">Токен отмены</param>
     /// <returns>Бронь</returns>
-    public Task<Booking> CreateBookingAsync(Guid eventId, CancellationToken ct)
+    public async Task<Booking> CreateBookingAsync(Guid eventId, CancellationToken ct)
     {
         ct.ThrowIfCancellationRequested();
+
+        await Task.Delay(Random.Shared.Next(5, 100)); // имитация работы
 
         lock (_bookingLock)
         {
@@ -76,7 +80,7 @@ public class BookingService(IEventService eventService, ILogger<BookingService> 
         };
         _booking.AddOrUpdate(booking.Id, booking, (key, existing) => existing);
 
-        return Task.FromResult(booking);
+        return booking;
     }
 
     /// <summary>
@@ -132,7 +136,7 @@ public class BookingService(IEventService eventService, ILogger<BookingService> 
     /// <returns></returns>
     public async Task ProcessBookingAsync(Booking booking, CancellationToken ct)
     {
-        await Task.Delay(TimeSpan.FromSeconds(2), ct);
+        await Task.Delay(ProcessBookingDelay, ct);
 
         await _processingSemaphore.WaitAsync(ct);
         try
