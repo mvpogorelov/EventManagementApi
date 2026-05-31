@@ -6,7 +6,7 @@ namespace EventManagmentApi.Application.Models;
 /// <summary>
 /// Модель события
 /// </summary>
-public class Event
+public sealed class Event
 {
     /// <summary>
     /// 
@@ -27,6 +27,7 @@ public class Event
         TotalSeats = totalSeats;
         AvailableSeats = totalSeats;
     }
+
 
     /// <summary>
     /// Уникальный идентификатор события
@@ -78,6 +79,11 @@ public class Event
     public int AvailableSeats { get; private set; }
 
     /// <summary>
+    /// Список брони
+    /// </summary>
+    public ICollection<Booking> Bookings { get; set; } = [];
+
+    /// <summary>
     /// Попытка резервирования мест
     /// </summary>
     /// <param name="count">Количество мест</param>
@@ -105,4 +111,8 @@ public class Event
             ? TotalSeats
             : AvailableSeats + count;
     }
+
+    private Event() { }
+
+
 }

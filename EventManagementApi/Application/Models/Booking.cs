@@ -5,7 +5,7 @@ namespace EventManagmentApi.Application.Models
     /// <summary>
     /// Бронь
     /// </summary>
-    public record Booking
+    public sealed record Booking
     {
         /// <summary>
         /// Уникальный идентификатор брони
@@ -16,6 +16,11 @@ namespace EventManagmentApi.Application.Models
         /// Идентификатор события, к которому относится бронь
         /// </summary>
         public required Guid EventId { get; init; }
+
+        /// <summary>
+        /// Событие, к которому относится бронь
+        /// </summary>
+        public Event Event { get; init; }
 
         /// <summary>
         /// Текущий статус брони
@@ -31,5 +36,7 @@ namespace EventManagmentApi.Application.Models
         /// Дата и время обработки брони
         /// </summary>
         public DateTime? ProcessedAt { get; set; }
+
+        private Booking() { }
     }
 }
