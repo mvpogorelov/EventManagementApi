@@ -1,6 +1,5 @@
 using EventManagmentApi.Application.Enums;
 using EventManagmentApi.Application.Models;
-using System.Collections.ObjectModel;
 
 namespace EventManagmentApi.Application.Interfaces;
 
@@ -15,7 +14,7 @@ public interface IBookingService
     /// <param name="status">Фильтр по статусу</param>
     /// <param name="ct">Токен отмены</param>
     /// <returns>Список брони</returns>
-    Task<ReadOnlyCollection<Booking>> GetByStatusAsync(BookingStatus status, CancellationToken ct);
+    Task<Booking[]> GetByStatusAsync(BookingStatus status, CancellationToken ct);
 
     /// <summary>
     /// Получение брони по идентификатору
@@ -45,12 +44,6 @@ public interface IBookingService
     /// Удаление брони
     /// </summary>
     /// <param name="id">Идентификатор брони</param>
-    void Remove(Guid id);
-
-    /// <summary>
-    /// Обработка брони
-    /// </summary>
-    /// <param name="booking">Бронь</param>
     /// <param name="ct">Токен отмены</param>
-    Task ProcessBookingAsync(Booking booking, CancellationToken ct);
+    Task RemoveAsync(Guid id, CancellationToken ct);
 }

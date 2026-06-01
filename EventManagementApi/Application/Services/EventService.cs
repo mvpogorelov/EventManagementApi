@@ -1,7 +1,8 @@
 using EventManagmentApi.Application.Exceptions;
 using EventManagmentApi.Application.Interfaces;
 using EventManagmentApi.Application.Models;
-using EventManagmentApi.Presentation.Dto;
+using EventManagmentApi.DataAccess;
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 
 namespace EventManagmentApi.Application.Services;
@@ -9,10 +10,8 @@ namespace EventManagmentApi.Application.Services;
 /// <summary>
 /// Сервис по работе с событиями
 /// </summary>
-public class EventService : IEventService
+public class EventService(AppDbContext context) : IEventService
 {
-    private static Dictionary<Guid, Event> _events = new();
-
     /// <summary>
     /// Получение списка событий
     /// </summary>
@@ -39,7 +38,7 @@ public class EventService : IEventService
             throw new ArgumentOutOfRangeException($"Неверный размер страницы: {nameof(pageSize)}");
         }
 
-        var events = _events.Values as IEnumerable<Event>;
+        var events = context.Events.AsQueryable();
 
         if (!string.IsNullOrEmpty(title))
         {
@@ -70,16 +69,10 @@ public class EventService : IEventService
     /// Получение события по идентификатору
     /// </summary>
     /// <param name="id">Идентификатор события</param>
+    /// <param name="ct">Токен отмены</param>
     /// <returns>Событие</returns>
-    public Event? Get(Guid id)
-    {
-        if (_events.TryGetValue(id, out var @event))
-        {
-            return @event;
-        }
-
-        return null;
-    }
+    public async Task<Event?> GetByIdAsync(Guid id, CancellationToken ct = default) =>
+        await context.Events.FirstOrDefaultAsync(e => e.Id == id, ct);
 
     /// <summary>
     /// Создание события
@@ -89,15 +82,17 @@ public class EventService : IEventService
     /// <param name="startAt">Дата начала</param>
     /// <param name="endAt">Дата окончания</param>
     /// <param name="description">Описание события</param>
+    /// <param name="ct">Токен отмены</param>
     /// <returns>Событие</returns>
     /// <exception cref="ArgumentException">Не корректные аргументы</exception>
-    public Event Create(string title, DateTime? startAt, DateTime? endAt, int totalSeats, string? description = null)
+    public async Task<Event> CreateAsync(string title, DateTime? startAt, DateTime? endAt, int totalSeats, string? description, CancellationToken ct = default)
     {
         ValidateEventDataAndThrow(title, startAt, endAt, totalSeats);
 
         var @event = new Event(title, startAt.Value, endAt.Value, totalSeats, description);
 
-        _events.Add(@event.Id, @event);
+        await context.Events.AddAsync(@event, ct);
+        await context.SaveChangesAsync();
 
         return @event;
     }
@@ -111,37 +106,48 @@ public class EventService : IEventService
     /// <param name="endAt">Дата окончания</param>
     /// <param name="totalSeats">Общее количество мест на событии</param>
     /// <param name="description">Описание события</param>
+    /// <param name="ct">Токен отмены</param>
     /// <exception cref="NotFoundException">Если событие не найдено</exception>
     /// <exception cref="ArgumentException">Если некорректные данные о событии</exception>
-    public void Update(Guid id, string title, DateTime? startAt, DateTime? endAt, int totalSeats, string? description = null)
+    public async Task UpdateAsync(Guid id, string title, DateTime? startAt, DateTime? endAt, int totalSeats, string? description, CancellationToken ct = default)
     {
         ValidateEventDataAndThrow(title, startAt, endAt, totalSeats);
 
-        if (!_events.TryGetValue(id, out var @event))
-        {
-            throw new NotFoundException($"Событие с Id: {id} не найдено");
-        }
+        var @event = await GetByIdAsync(id, ct) ?? throw new NotFoundException($"Событие с Id: {id} не найдено");
 
         @event.Title = title;
         @event.StartAt = startAt.Value;
         @event.EndAt = endAt.Value;
         @event.Description = description;
         @event.TotalSeats = totalSeats;
+
+        await context.SaveChangesAsync(ct);
     }
 
     /// <summary>
     /// Удаление события
     /// </summary>
     /// <param name="id">Идентификатор события</param>
+    /// <param name="ct">Токен отмены</param>
     /// <exception cref="NotFoundException">Если событие не найдено</exception>
-    public void Remove(Guid id)
+    public async Task RemoveAsync(Guid id, CancellationToken ct = default)
     {
-        if (!_events.TryGetValue(id, out var @event))
-        {
-            throw new NotFoundException($"Событие с Id: {id} не найдено");
-        }
+        var @event = await GetByIdAsync(id, ct) ?? throw new NotFoundException($"Событие с Id: {id} не найдено");
 
-        _events.Remove(id);
+        context.Remove(@event);
+        await context.SaveChangesAsync(ct);
+    }
+    
+    /// <summary>
+    /// Удаление всех событий
+    /// </summary>
+    /// <param name="ct">Токен отмены</param>
+    public async Task RemoveAllAsync(CancellationToken ct = default)
+    {
+        var allEvents = await context.Events.ToListAsync(ct);
+
+        context.Events.RemoveRange(allEvents);
+        await context.SaveChangesAsync();
     }
 
     private void ValidateEventDataAndThrow(string title, DateTime? startAt, DateTime? endAt, int totalSeats, string? description = null)
@@ -170,52 +176,5 @@ public class EventService : IEventService
         {
             throw new ValidationException($"Общее количество мест должно быть больше нуля: {nameof(totalSeats)}");
         }
-    }
-
-    /// <summary>
-    /// Попытка резервирования мест
-    /// </summary>
-    /// <param name="id">Идентификатор события</param>
-    /// <param name="count">Количество мест</param>
-    /// <returns>true - если удачно</returns>
-    public bool TryReserveSeats(Guid id, int count = 1)
-    {
-        var @event = Get(id);
-
-        if (@event is null)
-        {
-            throw new NotFoundException($"Cобытие не найдено: {id}");
-        }
-
-        if (!@event.TryReserveSeats(count))
-        {
-            throw new NoAvailableSeatsException($"Нет доступных мест для события: {id}");
-        }
-
-        return true;
-    }
-
-    /// <summary>
-    /// Освобождение мест для резервирования
-    /// </summary>
-    /// <param name="id">Идентификатор события</param>
-    /// <param name="count">Количество мест для освобождения</param>
-    public void ReleaseSeats(Guid id, int count = 1)
-    {
-        var @event = Get(id);
-
-        if (@event is not null)
-        {
-            @event.ReleaseSeats(count);
-        }
-    }
-
-    /// <summary>
-    /// Инициализация данных
-    /// </summary>
-    /// <param name="events"></param>
-    public void InitData(Dictionary<Guid, Event> events)
-    {
-        _events = events;
     }
 }

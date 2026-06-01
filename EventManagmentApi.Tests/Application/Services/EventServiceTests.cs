@@ -1,41 +1,57 @@
 ﻿using EventManagmentApi.Application.Exceptions;
+using EventManagmentApi.Application.Interfaces;
 using EventManagmentApi.Application.Models;
 using EventManagmentApi.Application.Services;
+using EventManagmentApi.DataAccess;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using System.ComponentModel.DataAnnotations;
-using static System.Net.WebRequestMethods;
 
 namespace EventManagmentApi.Tests.Application.Services;
 
-public class EventServiceTests
+public class EventServiceTests : IDisposable
 {
-    private readonly EventService _eventService;
-    private readonly Guid _id1 = Guid.NewGuid();
+    private readonly ServiceProvider _serviceProvider;
+    private readonly IServiceScope _serviceScope;
+    private readonly IEventService _eventService;
+
+    private Event testEvent1, testEvent2, testEvent3, testEvent4;
 
     public EventServiceTests()
     {
-        _eventService = new EventService();
+        var serviceCollection = new ServiceCollection();
 
-        var id2 = Guid.NewGuid();
-        var id3 = Guid.NewGuid();
-        var id4 = Guid.NewGuid();
+        serviceCollection.AddDbContext<AppDbContext>(options => options.UseInMemoryDatabase(Guid.NewGuid().ToString()));
+        serviceCollection.AddScoped<IEventService, EventService>();
+        serviceCollection.AddScoped<IBookingService, BookingService>();
 
-        Dictionary<Guid, Event> events = new()
-        {
-            {_id1, new Event("Aa", new DateTime(2026, 4, 1), new DateTime(2026, 4, 10), 2, "AAaa" ) { Id = _id1 } },
-            {id2, new Event("Bb", new DateTime(2026, 3, 1), new DateTime(2026, 3, 10), 1, "BBbb" ) { Id = id2 } },
-            {id3, new Event("Cc", new DateTime(2026, 2, 1), new DateTime(2026, 2, 10), 1, "CCcc" ) { Id = id3 } },
-            {id4, new Event("Ccc", new DateTime(2026, 1, 1), new DateTime(2026, 1, 10), 1, "CCCccc" ) { Id = id4 } },
-        };
+        _serviceProvider = serviceCollection.BuildServiceProvider();
+        _serviceScope = _serviceProvider.CreateScope();
+        _eventService = _serviceScope.ServiceProvider.GetRequiredService<IEventService>();
+    }
 
-        _eventService.InitData(events);
+    public void Dispose()
+    {
+        _serviceScope.Dispose();
+        _serviceProvider.Dispose();
+    }
+
+    private async Task SetTestData(CancellationToken ct = default)
+    {
+        await _eventService.RemoveAllAsync();
+
+        testEvent1 = await _eventService.CreateAsync("Aa", new DateTime(2026, 4, 1), new DateTime(2026, 4, 10), 2, "AAaa", ct);
+        testEvent2 = await _eventService.CreateAsync("Bb", new DateTime(2026, 3, 1), new DateTime(2026, 3, 10), 1, "BBbb", ct);
+        testEvent3 = await _eventService.CreateAsync("Cc", new DateTime(2026, 2, 1), new DateTime(2026, 2, 10), 1, "CCcc", ct);
+        testEvent4 = await _eventService.CreateAsync("Ccc", new DateTime(2026, 1, 1), new DateTime(2026, 1, 10), 1, "CCCccc", ct);
     }
 
     [Theory(DisplayName = "Создание: Если переданы неверные параметры, то должно выбрасываться исключение")]
     [MemberData(nameof(WrongEventParams))]
-    public void Create_WhenParamsAreWrong_ShouldThrowException(string title, DateTime? startAt, DateTime? endAt, int totalSeats)
+    public async Task Create_WhenParamsAreWrong_ShouldThrowException(string title, DateTime? startAt, DateTime? endAt, int totalSeats)
     {
         // Act
-        var ex = Record.Exception(() => _eventService.Create(title, startAt, endAt, totalSeats));
+        var ex = await Record.ExceptionAsync(async () => await _eventService.CreateAsync(title, startAt, endAt, totalSeats, string.Empty, CancellationToken.None));
 
         // Assert
         Assert.NotNull(ex);
@@ -43,7 +59,7 @@ public class EventServiceTests
     }
 
     [Fact(DisplayName = "Создание: Если параметры верны, то должно создаться событие")]
-    public void Create_WhenParamsAreCorrect_ShouldCreateEvent()
+    public async Task Create_WhenParamsAreCorrect_ShouldCreateEvent()
     {
         // Arrange
         var title = "Title";
@@ -53,7 +69,7 @@ public class EventServiceTests
         var description = "Description";
 
         // Act
-        var @event = _eventService.Create(title, startAt, endAt, totalSeats, description);
+        var @event = await _eventService.CreateAsync(title, startAt, endAt, totalSeats, description, CancellationToken.None);
 
         // Assert
         Assert.NotNull(@event);
@@ -71,7 +87,7 @@ public class EventServiceTests
     public void GetAll_WhenParamsAreWrong_ShouldThrowException(int page, int pageSize)
     {
         // Act
-        var ex = Record.Exception(() => _eventService.GetAll(page: page, pageSize: pageSize));
+        var ex = Record.Exception(() => _eventService.GetAll(null, null, null, page, pageSize));
 
         // Assert
         Assert.NotNull(ex);
@@ -79,8 +95,11 @@ public class EventServiceTests
     }
 
     [Fact(DisplayName = "Получение списка событий: Если фильтры не заданы, то должны вернуться все события")]
-    public void GetAll_WhenFiltersAreNotDefined_ShouldReturnAllEvents()
+    public async Task GetAll_WhenFiltersAreNotDefined_ShouldReturnAllEvents()
     {
+        // Arrange
+        await SetTestData();
+
         // Act
         var events = _eventService.GetAll();
 
@@ -96,8 +115,11 @@ public class EventServiceTests
     [InlineData(1, 2, 2, 4, 2)]
     [InlineData(2, 1, 1, 4, 4)]
     [InlineData(1, 4, 4, 4, 1)]
-    public void GetAll_WhenPaginationParamsAreDefined_ShouldReturnCorrectData(int page, int pageSize, int expectedItemsCount, int expectedTotalItems, int expectedTotalPages)
+    public async Task GetAll_WhenPaginationParamsAreDefined_ShouldReturnCorrectData(int page, int pageSize, int expectedItemsCount, int expectedTotalItems, int expectedTotalPages)
     {
+        // Arrange
+        await SetTestData();
+
         // Act
         var events = _eventService.GetAll(page: page, pageSize: pageSize);
 
@@ -114,8 +136,11 @@ public class EventServiceTests
     [InlineData("aa")]
     [InlineData("BB")]
     [InlineData("bb")]
-    public void GetAll_WhenTitleIsDefined_ShouldReturnCorrectEvents(string title)
+    public async Task GetAll_WhenTitleIsDefined_ShouldReturnCorrectEvents(string title)
     {
+        // Arrange
+        await SetTestData();
+
         // Act
         var events = _eventService.GetAll(title);
 
@@ -124,9 +149,10 @@ public class EventServiceTests
     }
 
     [Fact(DisplayName = "Получение списка событий: Если задан фильтр по дате начала, то должны вернуться соотвествующие события")]
-    public void GetAll_WhenStartAtIsDefined_ShouldReturnCorrectEvents()
+    public async Task GetAll_WhenStartAtIsDefined_ShouldReturnCorrectEvents()
     {
         // Arrange
+        await SetTestData();
         var startAt = new DateTime(2026, 3, 1);
 
         // Act
@@ -137,9 +163,10 @@ public class EventServiceTests
     }
     
     [Fact(DisplayName = "Получение списка событий: Если задан фильтр по дате окончания, то должны вернуться соотвествующие события")]
-    public void GetAll_WhenEndAtIsDefined_ShouldReturnCorrectEvents()
+    public async Task GetAll_WhenEndAtIsDefined_ShouldReturnCorrectEvents()
     {
         // Arrange
+        await SetTestData();
         var endAt = new DateTime(2026, 3, 10);
 
         // Act
@@ -150,9 +177,11 @@ public class EventServiceTests
     }
 
     [Fact(DisplayName = "Получение списка событий: Если задано несколько фильтров, то должны вернуться соотвествующие события")]
-    public void GetAll_WhenFiltersAreDefined_ShouldReturnCorrectEvents()
+    public async Task GetAll_WhenFiltersAreDefined_ShouldReturnCorrectEvents()
     {
         // Arrange
+        await SetTestData();
+
         var title = "cc";
         var startAt = new DateTime(2026, 1, 1);
         var endAt = new DateTime(2026, 3, 1);
@@ -167,20 +196,23 @@ public class EventServiceTests
     [Theory(DisplayName = "Получение события по id: Если передан несущестующий id, то должен вернуться null")]
     [InlineData("3f2504e0-4f89-11d3-9a0c-0305e82c3301")]
     [InlineData("b0d4ce5d-2757-4699-948c-cfa72ba94f86")]
-    public void Get_WhenIdIsIncorrect_ShouldThrowException(Guid id)
+    public async Task Get_WhenIdIsIncorrect_ShouldThrowException(Guid id)
     {
         // Act
-        var @event = _eventService.Get(id);
+        var @event = await _eventService.GetByIdAsync(id, CancellationToken.None);
 
         // Assert
         Assert.Null(@event);
     }
     
     [Fact(DisplayName = "Получение события по id: Если передан сущестующий id, то должно вернуться событие")]
-    public void Get_WhenIdIsСorrect_ShouldReturnEvent()
+    public async Task Get_WhenIdIsСorrect_ShouldReturnEvent()
     {
+        // Arrange
+        await SetTestData();
+
         // Act
-        var @event = _eventService.Get(_id1);
+        var @event = await _eventService.GetByIdAsync(testEvent1.Id, CancellationToken.None);
 
         // Assert
         Assert.NotNull(@event);
@@ -189,10 +221,13 @@ public class EventServiceTests
 
     [Theory(DisplayName = "Обновление: Если переданы неверные параметры, то должно выбрасываться исключение")]
     [MemberData(nameof(WrongEventParams))]
-    public void Update_WhenParamsAreWrong_ShouldThrowException(string title, DateTime? startAt, DateTime? endAt, int totalSeats)
+    public async Task Update_WhenParamsAreWrong_ShouldThrowException(string title, DateTime? startAt, DateTime? endAt, int totalSeats)
     {
+        // Arrange
+        await SetTestData();
+
         // Act
-        var ex = Record.Exception(() => _eventService.Update(_id1, title, startAt, endAt, totalSeats));
+        var ex = await Record.ExceptionAsync(async () => await _eventService.UpdateAsync(testEvent1.Id, title, startAt, endAt, totalSeats, string.Empty));
 
         // Assert
         Assert.NotNull(ex);
@@ -202,7 +237,7 @@ public class EventServiceTests
     [Theory(DisplayName = "Обновление: Если переданы несуществующий id, то должно выбрасываться исключение")]
     [InlineData("b0d4ce5d-2757-4699-948c-cfa72ba94f86")]
     [InlineData("3f2504e0-4f89-11d3-9a0c-0305e82c3301")]
-    public void Update_WhenIdIsMissing_ShouldThrowException(Guid id)
+    public async Task Update_WhenIdIsMissing_ShouldThrowException(Guid id)
     {
         // Arrange
         var title = "Title";
@@ -211,7 +246,7 @@ public class EventServiceTests
         var totalSeats = 1;
 
         // Act
-        var ex = Record.Exception(() => _eventService.Update(id, title, startAt, endAt, totalSeats));
+        var ex = await Record.ExceptionAsync(async () => await _eventService.UpdateAsync(id, title, startAt, endAt, totalSeats));
 
         // Assert
         Assert.NotNull(ex);
@@ -219,30 +254,36 @@ public class EventServiceTests
     }
 
     [Fact(DisplayName = "Обновление: Если переданы корректные данные, то должно обновится событие")]
-    public void Update_WhenParamsAreСorrect_ShouldUpdateEvent()
+    public async Task Update_WhenParamsAreСorrect_ShouldUpdateEvent()
     {
         // Arrange
-        var id = _id1;
+        await SetTestData();
+
+        // Arrange
+        var id = testEvent1.Id;
         var title = "Title";
         var startAt = new DateTime(2026, 1, 1);
         var endAt = new DateTime(2026, 3, 1);
         var totalSeats = 1;
 
         // Act
-        var ex = Record.Exception(() => _eventService.Update(id, title, startAt, endAt, totalSeats));
+        var ex = await Record.ExceptionAsync(async () => await _eventService.UpdateAsync(id, title, startAt, endAt, totalSeats));
 
         // Assert
         Assert.Null(ex);
-        // ToDo: добавить проверки, когда перейдём на другой источник данных
+        Assert.Equal(title, testEvent1.Title);
+        Assert.Equal(startAt, testEvent1.StartAt);
+        Assert.Equal(endAt, testEvent1.EndAt);
+        Assert.Equal(totalSeats, testEvent1.TotalSeats);
     }
 
     [Theory(DisplayName = "Удаление: Если переданы несуществующий id, то должно выбрасываться исключение")]
     [InlineData("b0d4ce5d-2757-4699-948c-cfa72ba94f86")]
     [InlineData("3f2504e0-4f89-11d3-9a0c-0305e82c3301")]
-    public void Remove_WhenIdIsMissing_ShouldThrowException(Guid id)
+    public async Task Remove_WhenIdIsMissing_ShouldThrowException(Guid id)
     {
         // Act
-        var ex = Record.Exception(() => _eventService.Remove(id));
+        var ex = await Record.ExceptionAsync(async () => await _eventService.RemoveAsync(id));
 
         // Assert
         Assert.NotNull(ex);
@@ -250,13 +291,13 @@ public class EventServiceTests
     }
 
     [Fact(DisplayName = "Удаление: Если переданы корректные данные, то должно удалиться событие")]
-    public void Remove_WhenParamsAreСorrect_ShouldRemoveEvent()
+    public async Task Remove_WhenParamsAreСorrect_ShouldRemoveEvent()
     {
         // Arrange
-        var id = _id1;
+        await SetTestData();
 
         // Act
-        var ex = Record.Exception(() => _eventService.Remove(id));
+        var ex = await Record.ExceptionAsync(async () => await _eventService.RemoveAsync(testEvent1.Id));
 
         // Assert
         Assert.Null(ex);
@@ -265,69 +306,64 @@ public class EventServiceTests
 
 
     [Fact(DisplayName = "Попытка резервирования мест уменьшает AvailableSeats на 1")]
-    public void ReserveSeats_WhenReserve_ShouldReduceAvailableSeats()
+    public async Task ReserveSeats_WhenReserve_ShouldReduceAvailableSeats()
     {
         // Arrange
-        var id = _id1;
-        var @event = _eventService.Get(id);
-        var avilableSeats = @event.AvailableSeats;
+        await SetTestData();
+
+        // Arrange
+        var id = testEvent1.Id;
+        var @event = await _eventService.GetByIdAsync(id);
+        var avilableSeats = @event?.AvailableSeats;
 
         // Act
-        var res = _eventService.TryReserveSeats(id);
+        var res = @event?.TryReserveSeats();
 
         // Assert
         Assert.True(res);
-        Assert.Equal(avilableSeats - 1, @event.AvailableSeats);
+        Assert.Equal(avilableSeats - 1, @event?.AvailableSeats);
     }
     
     
-    [Fact(DisplayName = "При попытке резервирования до лимита должно выбрасываться исключение NoAvailableSeatsException")]
-    public void ReserveSeats_WhenReserveToLimit_ShouldRiseException()
+    [Fact(DisplayName = "При попытке резервирования до лимита, должно возвращаться false")]
+    public async Task ReserveSeats_WhenReserveToLimit_ShouldReturnFalse()
     {
         // Arrange
-        var id = _id1;
-        Exception? ex;
+        await SetTestData();
+
+        // Arrange
+        var id = testEvent1.Id;
+        var @event = await _eventService.GetByIdAsync(id);
+        bool res;
 
         // Act
         do
         {
-            ex = Record.Exception(() => _eventService.TryReserveSeats(id));
+            res = @event.TryReserveSeats();
         }
-        while (ex is null);
+        while (res);
 
         // Assert
-        Assert.IsType<NoAvailableSeatsException>(ex);
+        Assert.False(res);
     }
     
-    [Fact(DisplayName = "При попытке резервирования для несуществующего события должно выбрасываться исключение NotFoundException")]
-    public void ReserveSeats_WhenEventIsMissing_ShouldRiseException()
-    {
-        // Arrange
-        var id = Guid.NewGuid();
-
-        // Act
-        var ex = Record.Exception(() => _eventService.TryReserveSeats(id));
-
-        // Assert
-        Assert.NotNull(ex);
-        Assert.IsType<NotFoundException>(ex);
-    }
-
     [Fact(DisplayName = "При попытке резервирования при отсутствии мест должно выбрасываться исключение NoAvailableSeatsException")]
-    public void ReserveSeats_WhenNoAvailableSeats_ShouldRiseException()
+    public async Task ReserveSeats_WhenNoAvailableSeats_ShouldReturnFalse()
     {
         // Arrange
-        var id = _id1;
+        await SetTestData();
+
+        // Arrange
+        var id = testEvent1.Id;
+        var @event = await _eventService.GetByIdAsync(id);
 
         // Act
-        var ex = Record.Exception(() => _eventService.TryReserveSeats(id, 1000));
+        var res = @event?.TryReserveSeats(1000);
 
         // Assert
-        Assert.IsType<NoAvailableSeatsException>(ex);
+        Assert.False(res);
     }
 
-
-#pragma warning disable CS8625 // Литерал, равный NULL, не может быть преобразован в ссылочный тип, не допускающий значение NULL.
     public static IEnumerable<object[]> WrongEventParams() =>
         [
             [string.Empty, null, null, 0],
@@ -336,5 +372,4 @@ public class EventServiceTests
             ["test", new DateTime(2026, 4, 1), new DateTime(2026, 3, 1), 0],
             ["test", new DateTime(2026, 2, 1), new DateTime(2026, 3, 1), 0],
         ];
-#pragma warning restore CS8625 // Литерал, равный NULL, не может быть преобразован в ссылочный тип, не допускающий значение NULL.
 }

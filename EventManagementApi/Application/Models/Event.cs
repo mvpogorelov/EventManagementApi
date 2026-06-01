@@ -6,7 +6,7 @@ namespace EventManagmentApi.Application.Models;
 /// <summary>
 /// Модель события
 /// </summary>
-public sealed class Event
+public class Event
 {
     /// <summary>
     /// 

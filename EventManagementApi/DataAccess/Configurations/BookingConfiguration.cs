@@ -4,8 +4,12 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace EventManagmentApi.DataAccess.Configurations;
 
+/// <summary>
+/// DB конфигурация Booking
+/// </summary>
 public class BookingConfiguration : IEntityTypeConfiguration<Booking>
 {
+    /// <inheritdoc/>
     public void Configure(EntityTypeBuilder<Booking> builder)
     {
         builder.ToTable(nameof(Booking));

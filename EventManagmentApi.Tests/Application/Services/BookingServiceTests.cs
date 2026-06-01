@@ -3,39 +3,52 @@ using EventManagmentApi.Application.Exceptions;
 using EventManagmentApi.Application.Interfaces;
 using EventManagmentApi.Application.Models;
 using EventManagmentApi.Application.Services;
-using Microsoft.Extensions.Logging;
-using NSubstitute;
-using NSubstitute.ExceptionExtensions;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+using EventManagmentApi.DataAccess;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace EventManagmentApi.Tests.Application.Services;
 
-public class BookingServiceTests
+public class BookingServiceTests : IDisposable
 {
-    private readonly BookingService _bookingService;
+    private readonly ServiceProvider _serviceProvider;
+    private readonly IServiceScope _serviceScope;
     private readonly IEventService _eventService;
+    private readonly IBookingService _bookingService;
+
+    private Event testEvent;
 
     public BookingServiceTests()
     {
-        _eventService = Substitute.For<IEventService>();
-        var logger = Substitute.For<ILogger<BookingService>>();
+        var serviceCollection = new ServiceCollection();
 
-        _bookingService = new BookingService(_eventService, logger);
+        serviceCollection.AddDbContext<AppDbContext>(options => options.UseInMemoryDatabase(Guid.NewGuid().ToString()));
+        serviceCollection.AddScoped<IEventService, EventService>();
+        serviceCollection.AddScoped<IBookingService, BookingService>();
+
+        _serviceProvider = serviceCollection.BuildServiceProvider();
+        _serviceScope = _serviceProvider.CreateScope();
+        _eventService = _serviceScope.ServiceProvider.GetRequiredService<IEventService>();
+        _bookingService = _serviceScope.ServiceProvider.GetRequiredService<IBookingService>();
+    }
+
+    public void Dispose()
+    {
+        _serviceScope.Dispose();
+        _serviceProvider.Dispose();
     }
 
     [Fact(DisplayName = "Для существующего события должна создаваться бронь со статусом Pending")]
     public async Task Create_WhenEventExists_ShouldCreateBookingWithPendingStatus()
     {
         // Arrange
-        var @event = new Event("Title", DateTime.UtcNow, DateTime.UtcNow.AddDays(10), 1);
-
-        _eventService.Get(@event.Id).Returns(@event);
+        await SetTestData();
 
         // Act
-        var booking = await _bookingService.CreateBookingAsync(@event.Id, CancellationToken.None);
+        var booking = await _bookingService.CreateBookingAsync(testEvent.Id, CancellationToken.None);
 
         // Assert
-        Assert.Equal(@event.Id, booking.EventId);
+        Assert.Equal(testEvent.Id, booking.EventId);
         Assert.Equal(BookingStatus.Pending, booking.Status);
     }
     
@@ -43,14 +56,12 @@ public class BookingServiceTests
     public async Task Create_MultipleBookingForSingleEvent_ShouldCreateBookingWithUniqueId()
     {
         // Arrange
-        var @event = new Event("Title", DateTime.UtcNow, DateTime.UtcNow.AddDays(10), 1);
-
-        _eventService.Get(@event.Id).Returns(@event);
+        await SetTestData();
 
         // Act
-        var booking1 = await _bookingService.CreateBookingAsync(@event.Id, CancellationToken.None);
-        var booking2 = await _bookingService.CreateBookingAsync(@event.Id, CancellationToken.None);
-        var booking3 = await _bookingService.CreateBookingAsync(@event.Id, CancellationToken.None);
+        var booking1 = await _bookingService.CreateBookingAsync(testEvent.Id, CancellationToken.None);
+        var booking2 = await _bookingService.CreateBookingAsync(testEvent.Id, CancellationToken.None);
+        var booking3 = await _bookingService.CreateBookingAsync(testEvent.Id, CancellationToken.None);
 
         // Assert
         Assert.NotEqual(booking1.Id, booking2.Id);
@@ -62,12 +73,10 @@ public class BookingServiceTests
     public async Task Create_GetBookingById_ShouldReturnCorrectData()
     {
         // Arrange
-        var @event = new Event("Title", DateTime.UtcNow, DateTime.UtcNow.AddDays(10), 1);
-
-        _eventService.Get(@event.Id).Returns(@event);
+        await SetTestData();
 
         // Act
-        var booking = await _bookingService.CreateBookingAsync(@event.Id, CancellationToken.None);
+        var booking = await _bookingService.CreateBookingAsync(testEvent.Id, CancellationToken.None);
         var getByIdBooking = await _bookingService.GetBookingByIdAsync(booking.Id, CancellationToken.None);
 
         // Assert
@@ -80,12 +89,10 @@ public class BookingServiceTests
     public async Task Create_ChangeStatus_ShouldReflectChanges(BookingStatus status)
     {
         // Arrange
-        var @event = new Event("Title", DateTime.UtcNow, DateTime.UtcNow.AddDays(10), 1);
-
-        _eventService.Get(@event.Id).Returns(@event);
+        await SetTestData();
 
         // Act
-        var bookingAfterCreate = await _bookingService.CreateBookingAsync(@event.Id, CancellationToken.None);
+        var bookingAfterCreate = await _bookingService.CreateBookingAsync(testEvent.Id, CancellationToken.None);
         var bookingAfterCreateStatus = bookingAfterCreate.Status;
         var bookingAfterCreateProcessedAt = bookingAfterCreate.ProcessedAt;
 
@@ -105,8 +112,6 @@ public class BookingServiceTests
     {
         // Arrange
         var eventId = Guid.NewGuid();
-
-        _eventService.TryReserveSeats(eventId).Throws(new NotFoundException());
 
         // Act
         var ex = await Record.ExceptionAsync(async () => await _bookingService.CreateBookingAsync(eventId, CancellationToken.None));
@@ -134,12 +139,11 @@ public class BookingServiceTests
     public async Task Create_WhenEventDeleted_ShouldRiseException()
     {
         // Arrange
-        var eventId = Guid.NewGuid();
-
-        _eventService.TryReserveSeats(eventId).Throws(new NotFoundException());
+        await SetTestData();
+        await _eventService.RemoveAsync(testEvent.Id, CancellationToken.None);
 
         // Act
-        var ex = await Record.ExceptionAsync(async () => await _bookingService.CreateBookingAsync(eventId, CancellationToken.None));
+        var ex = await Record.ExceptionAsync(async () => await _bookingService.CreateBookingAsync(testEvent.Id, CancellationToken.None));
 
         // Assert
         Assert.NotNull(ex);
@@ -150,11 +154,8 @@ public class BookingServiceTests
     public async Task Create_When20BookingsOn5Seats_ShouldCorrectResult()
     {
         // Arrange
-        var eventService = new EventService();
-        var logger = Substitute.For<ILogger<BookingService>>();
-        var bookingService = new BookingService(eventService, logger);
-        var @event = eventService.Create("Title", DateTime.UtcNow, DateTime.UtcNow.AddDays(10), 5);
-        var tasks = Enumerable.Range(1, 20).Select(i => bookingService.CreateBookingAsync(@event.Id, CancellationToken.None)).ToArray();
+        await SetTestData(totalSeats: 5);
+        var tasks = Enumerable.Range(1, 20).Select(i => _bookingService.CreateBookingAsync(testEvent.Id, CancellationToken.None)).ToArray();
 
         // Act
         await Task.WhenAll(tasks).ContinueWith(_ => { });
@@ -175,11 +176,8 @@ public class BookingServiceTests
     public async Task Create_When10BookingsOn10Seats_ShouldCorrectResult()
     {
         // Arrange
-        var eventService = new EventService();
-        var logger = Substitute.For<ILogger<BookingService>>();
-        var bookingService = new BookingService(eventService, logger);
-        var @event = eventService.Create("Title", DateTime.UtcNow, DateTime.UtcNow.AddDays(10), 10);
-        var tasks = Enumerable.Range(1, 10).Select(i => bookingService.CreateBookingAsync(@event.Id, CancellationToken.None)).ToArray();
+        await SetTestData(totalSeats: 10);
+        var tasks = Enumerable.Range(1, 10).Select(i => _bookingService.CreateBookingAsync(testEvent.Id, CancellationToken.None)).ToArray();
 
         // Act
         await Task.WhenAll(tasks).ContinueWith(_ => { });
@@ -190,5 +188,11 @@ public class BookingServiceTests
         var bookingIds = tasks.Select(t => t.Result.Id).ToArray();
 
         Assert.Equal(bookingIds.Length, new HashSet<Guid>(bookingIds).Count()); // имеют уникальные Id
+    }
+
+    private async Task SetTestData(int totalSeats = 100, CancellationToken ct = default)
+    {
+        await _eventService.RemoveAllAsync(ct);
+        testEvent = await _eventService.CreateAsync("Title", DateTime.UtcNow, DateTime.UtcNow.AddDays(10), totalSeats, "Desctiption", ct);
     }
 }

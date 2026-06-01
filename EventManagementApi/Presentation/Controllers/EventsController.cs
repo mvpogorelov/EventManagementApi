@@ -66,6 +66,7 @@ public class EventsController(IEventService eventService, IBookingService bookin
     /// Получение события по идентификатору
     /// </summary>
     /// <param name="id">Идентификатор события</param>
+    /// <param name="ct">Токен отмены</param>
     /// <returns>Событие</returns>
     /// <response code="200">Событие получено</response>
     /// <response code="404">Неверные данные события</response>
@@ -73,9 +74,9 @@ public class EventsController(IEventService eventService, IBookingService bookin
     [Produces("application/json")]
     [ProducesResponseType(typeof(ApiResultDto<EventInfoDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status404NotFound)]
-    public ApiResultDto Get(Guid id)
+    public async Task<ApiResultDto> GetByIdAsync(Guid id, CancellationToken ct)
     {
-        var @event = eventService.Get(@id);
+        var @event = await eventService.GetByIdAsync(@id, ct);
 
         if (@event is null)
         {
@@ -104,6 +105,7 @@ public class EventsController(IEventService eventService, IBookingService bookin
     /// Создание нового события
     /// </summary>
     /// <param name="eventDto">Данные события</param>
+    /// <param name="ct">Токен отмены</param>
     /// <returns>Событие</returns>
     /// <response code="201">Событие создано</response>
     /// <response code="400">Неверные данные события</response>
@@ -111,11 +113,11 @@ public class EventsController(IEventService eventService, IBookingService bookin
     [Consumes("application/json")]
     [ProducesResponseType(typeof(ApiResultDto<Event>), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status400BadRequest)]
-    public ActionResult<ApiResultDto> Post([FromBody] CreateEventDto eventDto)
+    public async Task<ActionResult<ApiResultDto>> Post([FromBody] CreateEventDto eventDto, CancellationToken ct)
     {
-        var @event = eventService.Create(eventDto.Title, eventDto.StartAt, eventDto.EndAt, eventDto.TotalSeats, eventDto.Description);
+        var @event = await eventService.CreateAsync(eventDto.Title, eventDto.StartAt, eventDto.EndAt, eventDto.TotalSeats, eventDto.Description, ct);
 
-        return CreatedAtAction(nameof(Get),
+        return CreatedAtAction(nameof(GetByIdAsync),
             new { id = @event.Id },
             new ApiResultDto<Event>
             {
@@ -130,6 +132,7 @@ public class EventsController(IEventService eventService, IBookingService bookin
     /// </summary>
     /// <param name="id">Идентификатор события</param>
     /// <param name="eventDto">Данные события</param>
+    /// <param name="ct">Токен отмены</param>
     /// <response code="204">Успешное обновление</response>
     /// <response code="400">Неверные данные события</response>
     /// <response code="404">Событие не найдено</response>
@@ -138,9 +141,9 @@ public class EventsController(IEventService eventService, IBookingService bookin
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status404NotFound)]
-    public NoContentResult Put(Guid id, [FromBody] UpdateEventDto eventDto)
+    public async Task<NoContentResult> PutAsync(Guid id, [FromBody] UpdateEventDto eventDto, CancellationToken ct)
     {
-        eventService.Update(id, eventDto.Title, eventDto.StartAt, eventDto.EndAt, eventDto.TotalSeats, eventDto.Description);
+        await eventService.UpdateAsync(id, eventDto.Title, eventDto.StartAt, eventDto.EndAt, eventDto.TotalSeats, eventDto.Description, ct);
 
         return NoContent();
     }
@@ -149,15 +152,16 @@ public class EventsController(IEventService eventService, IBookingService bookin
     /// Удаление события
     /// </summary>
     /// <param name="id">Идентификатор события</param>
-    /// <returns></returns>
+    /// <param name="ct">Токен отмены</param>
+    /// <returns>NoContentResult</returns>
     /// <response code="204">Событие удалено</response>
     /// <response code="404">Событие не найдено</response>
     [HttpDelete("{id:Guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status404NotFound)]
-    public NoContentResult Delete(Guid id)
+    public async Task<NoContentResult> DeleteAsync(Guid id, CancellationToken ct)
     {
-        eventService.Remove(id);
+        await eventService.RemoveAsync(id, ct);
 
         return NoContent();
     }

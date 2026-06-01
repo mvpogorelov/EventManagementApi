@@ -5,7 +5,7 @@ namespace EventManagmentApi.Application.Models
     /// <summary>
     /// Бронь
     /// </summary>
-    public sealed record Booking
+    public record Booking
     {
         /// <summary>
         /// Уникальный идентификатор брони
@@ -36,7 +36,5 @@ namespace EventManagmentApi.Application.Models
         /// Дата и время обработки брони
         /// </summary>
         public DateTime? ProcessedAt { get; set; }
-
-        private Booking() { }
     }
 }
