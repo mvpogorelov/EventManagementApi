@@ -113,15 +113,24 @@ public class EventsController(IEventService eventService, IBookingService bookin
     [Consumes("application/json")]
     [ProducesResponseType(typeof(ApiResultDto<Event>), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<ApiResultDto>> Post([FromBody] CreateEventDto eventDto, CancellationToken ct)
+    public async Task<ActionResult<ApiResultDto<EventInfoDto>>> Post([FromBody] CreateEventDto eventDto, CancellationToken ct)
     {
         var @event = await eventService.CreateAsync(eventDto.Title, eventDto.StartAt, eventDto.EndAt, eventDto.TotalSeats, eventDto.Description, ct);
 
-        return CreatedAtAction(nameof(GetByIdAsync),
+        return CreatedAtAction("GetById",
             new { id = @event.Id },
-            new ApiResultDto<Event>
+            new ApiResultDto<EventInfoDto>
             {
-                Data = @event,
+                Data = new EventInfoDto
+                {
+                    AvailableSeats = @event.AvailableSeats,
+                    Description = @event.Description ?? string.Empty,
+                    EndAt = @event.EndAt,
+                    Id = @event.Id,
+                    StartAt = @event.StartAt,
+                    Title = @event.Title,
+                    TotalSeats = @event.TotalSeats
+                },
                 Success = true,
                 StatusCode = HttpStatusCode.Created
             });

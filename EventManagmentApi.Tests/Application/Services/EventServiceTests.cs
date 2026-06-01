@@ -20,8 +20,9 @@ public class EventServiceTests : IDisposable
     public EventServiceTests()
     {
         var serviceCollection = new ServiceCollection();
+        var dbName = Guid.NewGuid().ToString();
 
-        serviceCollection.AddDbContext<AppDbContext>(options => options.UseInMemoryDatabase(Guid.NewGuid().ToString()));
+        serviceCollection.AddDbContext<AppDbContext>(options => options.UseInMemoryDatabase(dbName));
         serviceCollection.AddScoped<IEventService, EventService>();
         serviceCollection.AddScoped<IBookingService, BookingService>();
 
