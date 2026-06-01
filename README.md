@@ -209,3 +209,21 @@ URL: `/bookings`
 - lock - для синхронной работы
 - SemaphoreSlim - для асинхронной блокировки
 
+## База данных
+Для запуска PostgreSQL используйте docker-compose.yml:
+
+```
+docker compose up -d 
+```
+
+Параметры подключения:
+* Host = localhost
+* Port = 5432
+* Database = eventapi
+* Username = postgres
+* Password = postgres
+
+Схема БД создаётся автоматически при запуске через EnsureCreated
+
+В тестах используется InMemory-провайдер
+
