@@ -1,3 +1,4 @@
+using EventManagmentApi.Application.Exceptions;
 using EventManagmentApi.Application.Models;
 
 namespace EventManagmentApi.Application.Interfaces;
@@ -16,14 +17,15 @@ public interface IEventService
     /// <param name="page">Номер страницы</param>
     /// <param name="pageSize">Размер страницы</param>
     /// <returns></returns>
-    PaginatedResult<Event> GetAll(string? title, DateTime? from, DateTime? to, int page = 1, int pageSize = 10);
+    PaginatedResult<Event> GetAll(string? title = null, DateTime? from = null, DateTime? to = null, int page = 1, int pageSize = 10);
 
     /// <summary>
     /// Получение события по идентификатору
     /// </summary>
     /// <param name="id">Идентификатор события</param>
+    /// <param name="ct">Токен отмены</param>
     /// <returns>Событие</returns>
-    Event? Get(Guid id);
+    Task<Event?> GetByIdAsync(Guid id, CancellationToken ct = default);
 
     /// <summary>
     /// Создание события
@@ -33,8 +35,9 @@ public interface IEventService
     /// <param name="startAt">Дата начала</param>
     /// <param name="endAt">Дата окончания</param>
     /// <param name="description">Описание события</param>
+    /// <param name="ct">Токен отмены</param>
     /// <returns>Событие</returns>
-    Event Create(string title, DateTime? startAt, DateTime? endAt, int totalSeats, string? description = null);
+    Task<Event> CreateAsync(string title, DateTime? startAt, DateTime? endAt, int totalSeats, string? description = null, CancellationToken ct = default);
 
     /// <summary>
     /// Обновление события
@@ -45,27 +48,20 @@ public interface IEventService
     /// <param name="endAt">Дата окончания</param>
     /// <param name="totalSeats">Общее количество мест на событии</param>
     /// <param name="description">Описание события</param>
-    void Update(Guid id, string title, DateTime? startAt, DateTime? endAt,int totalSeats, string? description = null);
+    /// <param name="ct">Токен отмены</param>
+    Task UpdateAsync(Guid id, string title, DateTime? startAt, DateTime? endAt,int totalSeats, string? description = null, CancellationToken ct = default);
 
 
     /// <summary>
     /// Удаление события
     /// </summary>
     /// <param name="id">Идентификатор события</param>
-    void Remove(Guid id);
+    /// <param name="ct">Токен отмены</param>
+    Task RemoveAsync(Guid id, CancellationToken ct = default);
 
     /// <summary>
-    /// Попытка резервирования мест
+    /// Удаление всех событий
     /// </summary>
-    /// <param name="id">Идентификатор события</param>
-    /// <param name="count">Количество мест</param>
-    /// <returns>true - если удачно</returns>
-    bool TryReserveSeats(Guid id, int count = 1);
-
-    /// <summary>
-    /// Освобождение мест для резервирования
-    /// </summary>
-    /// <param name="id">Идентификатор события</param>
-    /// <param name="count">Количество мест для освобождения</param>
-    void ReleaseSeats(Guid id, int count = 1);
+    /// <param name="ct">Токен отмены</param>
+    Task RemoveAllAsync(CancellationToken ct = default);
 }

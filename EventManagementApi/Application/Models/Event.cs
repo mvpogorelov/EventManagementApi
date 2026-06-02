@@ -28,6 +28,7 @@ public class Event
         AvailableSeats = totalSeats;
     }
 
+
     /// <summary>
     /// Уникальный идентификатор события
     /// </summary>
@@ -78,6 +79,11 @@ public class Event
     public int AvailableSeats { get; private set; }
 
     /// <summary>
+    /// Список брони
+    /// </summary>
+    public ICollection<Booking> Bookings { get; set; } = [];
+
+    /// <summary>
     /// Попытка резервирования мест
     /// </summary>
     /// <param name="count">Количество мест</param>
@@ -105,4 +111,8 @@ public class Event
             ? TotalSeats
             : AvailableSeats + count;
     }
+
+    private Event() { }
+
+
 }

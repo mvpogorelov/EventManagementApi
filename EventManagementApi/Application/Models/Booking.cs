@@ -18,6 +18,11 @@ namespace EventManagmentApi.Application.Models
         public required Guid EventId { get; init; }
 
         /// <summary>
+        /// Событие, к которому относится бронь
+        /// </summary>
+        public Event Event { get; init; }
+
+        /// <summary>
         /// Текущий статус брони
         /// </summary>
         public required BookingStatus Status { get; set; }
