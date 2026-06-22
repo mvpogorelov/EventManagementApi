@@ -1,4 +1,5 @@
 using EventManagmentApi.Application.Interfaces;
+using EventManagmentApi.Application.Repositories;
 using EventManagmentApi.Application.Services;
 
 namespace EventManagmentApi.Application;
@@ -17,6 +18,8 @@ public static class DependencyInjection
     {
         services.AddHostedService<BookingBackgroundService>();
 
+        services.AddScoped<IEventRepository, EventRepository>();
+        services.AddScoped<IBookingRepository, BookingRepository>();
         services.AddScoped<IEventService, EventService>();
         services.AddScoped<IBookingService, BookingService>();
 

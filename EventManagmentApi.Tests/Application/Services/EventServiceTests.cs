@@ -1,6 +1,7 @@
 ﻿using EventManagmentApi.Application.Exceptions;
 using EventManagmentApi.Application.Interfaces;
 using EventManagmentApi.Application.Models;
+using EventManagmentApi.Application.Repositories;
 using EventManagmentApi.Application.Services;
 using EventManagmentApi.DataAccess;
 using Microsoft.EntityFrameworkCore;
@@ -23,6 +24,8 @@ public class EventServiceTests : IDisposable
         var dbName = Guid.NewGuid().ToString();
 
         serviceCollection.AddDbContext<AppDbContext>(options => options.UseInMemoryDatabase(dbName));
+        serviceCollection.AddScoped<IEventRepository, EventRepository>();
+        serviceCollection.AddScoped<IBookingRepository, BookingRepository>();
         serviceCollection.AddScoped<IEventService, EventService>();
         serviceCollection.AddScoped<IBookingService, BookingService>();
 
@@ -85,10 +88,10 @@ public class EventServiceTests : IDisposable
     [InlineData(-1, 1)]
     [InlineData(1, 0)]
     [InlineData(1, -1)]
-    public void GetAll_WhenParamsAreWrong_ShouldThrowException(int page, int pageSize)
+    public async Task GetAll_WhenParamsAreWrong_ShouldThrowException(int page, int pageSize)
     {
         // Act
-        var ex = Record.Exception(() => _eventService.GetAll(null, null, null, page, pageSize));
+        var ex = await Record.ExceptionAsync(async () => await _eventService.GetAllAsync(null, null, null, page, pageSize));
 
         // Assert
         Assert.NotNull(ex);
@@ -102,7 +105,7 @@ public class EventServiceTests : IDisposable
         await SetTestData();
 
         // Act
-        var events = _eventService.GetAll();
+        var events = await _eventService.GetAllAsync();
 
         // Assert
         Assert.Equal(4, events.Items.Count);
@@ -122,7 +125,7 @@ public class EventServiceTests : IDisposable
         await SetTestData();
 
         // Act
-        var events = _eventService.GetAll(page: page, pageSize: pageSize);
+        var events = await _eventService.GetAllAsync(page: page, pageSize: pageSize);
 
         // Assert
         Assert.Equal(expectedItemsCount, events.Items.Count);
@@ -143,7 +146,7 @@ public class EventServiceTests : IDisposable
         await SetTestData();
 
         // Act
-        var events = _eventService.GetAll(title);
+        var events = await _eventService.GetAllAsync(title);
 
         // Assert
         Assert.Single(events.Items);
@@ -157,7 +160,7 @@ public class EventServiceTests : IDisposable
         var startAt = new DateTime(2026, 3, 1);
 
         // Act
-        var events = _eventService.GetAll(from: startAt);
+        var events = await _eventService.GetAllAsync(from: startAt);
 
         // Assert
         Assert.Equal(2, events.Items.Count);
@@ -171,7 +174,7 @@ public class EventServiceTests : IDisposable
         var endAt = new DateTime(2026, 3, 10);
 
         // Act
-        var events = _eventService.GetAll(to: endAt);
+        var events = await _eventService.GetAllAsync(to: endAt);
 
         // Assert
         Assert.Equal(3, events.Items.Count);
@@ -188,7 +191,7 @@ public class EventServiceTests : IDisposable
         var endAt = new DateTime(2026, 3, 1);
 
         // Act
-        var events = _eventService.GetAll(title, startAt, endAt);
+        var events = await _eventService.GetAllAsync(title, startAt, endAt);
 
         // Assert
         Assert.Equal(2, events.Items.Count);

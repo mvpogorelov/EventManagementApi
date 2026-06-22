@@ -10,7 +10,7 @@ namespace EventManagmentApi.Application.Services;
 /// <summary>
 /// Сервис по работе с событиями
 /// </summary>
-public class EventService(AppDbContext context) : IEventService
+public class EventService(IEventRepository repository) : IEventService
 {
     /// <summary>
     /// Получение списка событий
@@ -20,13 +20,15 @@ public class EventService(AppDbContext context) : IEventService
     /// <param name="to">По дату</param>
     /// <param name="page">Номер страницы</param>
     /// <param name="pageSize">Размер страницы</param>
+    /// <param name="ct">Токен отмены</param>
     /// <returns>Список событий</returns>
-    public PaginatedResult<Event> GetAll(
+    public async Task<PaginatedResult<Event>> GetAllAsync(
         string? title = null,
         DateTime? from = null,
         DateTime? to = null,
         int page = 1,
-        int pageSize = 10)
+        int pageSize = 10,
+        CancellationToken ct = default)
     {
         if (page < 1)
         {
@@ -38,31 +40,7 @@ public class EventService(AppDbContext context) : IEventService
             throw new ArgumentOutOfRangeException($"Неверный размер страницы: {nameof(pageSize)}");
         }
 
-        var events = context.Events.AsQueryable();
-
-        if (!string.IsNullOrEmpty(title))
-        {
-            events = events.Where(e => e.Title.ToLower().Contains(title.ToLower()));
-        }
-        
-        if (from.HasValue)
-        {
-            events = events.Where(e => e.StartAt >= from);
-        }
-        
-        if (to.HasValue)
-        {
-            events = events.Where(e => e.EndAt <= to);
-        }
-
-        var totalItems = events.Count();
-        var totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
-        var items = events
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToList();
-
-        return new PaginatedResult<Event>(items, page, items.Count, totalItems, totalPages);
+        return await repository.GetPaginatedAsync(title, from, to, page, pageSize, ct);
     }
 
     /// <summary>
@@ -71,8 +49,7 @@ public class EventService(AppDbContext context) : IEventService
     /// <param name="id">Идентификатор события</param>
     /// <param name="ct">Токен отмены</param>
     /// <returns>Событие</returns>
-    public async Task<Event?> GetByIdAsync(Guid id, CancellationToken ct = default) =>
-        await context.Events.FirstOrDefaultAsync(e => e.Id == id, ct);
+    public async Task<Event?> GetByIdAsync(Guid id, CancellationToken ct = default) => await repository.GetByIdAsync(id, ct);
 
     /// <summary>
     /// Создание события
@@ -91,10 +68,7 @@ public class EventService(AppDbContext context) : IEventService
 
         var @event = new Event(title, startAt.Value, endAt.Value, totalSeats, description);
 
-        await context.Events.AddAsync(@event, ct);
-        await context.SaveChangesAsync();
-
-        return @event;
+        return await repository.CreateAsync(@event);
     }
 
     /// <summary>
@@ -113,7 +87,7 @@ public class EventService(AppDbContext context) : IEventService
     {
         ValidateEventDataAndThrow(title, startAt, endAt, totalSeats);
 
-        var @event = await GetByIdAsync(id, ct) ?? throw new NotFoundException($"Событие с Id: {id} не найдено");
+        var @event = await repository.GetByIdAsync(id, ct) ?? throw new NotFoundException($"Событие с Id: {id} не найдено");
 
         @event.Title = title;
         @event.StartAt = startAt.Value;
@@ -121,7 +95,7 @@ public class EventService(AppDbContext context) : IEventService
         @event.Description = description;
         @event.TotalSeats = totalSeats;
 
-        await context.SaveChangesAsync(ct);
+        await repository.UpdateAsync(@event);
     }
 
     /// <summary>
@@ -132,23 +106,16 @@ public class EventService(AppDbContext context) : IEventService
     /// <exception cref="NotFoundException">Если событие не найдено</exception>
     public async Task RemoveAsync(Guid id, CancellationToken ct = default)
     {
-        var @event = await GetByIdAsync(id, ct) ?? throw new NotFoundException($"Событие с Id: {id} не найдено");
+        var @event = await repository.GetByIdAsync(id, ct) ?? throw new NotFoundException($"Событие с Id: {id} не найдено");
 
-        context.Remove(@event);
-        await context.SaveChangesAsync(ct);
+        await repository.DeleteAsync(@event);
     }
     
     /// <summary>
     /// Удаление всех событий
     /// </summary>
     /// <param name="ct">Токен отмены</param>
-    public async Task RemoveAllAsync(CancellationToken ct = default)
-    {
-        var allEvents = await context.Events.ToListAsync(ct);
-
-        context.Events.RemoveRange(allEvents);
-        await context.SaveChangesAsync();
-    }
+    public async Task RemoveAllAsync(CancellationToken ct = default) => await repository.DeleteAllAsync(ct);
 
     private void ValidateEventDataAndThrow(string title, DateTime? startAt, DateTime? endAt, int totalSeats, string? description = null)
     {
