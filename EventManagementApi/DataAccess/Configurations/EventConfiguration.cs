@@ -12,7 +12,7 @@ public class EventConfiguration : IEntityTypeConfiguration<Event>
     /// <inheritdoc/>
     public void Configure(EntityTypeBuilder<Event> builder)
     {
-        builder.ToTable(nameof(Event));
+        builder.ToTable("events");
         builder.HasKey(e => e.Id);
         builder.Property(e => e.Id)
             .ValueGeneratedNever();

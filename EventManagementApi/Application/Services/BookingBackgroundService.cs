@@ -95,11 +95,8 @@ namespace EventManagmentApi.Application.Services
 
                 if (@event is not null)
                 {
-                    using var scope = scopeFactory.CreateScope();
-                    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
                     @event.ReleaseSeats();
-                    await context.SaveChangesAsync();
+                    await eventRepository.UpdateAsync(@event, ct);
                 }
 
                 logger.LogError($"Неожиданная ошибка при обработке брони {booking.Id}: {e}");

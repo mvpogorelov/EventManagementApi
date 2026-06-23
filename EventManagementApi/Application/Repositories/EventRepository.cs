@@ -53,7 +53,7 @@ public class EventRepository(AppDbContext context) : IEventRepository
             .Take(pageSize)
             .ToListAsync(ct);
 
-        return new PaginatedResult<Event>(items, page, items.Count, totalItems, totalPages);
+        return new PaginatedResult<Event>(items, page, pageSize, totalItems, totalPages);
     }
 
     /// <summary>

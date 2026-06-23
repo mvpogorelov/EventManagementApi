@@ -1,56 +1,12 @@
-﻿using Docker.DotNet.Models;
-using EventManagmentApi.Application.Enums;
+﻿using EventManagmentApi.Application.Enums;
 using EventManagmentApi.Application.Models;
 using EventManagmentApi.Application.Repositories;
-using EventManagmentApi.DataAccess;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using Testcontainers.PostgreSql;
 
 namespace EventManagmentApi.IntegrationTests.Application.Repositories;
 
-public class BookingRepositoryTests : IAsyncLifetime
+public class BookingRepositoryTests : BaseRepositoryTests
 {
-    private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:17").Build();
-
-    public async Task InitializeAsync()
-    {
-        await _postgres.StartAsync();
-    }
-
-    public async Task DisposeAsync()
-    {
-        await _postgres.DisposeAsync();
-    }
-
-    private AppDbContext CreateContext()
-    {
-        var options = new DbContextOptionsBuilder<AppDbContext>()
-            .UseNpgsql(_postgres.GetConnectionString())
-            .Options;
-        var context = new AppDbContext(options);
-
-        context.Database.Migrate();
-
-        return context;
-    }
-
-    private async Task ResetDatabaseAsync()
-    {
-        await using var context = CreateContext();
-        await context.Database.ExecuteSqlRawAsync(@"
-            DO $$ DECLARE
-                r RECORD;
-            BEGIN
-                FOR r IN (SELECT tablename FROM pg_tables 
-                          WHERE schemaname = 'public' 
-                            AND tablename NOT IN ('__EFMigrationsHistory', 'schema_version')) 
-                LOOP
-                    EXECUTE 'TRUNCATE TABLE ' || quote_ident(r.tablename) || ' RESTART IDENTITY CASCADE;';
-                END LOOP;
-            END $$;");
-    }
-
     [Fact(DisplayName = "Корректный поиск брони по статусу")]
     public async Task GetByStatus_ShouldFindCorrectBooking()
     {

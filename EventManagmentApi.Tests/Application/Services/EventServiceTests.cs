@@ -110,7 +110,7 @@ public class EventServiceTests : IDisposable
         // Assert
         Assert.Equal(4, events.Items.Count);
         Assert.Equal(1, events.Page);
-        Assert.Equal(4, events.PageSize);
+        Assert.Equal(10, events.PageSize);
         Assert.Equal(4, events.TotalItems);
         Assert.Equal(1, events.TotalPages);
     }
