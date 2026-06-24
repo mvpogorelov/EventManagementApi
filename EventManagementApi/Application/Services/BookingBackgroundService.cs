@@ -1,7 +1,6 @@
 ﻿using EventManagmentApi.Application.Enums;
 using EventManagmentApi.Application.Interfaces;
 using EventManagmentApi.Application.Models;
-using EventManagmentApi.DataAccess;
 
 namespace EventManagmentApi.Application.Services
 {

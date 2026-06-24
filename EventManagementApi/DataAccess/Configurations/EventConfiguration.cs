@@ -22,8 +22,6 @@ public class EventConfiguration : IEntityTypeConfiguration<Event>
         builder.Property(e => e.StartAt)
             .IsRequired();
         builder.Property(e => e.EndAt)
-            .IsRequired();
-        builder.Property(e => e.EndAt)
            .IsRequired();
         builder.Property(e => e.TotalSeats)
             .IsRequired();
