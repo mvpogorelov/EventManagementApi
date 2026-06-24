@@ -5,15 +5,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EventManagmentApi.IntegrationTests.Application.Repositories;
 
-public class BookingRepositoryTests : BaseRepositoryTests
+[Collection("Integration Tests")]
+public class BookingRepositoryTests(DatabaseFixture databaseFixture)
 {
     [Fact(DisplayName = "Корректный поиск брони по статусу")]
     public async Task GetByStatus_ShouldFindCorrectBooking()
     {
         // Arrange
-        await ResetDatabaseAsync();
+        await databaseFixture.ResetDatabaseAsync();
 
-        await using var context = CreateContext();
+        await using var context = databaseFixture.CreateContext();
         var @event = new Event("Title", DateTime.SpecifyKind(new DateTime(2026, 4, 1), DateTimeKind.Utc), DateTime.SpecifyKind(new DateTime(2026, 4, 10), DateTimeKind.Utc), 10, "Description");
 
         context.Events.Add(@event);
@@ -45,7 +46,7 @@ public class BookingRepositoryTests : BaseRepositoryTests
         await context.SaveChangesAsync();
 
         // Act
-        await using var verifyContext = CreateContext();
+        await using var verifyContext = databaseFixture.CreateContext();
         var repository = new BookingRepository(verifyContext);
         var verifyBooks1 = await repository.GetByStatusAsync(BookingStatus.Pending);
         var verifyBooks2 = await repository.GetByStatusAsync(BookingStatus.Rejected);
@@ -66,9 +67,9 @@ public class BookingRepositoryTests : BaseRepositoryTests
     public async Task GetById_ShouldFindCorrectBooking()
     {
         // Arrange
-        await ResetDatabaseAsync();
+        await databaseFixture.ResetDatabaseAsync();
 
-        await using var context = CreateContext();
+        await using var context = databaseFixture.CreateContext();
         var @event = new Event("Title", DateTime.SpecifyKind(new DateTime(2026, 4, 1), DateTimeKind.Utc), DateTime.SpecifyKind(new DateTime(2026, 4, 10), DateTimeKind.Utc), 10, "Description");
 
         context.Events.Add(@event);
@@ -95,7 +96,7 @@ public class BookingRepositoryTests : BaseRepositoryTests
         await context.SaveChangesAsync();
 
         // Act
-        await using var verifyContext = CreateContext();
+        await using var verifyContext = databaseFixture.CreateContext();
         var repository = new BookingRepository(verifyContext);
         var verifyBook1 = await repository.GetByIdAsync(booking1Id);
         var verifyBook2 = await repository.GetByIdAsync(booking2Id);
@@ -111,9 +112,9 @@ public class BookingRepositoryTests : BaseRepositoryTests
     public async Task CreateAsync()
     {
         // Arrange
-        await ResetDatabaseAsync();
+        await databaseFixture.ResetDatabaseAsync();
 
-        await using var context = CreateContext();
+        await using var context = databaseFixture.CreateContext();
         var @event = new Event("Title", DateTime.SpecifyKind(new DateTime(2026, 4, 1), DateTimeKind.Utc), DateTime.SpecifyKind(new DateTime(2026, 4, 10), DateTimeKind.Utc), 10, "Description");
 
         context.Events.Add(@event);
@@ -133,7 +134,7 @@ public class BookingRepositoryTests : BaseRepositoryTests
         await repository.CreateAsync(booking);
 
         // Assert
-        await using var verifyContext = CreateContext();
+        await using var verifyContext = databaseFixture.CreateContext();
         var savedBooking = await verifyContext.Bookings.FirstOrDefaultAsync(b => b.Id == bookingId);
 
         Assert.NotNull(savedBooking);
@@ -145,9 +146,9 @@ public class BookingRepositoryTests : BaseRepositoryTests
     public async Task CreateAsync_IfDublicate_ShouldThrowError()
     {
         // Arrange
-        await ResetDatabaseAsync();
+        await databaseFixture.ResetDatabaseAsync();
 
-        await using var context = CreateContext();
+        await using var context = databaseFixture.CreateContext();
         var @event = new Event("Title", DateTime.SpecifyKind(new DateTime(2026, 4, 1), DateTimeKind.Utc), DateTime.SpecifyKind(new DateTime(2026, 4, 10), DateTimeKind.Utc), 10, "Description");
 
         context.Events.Add(@event);
@@ -174,7 +175,7 @@ public class BookingRepositoryTests : BaseRepositoryTests
         };
 
         // Act & Assert
-        await using var verifyContext = CreateContext();
+        await using var verifyContext = databaseFixture.CreateContext();
         var repository = new BookingRepository(verifyContext);
 
         await Assert.ThrowsAsync<DbUpdateException>(async () => await repository.CreateAsync(dublicate));
@@ -184,9 +185,9 @@ public class BookingRepositoryTests : BaseRepositoryTests
     public async Task UpdateAsync()
     {
         // Arrange
-        await ResetDatabaseAsync();
+        await databaseFixture.ResetDatabaseAsync();
 
-        await using var context = CreateContext();
+        await using var context = databaseFixture.CreateContext();
         var @event = new Event("Title", DateTime.SpecifyKind(new DateTime(2026, 4, 1), DateTimeKind.Utc), DateTime.SpecifyKind(new DateTime(2026, 4, 10), DateTimeKind.Utc), 10, "Description");
 
         context.Events.Add(@event);
@@ -205,7 +206,7 @@ public class BookingRepositoryTests : BaseRepositoryTests
         await context.SaveChangesAsync();
 
         // Act
-        await using var actContext = CreateContext();
+        await using var actContext = databaseFixture.CreateContext();
         var repository = new BookingRepository(actContext);
         var bookingUpdate = new Booking
         {
@@ -218,7 +219,7 @@ public class BookingRepositoryTests : BaseRepositoryTests
         await repository.UpdateAsync(bookingUpdate);
 
         // Assert
-        await using var verifyContext = CreateContext();
+        await using var verifyContext = databaseFixture.CreateContext();
         var savedBooking = await verifyContext.Bookings.FirstOrDefaultAsync(b => b.Id == bookingId);
 
         Assert.NotNull(savedBooking);
@@ -229,9 +230,9 @@ public class BookingRepositoryTests : BaseRepositoryTests
     public async Task DeleteAsync()
     {
         // Arrange
-        await ResetDatabaseAsync();
+        await databaseFixture.ResetDatabaseAsync();
 
-        await using var context = CreateContext();
+        await using var context = databaseFixture.CreateContext();
         var @event = new Event("Title", DateTime.SpecifyKind(new DateTime(2026, 4, 1), DateTimeKind.Utc), DateTime.SpecifyKind(new DateTime(2026, 4, 10), DateTimeKind.Utc), 10, "Description");
 
         context.Events.Add(@event);
@@ -250,13 +251,13 @@ public class BookingRepositoryTests : BaseRepositoryTests
         await context.SaveChangesAsync();
 
         // Act
-        await using var actContext = CreateContext();
+        await using var actContext = databaseFixture.CreateContext();
         var repository = new BookingRepository(actContext);
 
         await repository.DeleteAsync(booking);
 
         // Assert
-        await using var verifyContext = CreateContext();
+        await using var verifyContext = databaseFixture.CreateContext();
         var savedBooking = await verifyContext.Bookings.FirstOrDefaultAsync(b => b.Id == bookingId);
 
         Assert.Null(savedBooking);

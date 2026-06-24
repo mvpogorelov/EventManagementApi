@@ -2,23 +2,14 @@
 using Microsoft.EntityFrameworkCore;
 using Testcontainers.PostgreSql;
 
-namespace EventManagmentApi.IntegrationTests.Application.Repositories;
+namespace EventManagmentApi.IntegrationTests;
 
-public abstract class BaseRepositoryTests : IAsyncLifetime
+public class DatabaseFixture : IAsyncLifetime
 {
     private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:17").Build();
-
-    public async Task InitializeAsync()
-    {
-        await _postgres.StartAsync();
-    }
-
-    public async Task DisposeAsync()
-    {
-        await _postgres.DisposeAsync();
-    }
-
-    protected AppDbContext CreateContext()
+    public async Task InitializeAsync() => await _postgres.StartAsync();
+    public async Task DisposeAsync() => await _postgres.DisposeAsync();
+    public AppDbContext CreateContext()
     {
         var options = new DbContextOptionsBuilder<AppDbContext>()
             .UseNpgsql(_postgres.GetConnectionString())
@@ -30,7 +21,7 @@ public abstract class BaseRepositoryTests : IAsyncLifetime
         return context;
     }
 
-    protected async Task ResetDatabaseAsync()
+    public async Task ResetDatabaseAsync()
     {
         await using var context = CreateContext();
         await context.Database.ExecuteSqlRawAsync(@"
@@ -45,4 +36,9 @@ public abstract class BaseRepositoryTests : IAsyncLifetime
                 END LOOP;
             END $$;");
     }
+}
+
+[CollectionDefinition("Integration Tests")]
+public class IntegrationTestsCollection : ICollectionFixture<DatabaseFixture>
+{
 }
