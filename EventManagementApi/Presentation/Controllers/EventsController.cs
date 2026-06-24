@@ -30,14 +30,14 @@ public class EventsController(IEventService eventService, IBookingService bookin
     [Produces("application/json")]
     [ProducesResponseType(typeof(PaginatedResultDto<IReadOnlyList<EventInfoDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status400BadRequest)]
-    public PaginatedResultDto<IReadOnlyList<EventInfoDto>> GetAll(
+    public async Task<PaginatedResultDto<IReadOnlyList<EventInfoDto>>> GetAll(
         [FromQuery] string? title,
         [FromQuery] DateTime? from,
         [FromQuery] DateTime? to,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10)
     {
-        var result = eventService.GetAll(title, from, to, page, pageSize);
+        var result = await eventService.GetAllAsync(title, from, to, page, pageSize);
 
         return new PaginatedResultDto<IReadOnlyList<EventInfoDto>>
         {

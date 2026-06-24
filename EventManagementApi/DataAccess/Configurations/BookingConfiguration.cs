@@ -12,7 +12,7 @@ public class BookingConfiguration : IEntityTypeConfiguration<Booking>
     /// <inheritdoc/>
     public void Configure(EntityTypeBuilder<Booking> builder)
     {
-        builder.ToTable(nameof(Booking));
+        builder.ToTable("bookings");
         builder.HasKey(b => b.Id);
         builder.Property(b => b.Id)
             .ValueGeneratedNever();

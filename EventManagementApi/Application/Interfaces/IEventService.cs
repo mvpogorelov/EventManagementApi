@@ -1,4 +1,3 @@
-using EventManagmentApi.Application.Exceptions;
 using EventManagmentApi.Application.Models;
 
 namespace EventManagmentApi.Application.Interfaces;
@@ -16,8 +15,9 @@ public interface IEventService
     /// <param name="to">По дату</param>
     /// <param name="page">Номер страницы</param>
     /// <param name="pageSize">Размер страницы</param>
+    /// <param name="ct">Токен отмены</param>
     /// <returns></returns>
-    PaginatedResult<Event> GetAll(string? title = null, DateTime? from = null, DateTime? to = null, int page = 1, int pageSize = 10);
+    Task<PaginatedResult<Event>> GetAllAsync(string? title = null, DateTime? from = null, DateTime? to = null, int page = 1, int pageSize = 10, CancellationToken ct = default);
 
     /// <summary>
     /// Получение события по идентификатору

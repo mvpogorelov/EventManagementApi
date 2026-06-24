@@ -2,6 +2,7 @@
 using EventManagmentApi.Application.Exceptions;
 using EventManagmentApi.Application.Interfaces;
 using EventManagmentApi.Application.Models;
+using EventManagmentApi.Application.Repositories;
 using EventManagmentApi.Application.Services;
 using EventManagmentApi.DataAccess;
 using Microsoft.EntityFrameworkCore;
@@ -24,6 +25,8 @@ public class BookingServiceTests : IDisposable
         var dbName = Guid.NewGuid().ToString();
 
         serviceCollection.AddDbContext<AppDbContext>(options => options.UseInMemoryDatabase(dbName));
+        serviceCollection.AddScoped<IEventRepository, EventRepository>();
+        serviceCollection.AddScoped<IBookingRepository, BookingRepository>();
         serviceCollection.AddScoped<IEventService, EventService>();
         serviceCollection.AddScoped<IBookingService, BookingService>();
 

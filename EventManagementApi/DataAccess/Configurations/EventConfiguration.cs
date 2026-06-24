@@ -12,7 +12,7 @@ public class EventConfiguration : IEntityTypeConfiguration<Event>
     /// <inheritdoc/>
     public void Configure(EntityTypeBuilder<Event> builder)
     {
-        builder.ToTable(nameof(Event));
+        builder.ToTable("events");
         builder.HasKey(e => e.Id);
         builder.Property(e => e.Id)
             .ValueGeneratedNever();
@@ -20,8 +20,6 @@ public class EventConfiguration : IEntityTypeConfiguration<Event>
             .IsRequired()
             .HasMaxLength(300);
         builder.Property(e => e.StartAt)
-            .IsRequired();
-        builder.Property(e => e.EndAt)
             .IsRequired();
         builder.Property(e => e.EndAt)
            .IsRequired();
