@@ -1,9 +1,10 @@
-﻿using EventManagmentApi.Application.Exceptions;
-using EventManagmentApi.Application.Interfaces;
-using EventManagmentApi.Application.Models;
-using EventManagmentApi.Application.Repositories;
-using EventManagmentApi.Application.Services;
-using EventManagmentApi.DataAccess;
+﻿using EventManagement.Application.Abstractions.Persistence.Repositories;
+using EventManagement.Application.Abstractions.Services;
+using EventManagement.Application.Services;
+using EventManagement.Domain.Entities;
+using EventManagement.Domain.Exceptions;
+using EventManagement.Infrastructure.Persistence;
+using EventManagement.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System.ComponentModel.DataAnnotations;
@@ -197,16 +198,17 @@ public class EventServiceTests : IDisposable
         Assert.Equal(2, events.Items.Count);
     }
 
-    [Theory(DisplayName = "Получение события по id: Если передан несущестующий id, то должен вернуться null")]
+    [Theory(DisplayName = "Получение события по id: Если передан несущестующий id, то должны выбросить исключение")]
     [InlineData("3f2504e0-4f89-11d3-9a0c-0305e82c3301")]
     [InlineData("b0d4ce5d-2757-4699-948c-cfa72ba94f86")]
     public async Task Get_WhenIdIsIncorrect_ShouldThrowException(Guid id)
     {
         // Act
-        var @event = await _eventService.GetByIdAsync(id, CancellationToken.None);
+        var ex = await Record.ExceptionAsync(async () => await _eventService.GetByIdAsync(id, default));
 
         // Assert
-        Assert.Null(@event);
+        Assert.NotNull(ex);
+        Assert.IsType<NotFoundException>(ex);
     }
     
     [Fact(DisplayName = "Получение события по id: Если передан сущестующий id, то должно вернуться событие")]

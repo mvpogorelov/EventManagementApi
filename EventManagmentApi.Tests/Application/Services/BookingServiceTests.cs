@@ -1,10 +1,11 @@
-﻿using EventManagmentApi.Application.Enums;
-using EventManagmentApi.Application.Exceptions;
-using EventManagmentApi.Application.Interfaces;
-using EventManagmentApi.Application.Models;
-using EventManagmentApi.Application.Repositories;
-using EventManagmentApi.Application.Services;
-using EventManagmentApi.DataAccess;
+﻿using EventManagement.Application.Abstractions.Persistence.Repositories;
+using EventManagement.Application.Abstractions.Services;
+using EventManagement.Application.Services;
+using EventManagement.Domain.Common;
+using EventManagement.Domain.Entities;
+using EventManagement.Domain.Exceptions;
+using EventManagement.Infrastructure.Persistence;
+using EventManagement.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 

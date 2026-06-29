@@ -1,6 +1,6 @@
-﻿using EventManagmentApi.Application.Enums;
-using EventManagmentApi.Application.Models;
-using EventManagmentApi.Application.Repositories;
+﻿using EventManagement.Domain.Common;
+using EventManagement.Domain.Entities;
+using EventManagement.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace EventManagmentApi.IntegrationTests.Application.Repositories;
