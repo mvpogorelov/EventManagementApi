@@ -221,9 +221,13 @@ docker compose up -d
 * Password = postgres
 
 ### Схема БД управляется миграциями EF Core
-для создания миграции используется команда
+Для создания миграции используется команда
 ```
-dotnet ef migrations add InitialCreate
+dotnet ef migrations add <имя-миграции>
+```
+Перед использование команды перейдите в папку Persistence проекта EventManagement.Infrastructure
+```
+cd <ваш-путь>\Persistence
 ```
 
 При старте приложения, для применения миграций вызывается Migrate()
@@ -231,3 +235,15 @@ dotnet ef migrations add InitialCreate
 ## Тесты
 В юнит-тестах используется InMemory-провайдер
 При запуске интеграционных тестов, убедитесь, что запущен Docker
+
+## Структура решения
+Структура решения соответствует принципам чистой архитектуры
+
+| Проект | Назначение |
+|-|--|
+| EventManagement.Domain | Доменный слой |
+| EventManagement.Application | Слой приложения |
+| EventManagement.Infrastructure | Инфраструктурный слой |
+| EventManagement.Presentation | Слой представления |
+| EventManagement.UnitTests | Юнит-тесты |
+| EventManagement.IntegrationTests | Интеграционные тесты |
