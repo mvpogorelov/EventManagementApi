@@ -2,22 +2,22 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
 VisualStudioVersion = 18.4.11626.88
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventManagmentApi.UnitTests", "EventManagmentApi.Tests\EventManagmentApi.UnitTests.csproj", "{FDD20B54-8610-40F2-BFE1-CCCDE90E0BFF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventManagement.UnitTests", "EventManagmentApi.Tests\EventManagement.UnitTests.csproj", "{FDD20B54-8610-40F2-BFE1-CCCDE90E0BFF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventManagmentApi.Presentation", "EventManagementApi\EventManagmentApi.Presentation.csproj", "{1A1E9071-4B56-75AD-5DE7-A3D465C6B10D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventManagement.Presentation", "EventManagementApi\EventManagement.Presentation.csproj", "{1A1E9071-4B56-75AD-5DE7-A3D465C6B10D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8FE7165D-E292-462B-A411-0B41C60FA7D8}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventManagmentApi.IntegrationTests", "EventManagmentApi.IntegrationTests\EventManagmentApi.IntegrationTests.csproj", "{A8A252EA-40C2-433B-896A-56E451D9091E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventManagement.IntegrationTests", "EventManagmentApi.IntegrationTests\EventManagement.IntegrationTests.csproj", "{A8A252EA-40C2-433B-896A-56E451D9091E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventManagementApi.Domain", "EventManagementApi.Domain\EventManagementApi.Domain.csproj", "{8EF327B5-4B73-432F-A1C3-0CD82D8D6709}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventManagement.Domain", "EventManagementApi.Domain\EventManagement.Domain.csproj", "{8EF327B5-4B73-432F-A1C3-0CD82D8D6709}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventManagementApi.Application", "EventManagementApi.Application\EventManagementApi.Application.csproj", "{F7E5050C-AA72-43BA-A68F-5A6416213067}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventManagement.Application", "EventManagementApi.Application\EventManagement.Application.csproj", "{F7E5050C-AA72-43BA-A68F-5A6416213067}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventManagementApi.Infrastructure", "EventManagementApi.Infrastructure\EventManagementApi.Infrastructure.csproj", "{24A4A98B-C302-41A5-8302-12DAA3C47E04}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventManagement.Infrastructure", "EventManagementApi.Infrastructure\EventManagement.Infrastructure.csproj", "{24A4A98B-C302-41A5-8302-12DAA3C47E04}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
