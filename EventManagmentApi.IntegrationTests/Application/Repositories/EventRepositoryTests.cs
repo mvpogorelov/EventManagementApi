@@ -1,5 +1,5 @@
-﻿using EventManagmentApi.Application.Enums;
-using EventManagmentApi.Application.Models;
+﻿using EventManagement.Domain.Entities;
+using EventManagement.Domain.Enums;
 using EventManagmentApi.Application.Repositories;
 using Microsoft.EntityFrameworkCore;
 

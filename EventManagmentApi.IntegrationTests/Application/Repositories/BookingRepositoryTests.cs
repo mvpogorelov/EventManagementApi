@@ -1,4 +1,4 @@
-﻿using EventManagmentApi.Application.Enums;
+﻿using EventManagement.Domain.Enums;
 using EventManagmentApi.Application.Models;
 using EventManagmentApi.Application.Repositories;
 using Microsoft.EntityFrameworkCore;
