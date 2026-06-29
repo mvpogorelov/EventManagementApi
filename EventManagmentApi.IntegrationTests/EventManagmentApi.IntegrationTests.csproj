@@ -25,7 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\EventManagementApi\EventManagmentApi.csproj" />
+    <ProjectReference Include="..\EventManagementApi\EventManagmentApi.Presentation.csproj" />
   </ItemGroup>
 
   <ItemGroup>
