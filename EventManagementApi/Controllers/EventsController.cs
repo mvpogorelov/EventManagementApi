@@ -3,8 +3,10 @@ using EventManagement.Domain.Entities;
 using EventManagement.Domain.Exceptions;
 using EventManagement.Presentation.Contracts;
 using EventManagement.Presentation.Dto;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
+using System.Security.Claims;
 
 namespace EventManagement.Presentation.Controllers;
 
@@ -15,6 +17,7 @@ namespace EventManagement.Presentation.Controllers;
 /// <param name="bookingService"></param>
 [ApiController]
 [Route("[controller]")]
+[Authorize]
 public class EventsController(IEventService eventService, IBookingService bookingService) : ControllerBase
 {
     /// <summary>
@@ -174,7 +177,7 @@ public class EventsController(IEventService eventService, IBookingService bookin
     /// <summary>
     /// Создание брони
     /// </summary>
-    /// <param name="id">Идентификатор события</param>
+    /// <param name="eventId">Идентификатор события</param>
     /// <param name="ct">Токен отмены</param>
     /// <returns>Бронь</returns>
     /// <response code="202">Принято в обработку</response>
@@ -186,9 +189,9 @@ public class EventsController(IEventService eventService, IBookingService bookin
     [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status409Conflict)]
-    public async Task<ActionResult<ApiResultDto>> CreateBookingAsync(Guid id, CancellationToken ct = default)
+    public async Task<ActionResult<ApiResultDto>> CreateBookingAsync(Guid eventId, CancellationToken ct = default)
     {
-        var booking = await bookingService.CreateBookingAsync(id, ct);
+        var booking = await bookingService.CreateBookingAsync(eventId, GetUserId(), ct);
 
         return AcceptedAtAction(
             actionName: "Get",
@@ -201,5 +204,17 @@ public class EventsController(IEventService eventService, IBookingService bookin
                     Success = true
                 }
         );
+    }
+
+    private Guid GetUserId()
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+
+        if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
+        {
+            throw new UnauthorizedException("Пользователь не определён");
+        }
+
+        return userId;
     }
 }

@@ -24,4 +24,8 @@
     <ProjectReference Include="..\EventManagementApi.Domain\EventManagement.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Security\" />
+  </ItemGroup>
+
 </Project>

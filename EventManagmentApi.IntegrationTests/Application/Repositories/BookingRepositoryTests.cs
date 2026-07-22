@@ -16,6 +16,7 @@ public class BookingRepositoryTests(DatabaseFixture databaseFixture)
 
         await using var context = databaseFixture.CreateContext();
         var @event = new Event("Title", DateTime.SpecifyKind(new DateTime(2026, 4, 1), DateTimeKind.Utc), DateTime.SpecifyKind(new DateTime(2026, 4, 10), DateTimeKind.Utc), 10, "Description");
+        var user = new User("Login", "12345");
 
         context.Events.Add(@event);
         await context.SaveChangesAsync();
@@ -23,6 +24,7 @@ public class BookingRepositoryTests(DatabaseFixture databaseFixture)
         var booking1 = new Booking
         {
             Id = Guid.NewGuid(),
+            UserId = user.Id,
             EventId = @event.Id,
             Status = BookingStatus.Pending,
             CreatedAt = DateTime.UtcNow
@@ -30,6 +32,7 @@ public class BookingRepositoryTests(DatabaseFixture databaseFixture)
         var booking2 = new Booking
         {
             Id = Guid.NewGuid(),
+            UserId = user.Id,
             EventId = @event.Id,
             Status = BookingStatus.Rejected,
             CreatedAt = DateTime.UtcNow
@@ -37,6 +40,7 @@ public class BookingRepositoryTests(DatabaseFixture databaseFixture)
         var booking3 = new Booking
         {
             Id = Guid.NewGuid(),
+            UserId = user.Id,
             EventId = @event.Id,
             Status = BookingStatus.Confirmed,
             CreatedAt = DateTime.UtcNow
@@ -71,6 +75,7 @@ public class BookingRepositoryTests(DatabaseFixture databaseFixture)
 
         await using var context = databaseFixture.CreateContext();
         var @event = new Event("Title", DateTime.SpecifyKind(new DateTime(2026, 4, 1), DateTimeKind.Utc), DateTime.SpecifyKind(new DateTime(2026, 4, 10), DateTimeKind.Utc), 10, "Description");
+        var user = new User("Login", "12345");
 
         context.Events.Add(@event);
         await context.SaveChangesAsync();
@@ -80,6 +85,7 @@ public class BookingRepositoryTests(DatabaseFixture databaseFixture)
         {
             Id = booking1Id,
             EventId = @event.Id,
+            UserId = user.Id,
             Status = BookingStatus.Pending,
             CreatedAt = DateTime.UtcNow
         };
@@ -88,6 +94,7 @@ public class BookingRepositoryTests(DatabaseFixture databaseFixture)
         {
             Id = booking2Id,
             EventId = @event.Id,
+            UserId = user.Id,
             Status = BookingStatus.Rejected,
             CreatedAt = DateTime.UtcNow
         };
@@ -116,6 +123,7 @@ public class BookingRepositoryTests(DatabaseFixture databaseFixture)
 
         await using var context = databaseFixture.CreateContext();
         var @event = new Event("Title", DateTime.SpecifyKind(new DateTime(2026, 4, 1), DateTimeKind.Utc), DateTime.SpecifyKind(new DateTime(2026, 4, 10), DateTimeKind.Utc), 10, "Description");
+        var user = new User("Login", "12345");
 
         context.Events.Add(@event);
         await context.SaveChangesAsync();
@@ -125,6 +133,7 @@ public class BookingRepositoryTests(DatabaseFixture databaseFixture)
         {
             Id = bookingId,
             EventId = @event.Id,
+            UserId = user.Id,
             Status = BookingStatus.Pending,
             CreatedAt = DateTime.UtcNow
         };
@@ -150,6 +159,7 @@ public class BookingRepositoryTests(DatabaseFixture databaseFixture)
 
         await using var context = databaseFixture.CreateContext();
         var @event = new Event("Title", DateTime.SpecifyKind(new DateTime(2026, 4, 1), DateTimeKind.Utc), DateTime.SpecifyKind(new DateTime(2026, 4, 10), DateTimeKind.Utc), 10, "Description");
+        var user = new User("Login", "12345");
 
         context.Events.Add(@event);
         await context.SaveChangesAsync();
@@ -159,6 +169,7 @@ public class BookingRepositoryTests(DatabaseFixture databaseFixture)
         {
             Id = bookingId,
             EventId = @event.Id,
+            UserId = user.Id,
             Status = BookingStatus.Pending,
             CreatedAt = DateTime.UtcNow
         };
@@ -170,6 +181,7 @@ public class BookingRepositoryTests(DatabaseFixture databaseFixture)
         {
             Id = bookingId,
             EventId = @event.Id,
+            UserId = user.Id,
             Status = BookingStatus.Rejected,
             CreatedAt = DateTime.UtcNow
         };
@@ -189,6 +201,7 @@ public class BookingRepositoryTests(DatabaseFixture databaseFixture)
 
         await using var context = databaseFixture.CreateContext();
         var @event = new Event("Title", DateTime.SpecifyKind(new DateTime(2026, 4, 1), DateTimeKind.Utc), DateTime.SpecifyKind(new DateTime(2026, 4, 10), DateTimeKind.Utc), 10, "Description");
+        var user = new User("Login", "12345");
 
         context.Events.Add(@event);
         await context.SaveChangesAsync();
@@ -198,6 +211,7 @@ public class BookingRepositoryTests(DatabaseFixture databaseFixture)
         {
             Id = bookingId,
             EventId = @event.Id,
+            UserId = user.Id,
             Status = BookingStatus.Pending,
             CreatedAt = DateTime.UtcNow
         };
@@ -212,6 +226,7 @@ public class BookingRepositoryTests(DatabaseFixture databaseFixture)
         {
             Id = bookingId,
             EventId = @event.Id,
+            UserId = user.Id,
             Status = BookingStatus.Confirmed,
             CreatedAt = DateTime.UtcNow
         };
@@ -234,6 +249,7 @@ public class BookingRepositoryTests(DatabaseFixture databaseFixture)
 
         await using var context = databaseFixture.CreateContext();
         var @event = new Event("Title", DateTime.SpecifyKind(new DateTime(2026, 4, 1), DateTimeKind.Utc), DateTime.SpecifyKind(new DateTime(2026, 4, 10), DateTimeKind.Utc), 10, "Description");
+        var user = new User("Login", "12345");
 
         context.Events.Add(@event);
         await context.SaveChangesAsync();
@@ -243,6 +259,7 @@ public class BookingRepositoryTests(DatabaseFixture databaseFixture)
         {
             Id = bookingId,
             EventId = @event.Id,
+            UserId = user.Id,
             Status = BookingStatus.Pending,
             CreatedAt = DateTime.UtcNow
         };

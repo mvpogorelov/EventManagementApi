@@ -20,7 +20,7 @@ public record Booking
     /// <summary>
     /// Событие, к которому относится бронь
     /// </summary>
-    public Event Event { get; init; }
+    public Event? Event { get; init; }
 
     /// <summary>
     /// Текущий статус брони
@@ -36,4 +36,7 @@ public record Booking
     /// Дата и время обработки брони
     /// </summary>
     public DateTime? ProcessedAt { get; set; }
+
+    public Guid? UserId { get; init; }
+    public User? User { get; init; }
 }

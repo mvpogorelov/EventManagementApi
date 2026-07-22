@@ -38,7 +38,7 @@ public class BookingService(IBookingRepository bookingRepository, IEventReposito
     /// <param name="eventId">Идентификатор события</param>
     /// /// <param name="ct">Токен отмены</param>
     /// <returns>Бронь</returns>
-    public async Task<Booking> CreateBookingAsync(Guid eventId, CancellationToken ct = default)
+    public async Task<Booking> CreateBookingAsync(Guid eventId, Guid userId, CancellationToken ct = default)
     {
         await _createSemaphore.WaitAsync(ct);
 
@@ -56,6 +56,7 @@ public class BookingService(IBookingRepository bookingRepository, IEventReposito
             {
                 Id = Guid.NewGuid(),
                 EventId = eventId,
+                UserId = userId,
                 Status = BookingStatus.Pending,
                 CreatedAt = DateTime.UtcNow
             };

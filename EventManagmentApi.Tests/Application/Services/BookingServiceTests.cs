@@ -19,6 +19,7 @@ public class BookingServiceTests : IDisposable
     private readonly IBookingService _bookingService;
 
     private Event testEvent;
+    private Guid testUserId;
 
     public BookingServiceTests()
     {
@@ -50,7 +51,7 @@ public class BookingServiceTests : IDisposable
         await SetTestData();
 
         // Act
-        var booking = await _bookingService.CreateBookingAsync(testEvent.Id, CancellationToken.None);
+        var booking = await _bookingService.CreateBookingAsync(testEvent.Id, testUserId, CancellationToken.None);
 
         // Assert
         Assert.Equal(testEvent.Id, booking.EventId);
@@ -64,9 +65,9 @@ public class BookingServiceTests : IDisposable
         await SetTestData();
 
         // Act
-        var booking1 = await _bookingService.CreateBookingAsync(testEvent.Id, CancellationToken.None);
-        var booking2 = await _bookingService.CreateBookingAsync(testEvent.Id, CancellationToken.None);
-        var booking3 = await _bookingService.CreateBookingAsync(testEvent.Id, CancellationToken.None);
+        var booking1 = await _bookingService.CreateBookingAsync(testEvent.Id, testUserId, CancellationToken.None);
+        var booking2 = await _bookingService.CreateBookingAsync(testEvent.Id, testUserId, CancellationToken.None);
+        var booking3 = await _bookingService.CreateBookingAsync(testEvent.Id, testUserId, CancellationToken.None);
 
         // Assert
         Assert.NotEqual(booking1.Id, booking2.Id);
@@ -81,7 +82,7 @@ public class BookingServiceTests : IDisposable
         await SetTestData();
 
         // Act
-        var booking = await _bookingService.CreateBookingAsync(testEvent.Id, CancellationToken.None);
+        var booking = await _bookingService.CreateBookingAsync(testEvent.Id, testUserId, CancellationToken.None);
         var getByIdBooking = await _bookingService.GetBookingByIdAsync(booking.Id, CancellationToken.None);
 
         // Assert
@@ -97,7 +98,7 @@ public class BookingServiceTests : IDisposable
         await SetTestData();
 
         // Act
-        var bookingAfterCreate = await _bookingService.CreateBookingAsync(testEvent.Id, CancellationToken.None);
+        var bookingAfterCreate = await _bookingService.CreateBookingAsync(testEvent.Id, testUserId, CancellationToken.None);
         var bookingAfterCreateStatus = bookingAfterCreate.Status;
         var bookingAfterCreateProcessedAt = bookingAfterCreate.ProcessedAt;
 
@@ -119,7 +120,7 @@ public class BookingServiceTests : IDisposable
         var eventId = Guid.NewGuid();
 
         // Act
-        var ex = await Record.ExceptionAsync(async () => await _bookingService.CreateBookingAsync(eventId, CancellationToken.None));
+        var ex = await Record.ExceptionAsync(async () => await _bookingService.CreateBookingAsync(eventId, testUserId, CancellationToken.None));
 
         // Assert
         Assert.NotNull(ex);
@@ -148,7 +149,7 @@ public class BookingServiceTests : IDisposable
         await _eventService.RemoveAsync(testEvent.Id, CancellationToken.None);
 
         // Act
-        var ex = await Record.ExceptionAsync(async () => await _bookingService.CreateBookingAsync(testEvent.Id, CancellationToken.None));
+        var ex = await Record.ExceptionAsync(async () => await _bookingService.CreateBookingAsync(testEvent.Id, testUserId, CancellationToken.None));
 
         // Assert
         Assert.NotNull(ex);
@@ -160,7 +161,7 @@ public class BookingServiceTests : IDisposable
     {
         // Arrange
         await SetTestData(totalSeats: 5);
-        var tasks = Enumerable.Range(1, 20).Select(i => _bookingService.CreateBookingAsync(testEvent.Id, CancellationToken.None)).ToArray();
+        var tasks = Enumerable.Range(1, 20).Select(i => _bookingService.CreateBookingAsync(testEvent.Id, testUserId, CancellationToken.None)).ToArray();
 
         // Act
         await Task.WhenAll(tasks).ContinueWith(_ => { });
@@ -182,7 +183,7 @@ public class BookingServiceTests : IDisposable
     {
         // Arrange
         await SetTestData(totalSeats: 10);
-        var tasks = Enumerable.Range(1, 10).Select(i => _bookingService.CreateBookingAsync(testEvent.Id, CancellationToken.None)).ToArray();
+        var tasks = Enumerable.Range(1, 10).Select(i => _bookingService.CreateBookingAsync(testEvent.Id, testUserId, CancellationToken.None)).ToArray();
 
         // Act
         await Task.WhenAll(tasks).ContinueWith(_ => { });
@@ -199,5 +200,6 @@ public class BookingServiceTests : IDisposable
     {
         await _eventService.RemoveAllAsync(ct);
         testEvent = await _eventService.CreateAsync("Title", DateTime.UtcNow, DateTime.UtcNow.AddDays(10), totalSeats, "Desctiption", ct);
+        testUserId = Guid.NewGuid();
     }
 }

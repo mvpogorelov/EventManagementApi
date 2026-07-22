@@ -223,12 +223,10 @@ docker compose up -d
 ### Схема БД управляется миграциями EF Core
 Для создания миграции используется команда
 ```
-dotnet ef migrations add <имя-миграции>
+dotnet ef migrations add <имя-миграции> -p "..\EventManagementApi.Infrastructure\EventManagement.Infrastructure.csproj" -s "EventManagement.Presentation.csproj"
 ```
-Перед использование команды перейдите в папку Persistence проекта EventManagement.Infrastructure
-```
-cd <ваш-путь>\Persistence
-```
+Перед использование команды перейдите в корневую папку  проекта EventManagement.Presentation
+
 
 При старте приложения, для применения миграций вызывается Migrate()
 
