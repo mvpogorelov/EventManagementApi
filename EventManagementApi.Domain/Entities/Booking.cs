@@ -1,11 +1,12 @@
 ﻿using EventManagement.Domain.Common;
+using EventManagement.Domain.Exceptions;
 
 namespace EventManagement.Domain.Entities;
 
 /// <summary>
 /// Бронь
 /// </summary>
-public record Booking
+public sealed class Booking
 {
     /// <summary>
     /// Уникальный идентификатор брони
@@ -39,4 +40,29 @@ public record Booking
 
     public Guid? UserId { get; init; }
     public User? User { get; init; }
+
+    public void Confirm()
+    {
+        Status = BookingStatus.Confirmed;
+        ProcessedAt = DateTime.UtcNow;
+    }
+    
+    public void Reject()
+    {
+        Status = BookingStatus.Rejected;
+        ProcessedAt = DateTime.UtcNow;
+    }
+    
+    public void Cancel(Guid? userId)
+    {
+        if (UserId != userId
+            || Status != BookingStatus.Pending && Status != BookingStatus.Confirmed)
+        {
+            throw new OperationNotAllowedException("Бронь нельзя отменить");
+        }
+
+        Status = BookingStatus.Cancelled;
+        ProcessedAt = DateTime.UtcNow;
+
+    }
 }

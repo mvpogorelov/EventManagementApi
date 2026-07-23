@@ -2,6 +2,7 @@
 using EventManagement.Application.Abstractions.Services;
 using EventManagement.Domain.Common;
 using EventManagement.Domain.Entities;
+using EventManagement.Domain.Exceptions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -36,10 +37,10 @@ public class BookingBackgroundService(
             {
                 using var scope = scopeFactory.CreateScope();
                 var eventRepository = scope.ServiceProvider.GetRequiredService<IEventRepository>();
-                var bookingService = scope.ServiceProvider.GetRequiredService<IBookingService>();
+                var bookingRepository = scope.ServiceProvider.GetRequiredService<IBookingRepository>();
 
-                var pendingBookings = await bookingService.GetByStatusAsync(BookingStatus.Pending, ct);
-                var tasks = pendingBookings.Select(booking => ProcessBookingAsync(eventRepository, bookingService, booking, ct));
+                var pendingBookings = await bookingRepository.GetByStatusAsync(BookingStatus.Pending, ct);
+                var tasks = pendingBookings.Select(booking => ProcessBookingAsync(eventRepository, bookingRepository, booking, ct));
 
                 await Task.WhenAll(tasks);
                 await Task.Delay(PollingInterval, ct);
@@ -61,29 +62,36 @@ public class BookingBackgroundService(
     /// Обработка брони
     /// </summary>
     /// <param name="eventRepository"></param>
-    /// <param name="bookingService"></param>
+    /// <param name="bookingRepository"></param>
     /// <param name="booking">Бронь</param>
     /// <param name="ct"></param>
     /// <returns></returns>
-    public async Task ProcessBookingAsync(IEventRepository eventRepository, IBookingService bookingService, Booking booking, CancellationToken ct)
+    public async Task ProcessBookingAsync(
+        IEventRepository eventRepository,
+        IBookingRepository bookingRepository,
+        Booking booking,
+        CancellationToken ct)
     {
         Event? @event = null;
 
         await _processingSemaphore.WaitAsync(ct);
+
         try
         {
             @event = await eventRepository.GetByIdAsync(booking.EventId, ct);
 
             if (@event is null)
             {
-                await bookingService.UpdateStatusAsync(booking.Id, BookingStatus.Rejected, ct);
+                booking.Reject();
 
                 logger.LogWarning($"Бронь {booking.Id} отклонена, отсутствует событие {booking.EventId}");
             }
             else
             {
-                await bookingService.UpdateStatusAsync(booking.Id, BookingStatus.Confirmed, ct);
+                booking.Confirm();
             }
+
+            await bookingRepository.UpdateAsync(booking, ct);
 
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
@@ -94,7 +102,8 @@ public class BookingBackgroundService(
         }
         catch (Exception e)
         {
-            await bookingService.UpdateStatusAsync(booking.Id, BookingStatus.Rejected, ct);
+            booking.Reject();
+            await bookingRepository.UpdateAsync(booking, ct);
 
             if (@event is not null)
             {

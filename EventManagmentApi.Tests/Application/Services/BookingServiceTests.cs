@@ -17,7 +17,7 @@ public class BookingServiceTests : IDisposable
     private readonly IServiceScope _serviceScope;
     private readonly IEventService _eventService;
     private readonly IBookingService _bookingService;
-
+    
     private Event testEvent;
     private Guid testUserId;
 
@@ -89,30 +89,6 @@ public class BookingServiceTests : IDisposable
         Assert.Equal(booking, getByIdBooking);
     }
     
-    [Theory(DisplayName = "Получение брони отражает изменение статуса")]
-    [InlineData(BookingStatus.Confirmed)]
-    [InlineData(BookingStatus.Rejected)]
-    public async Task Create_ChangeStatus_ShouldReflectChanges(BookingStatus status)
-    {
-        // Arrange
-        await SetTestData();
-
-        // Act
-        var bookingAfterCreate = await _bookingService.CreateBookingAsync(testEvent.Id, testUserId, CancellationToken.None);
-        var bookingAfterCreateStatus = bookingAfterCreate.Status;
-        var bookingAfterCreateProcessedAt = bookingAfterCreate.ProcessedAt;
-
-        await _bookingService.UpdateStatusAsync(bookingAfterCreate.Id, status, CancellationToken.None);
-
-        var bookingAfterChangeStatus = await _bookingService.GetBookingByIdAsync(bookingAfterCreate.Id, CancellationToken.None);
-
-        // Assert
-        Assert.Equal(BookingStatus.Pending, bookingAfterCreateStatus);
-        Assert.Null(bookingAfterCreateProcessedAt);
-        Assert.Equal(status, bookingAfterChangeStatus.Status);
-        Assert.NotNull(bookingAfterChangeStatus.ProcessedAt);
-    }
-
     [Fact(DisplayName = "Для несуществующего события должна выбрасываться ошибка")]
     public async Task Create_WhenEventDoNotExists_ShouldRiseException()
     {

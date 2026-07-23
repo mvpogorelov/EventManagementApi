@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace EventManagement.Domain.Entities;
 
-public record User
+public sealed class User
 {
     [SetsRequiredMembers]
     public User(string login, string passwordHash, UserRole role = UserRole.User)

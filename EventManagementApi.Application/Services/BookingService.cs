@@ -70,24 +70,6 @@ public class BookingService(IBookingRepository bookingRepository, IEventReposito
     }
 
     /// <summary>
-    /// Обновление брони
-    /// </summary>
-    /// <param name="id">Идентификатор брони</param>
-    /// <param name="status">Статус брони</param>
-    /// <param name="ct">Токен отмены</param>
-    /// <exception cref="NotFoundException">Если бронь не найдена</exception>
-    public async Task UpdateStatusAsync(Guid id, BookingStatus status, CancellationToken ct = default)
-    {
-        var booking = await bookingRepository.GetByIdAsync(id, ct)
-            ?? throw new NotFoundException($"Бронь с Id: {id} не найдена");
-
-        booking.Status = status;
-        booking.ProcessedAt = DateTime.UtcNow;
-
-        await bookingRepository.UpdateAsync(booking, ct);
-    }
-
-    /// <summary>
     /// Удаление брони
     /// </summary>
     /// <param name="id">Идентификатор брони</param>

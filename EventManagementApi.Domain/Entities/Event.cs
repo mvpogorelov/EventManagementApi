@@ -6,7 +6,7 @@ namespace EventManagement.Domain.Entities;
 /// <summary>
 /// Модель события
 /// </summary>
-public class Event
+public sealed class Event
 {
     /// <summary>
     /// 
