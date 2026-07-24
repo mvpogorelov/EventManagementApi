@@ -1,11 +1,14 @@
 using EventManagement.Application;
 using EventManagement.Infrastructure;
+using EventManagement.Infrastructure.Security;
 using EventManagement.Presentation;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+var configuration = builder.Configuration;
 
-builder.Services.AddInfrastructure(builder.Configuration.GetConnectionString("DefaultConnection"));
+builder.Services.Configure<JwtSettings>(configuration.GetSection("JwtSettings"));
+builder.Services.AddInfrastructure(configuration.GetConnectionString("DefaultConnection"));
 builder.Services.AddApplication();
 builder.Services.AddPresentation();
 
