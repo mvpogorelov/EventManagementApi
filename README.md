@@ -247,4 +247,25 @@ dotnet ef migrations add <имя-миграции> -p "..\EventManagementApi.Inf
 | EventManagement.IntegrationTests | Интеграционные тесты |
 
 ## Ролевая модель
-В системе предусмотрена 
+В системе предусмотрено использование следующих ролей пользователя:
+* Admin - администратор
+* User - пользователь
+
+Ендпоинт для регистрации пользователя: **/Auth/register**. Укажите логин, пароль и роль (по-умолчанию: User)
+
+Ендпоинт для получения токена аутентификации: **/Auth/login**
+
+### Доступность ендпоинтов по ролям
+| Ендпоинт | Описание | Роли |
+|-|-|-|
+| POST /Auth/register | Регистрация нового пользователя | Анонимный |
+| POST /Auth/login | Логин | Анонимный |
+| GET /Bookings/{bookingId} | Получение брони по идентификатору | User (только свои), Admin (любые) |
+| DELETE/Bookings/{bookingId} | Удаление брони | User (только свои), Admin (любые) |
+| POST /Bookings/{bookingId}/cancel | Отмена брони | User (только свои), Admin (любые) |
+| GET /Events | Получение списка событий | Анонимный |
+| POST /Events | Создание нового события | Admin |
+| GET /Events/{id} | Получение события по идентификатору | User (только свои), Admin (любые) |
+| PUT /Events/{id} | Обновление события | Admin |
+| DELETE /Events/{id} | Удаление события | Admin |
+| POST /Events/{eventId}/book | Создание брони | User, Admin | 
