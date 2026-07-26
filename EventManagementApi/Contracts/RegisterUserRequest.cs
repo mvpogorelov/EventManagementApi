@@ -1,4 +1,5 @@
 ﻿using EventManagement.Domain.Common;
+using System.Text.Json.Serialization;
 
 namespace EventManagement.Presentation.Contracts;
 
@@ -20,5 +21,6 @@ public class RegisterUserRequest
     /// <summary>
     /// Роль
     /// </summary>
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public UserRole Role { get; set; } = UserRole.User;
 }

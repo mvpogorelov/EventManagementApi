@@ -19,6 +19,7 @@ public class BookingRepositoryTests(DatabaseFixture databaseFixture)
         var user = new User("Login", "12345");
 
         context.Events.Add(@event);
+        context.Users.Add(user);
         await context.SaveChangesAsync();
 
         var booking1 = new Booking
@@ -78,6 +79,7 @@ public class BookingRepositoryTests(DatabaseFixture databaseFixture)
         var user = new User("Login", "12345");
 
         context.Events.Add(@event);
+        context.Users.Add(user);
         await context.SaveChangesAsync();
 
         var booking1Id = Guid.NewGuid();
@@ -126,6 +128,7 @@ public class BookingRepositoryTests(DatabaseFixture databaseFixture)
         var user = new User("Login", "12345");
 
         context.Events.Add(@event);
+        context.Users.Add(user);
         await context.SaveChangesAsync();
 
         var bookingId = Guid.NewGuid();
@@ -162,6 +165,7 @@ public class BookingRepositoryTests(DatabaseFixture databaseFixture)
         var user = new User("Login", "12345");
 
         context.Events.Add(@event);
+        context.Users.Add(user);
         await context.SaveChangesAsync();
 
         var bookingId = Guid.NewGuid();
@@ -204,6 +208,7 @@ public class BookingRepositoryTests(DatabaseFixture databaseFixture)
         var user = new User("Login", "12345");
 
         context.Events.Add(@event);
+        context.Users.Add(user);
         await context.SaveChangesAsync();
 
         var bookingId = Guid.NewGuid();
@@ -252,6 +257,7 @@ public class BookingRepositoryTests(DatabaseFixture databaseFixture)
         var user = new User("Login", "12345");
 
         context.Events.Add(@event);
+        context.Users.Add(user);
         await context.SaveChangesAsync();
 
         var bookingId = Guid.NewGuid();

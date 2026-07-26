@@ -3,18 +3,18 @@ namespace EventManagement.Domain.Exceptions;
 /// <summary>
 /// Исключение "Не аутентифицирован"
 /// </summary>
-public class UnAuthenticatedException : Exception
+public class UnauthorizedException : Exception
 {
     /// <summary>
     /// Конструктор по умолчанию
     /// </summary>
-    public UnAuthenticatedException() : base() { }
+    public UnauthorizedException() : base() { }
 
     /// <summary>
     /// Конструктор с сообщением
     /// </summary>
     /// <param name="message">Сообщение</param>
-    public UnAuthenticatedException(string message)
+    public UnauthorizedException(string message)
         : base(message) { }
 
     /// <summary>
@@ -22,6 +22,6 @@ public class UnAuthenticatedException : Exception
     /// </summary>
     /// <param name="message">Сообщение</param>
     /// <param name="innerException">Внутреннее исключение</param>
-    public UnAuthenticatedException(string message, Exception innerException)
+    public UnauthorizedException(string message, Exception innerException)
         : base(message, innerException) { }
 }

@@ -40,6 +40,11 @@ builder.Services
 builder.Services.AddInfrastructure(configuration.GetConnectionString("DefaultConnection"));
 builder.Services.AddApplication();
 builder.Services.AddPresentation();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+    });
 
 var app = builder.Build();
 

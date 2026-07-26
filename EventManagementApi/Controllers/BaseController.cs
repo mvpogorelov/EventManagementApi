@@ -11,9 +11,9 @@ public abstract class BaseController : ControllerBase
 {
     protected Guid CurrentUserId => Guid.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var id)
         ? id
-        : throw new UnAuthenticatedException("Пользователь не определён");
+        : throw new UnauthorizedException("Пользователь не определён");
     
     protected UserRole CurrentUserRole => Enum.TryParse(User.FindFirst(ClaimTypes.Role)?.Value, out UserRole role)
         ? role
-        : throw new UnAuthenticatedException("Пользователь не определён");
+        : throw new UnauthorizedException("Пользователь не определён");
 }

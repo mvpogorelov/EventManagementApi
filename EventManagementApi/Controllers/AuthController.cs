@@ -45,7 +45,7 @@ public class AuthController(IUserService userService) : ControllerBase
     [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status400BadRequest)]
     public async Task<OkObjectResult> LoginAsync([FromBody]LoginUserRequest loginUserRequest, CancellationToken ct = default)
     {
-        var token = userService.LoginAsync(loginUserRequest.Login, loginUserRequest.Password, ct);
+        var token = await userService.LoginAsync(loginUserRequest.Login, loginUserRequest.Password, ct);
 
         return Ok(new { Token = token });
     }

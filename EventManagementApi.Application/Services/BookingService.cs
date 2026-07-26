@@ -52,9 +52,9 @@ public class BookingService(
             var @event = await eventRepository.GetByIdAsync(eventId, ct)
                 ?? throw new NotFoundException($"Событие не найдено: {eventId}");
             var user = await userRepository.GetByIdAsync(userId, ct)
-                ?? throw new NotFoundException($"Пользователь не найден: {userId}"); ;
+                ?? throw new NotFoundException($"Пользователь не найден: {userId}");
 
-            if (@event.StartAt >= DateTime.UtcNow)
+            if (@event.StartAt < DateTime.UtcNow)
             {
                 throw new PastEventBookingException("Событие уже началось");
             }

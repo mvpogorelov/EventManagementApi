@@ -38,12 +38,12 @@ public class UserService(
 
         if (user is null)
         {
-            throw new UnAuthenticatedException($"Пользователь не найден");
+            throw new UnauthorizedException($"Пользователь не найден");
         }
 
         if (!passwordService.Verify(password, user.PasswordHash))
         {
-            throw new UnAuthenticatedException($"Неверный пароль");
+            throw new UnauthorizedException($"Неверный пароль");
         }
 
         return jwtService.GenerateToken(user);

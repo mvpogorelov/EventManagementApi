@@ -237,6 +237,7 @@ public class EventRepositoryTests(DatabaseFixture databaseFixture)
             CreatedAt = DateTime.UtcNow
         };
 
+        context.Users.Add(user);
         await context.Bookings.AddAsync(booking);
         await context.SaveChangesAsync();
 

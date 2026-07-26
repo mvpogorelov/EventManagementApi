@@ -1,4 +1,5 @@
 ﻿using EventManagement.Application.Abstractions.Persistence.Repositories;
+using EventManagement.Application.Abstractions.Security;
 using EventManagement.Application.Abstractions.Services;
 using EventManagement.Application.Services;
 using EventManagement.Domain.Common;
@@ -6,9 +7,10 @@ using EventManagement.Domain.Entities;
 using EventManagement.Domain.Exceptions;
 using EventManagement.Infrastructure.Persistence;
 using EventManagement.Infrastructure.Persistence.Repositories;
+using EventManagement.Infrastructure.Security;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+using System.Data;
 
 namespace EventManagmentApi.Tests.Application.Services;
 
@@ -18,10 +20,14 @@ public class BookingServiceTests : IDisposable
     private readonly IServiceScope _serviceScope;
     private readonly IEventService _eventService;
     private readonly IBookingService _bookingService;
+    // private readonly IUserService _userService;
+    private readonly IUserRepository _userRepository;
+
     
     private Event testEvent;
-    private Guid testUserId;
-    private Guid testAdminId;
+    private Event testStartedEvent;
+    private User testUser;
+    private User testAdmin;
 
     public BookingServiceTests()
     {
@@ -33,11 +39,16 @@ public class BookingServiceTests : IDisposable
         serviceCollection.AddScoped<IBookingRepository, BookingRepository>();
         serviceCollection.AddScoped<IEventService, EventService>();
         serviceCollection.AddScoped<IBookingService, BookingService>();
+        serviceCollection.AddScoped<IUserRepository, UserRepository>();
+        //serviceCollection.AddScoped<IUserService, UserService>();
+        //serviceCollection.AddScoped<IPasswordService, PasswordService>();
+        //serviceCollection.AddScoped<IJwtService, JwtService>();
 
         _serviceProvider = serviceCollection.BuildServiceProvider();
         _serviceScope = _serviceProvider.CreateScope();
         _eventService = _serviceScope.ServiceProvider.GetRequiredService<IEventService>();
         _bookingService = _serviceScope.ServiceProvider.GetRequiredService<IBookingService>();
+        _userRepository = _serviceScope.ServiceProvider.GetRequiredService <IUserRepository>();
     }
 
     public void Dispose()
@@ -53,7 +64,7 @@ public class BookingServiceTests : IDisposable
         await SetTestData();
 
         // Act
-        var booking = await _bookingService.CreateBookingAsync(testEvent.Id, testUserId, CancellationToken.None);
+        var booking = await _bookingService.CreateBookingAsync(testEvent.Id, testUser.Id, CancellationToken.None);
 
         // Assert
         Assert.Equal(testEvent.Id, booking.EventId);
@@ -67,9 +78,9 @@ public class BookingServiceTests : IDisposable
         await SetTestData();
 
         // Act
-        var booking1 = await _bookingService.CreateBookingAsync(testEvent.Id, testUserId, CancellationToken.None);
-        var booking2 = await _bookingService.CreateBookingAsync(testEvent.Id, testUserId, CancellationToken.None);
-        var booking3 = await _bookingService.CreateBookingAsync(testEvent.Id, testUserId, CancellationToken.None);
+        var booking1 = await _bookingService.CreateBookingAsync(testEvent.Id, testUser.Id, CancellationToken.None);
+        var booking2 = await _bookingService.CreateBookingAsync(testEvent.Id, testUser.Id, CancellationToken.None);
+        var booking3 = await _bookingService.CreateBookingAsync(testEvent.Id, testUser.Id, CancellationToken.None);
 
         // Assert
         Assert.NotEqual(booking1.Id, booking2.Id);
@@ -84,24 +95,24 @@ public class BookingServiceTests : IDisposable
         await SetTestData();
 
         // Act
-        var bookingUser = await _bookingService.CreateBookingAsync(testEvent.Id, testUserId, CancellationToken.None);
-        var getByIdBookingUserUser = await _bookingService.GetBookingByIdAsync(bookingUser.Id, testUserId, UserRole.User, CancellationToken.None);
-        var getByIdBookingUserAdmin = await _bookingService.GetBookingByIdAsync(bookingUser.Id, testAdminId, UserRole.Admin, CancellationToken.None);
+        var bookingUser = await _bookingService.CreateBookingAsync(testEvent.Id, testUser.Id, CancellationToken.None);
+        var getByIdBookingUserUser = await _bookingService.GetBookingByIdAsync(bookingUser.Id, testUser.Id, UserRole.User, CancellationToken.None);
+        var getByIdBookingUserAdmin = await _bookingService.GetBookingByIdAsync(bookingUser.Id, testAdmin.Id, UserRole.Admin, CancellationToken.None);
 
         // Assert
         Assert.Equal(bookingUser, getByIdBookingUserUser);
         Assert.Equal(bookingUser, getByIdBookingUserAdmin);
     }
     
-    [Fact(DisplayName = "Получение не своей брони по Id — возвращается корректная информация")]
-    public async Task Create_NotOwnGetBookingById_ShouldReturnCorrectData()
+    [Fact(DisplayName = "Получение несвоей брони по Id — выбрасываться ошибка")]
+    public async Task Create_NotOwnGetBookingById_ShouldThrowExcepion()
     {
         // Arrange
         await SetTestData();
 
         // Act
-        var bookingAdmin = await _bookingService.CreateBookingAsync(testEvent.Id, testAdminId, CancellationToken.None);
-        var ex = await Record.ExceptionAsync(async () => await _bookingService.GetBookingByIdAsync(bookingAdmin.Id, testUserId, UserRole.User, CancellationToken.None));
+        var bookingAdmin = await _bookingService.CreateBookingAsync(testEvent.Id, testAdmin.Id, CancellationToken.None);
+        var ex = await Record.ExceptionAsync(async () => await _bookingService.GetBookingByIdAsync(bookingAdmin.Id, testUser.Id, UserRole.User, CancellationToken.None));
 
         // Assert
         Assert.NotNull(ex);
@@ -112,10 +123,12 @@ public class BookingServiceTests : IDisposable
     public async Task Create_WhenEventDoNotExists_ShouldRiseException()
     {
         // Arrange
+        await SetTestData();
+
         var eventId = Guid.NewGuid();
 
         // Act
-        var ex = await Record.ExceptionAsync(async () => await _bookingService.CreateBookingAsync(eventId, testUserId, CancellationToken.None));
+        var ex = await Record.ExceptionAsync(async () => await _bookingService.CreateBookingAsync(eventId, testUser.Id, CancellationToken.None));
 
         // Assert
         Assert.NotNull(ex);
@@ -126,13 +139,15 @@ public class BookingServiceTests : IDisposable
     public async Task GetById_WhenIdDoesNotExists_ShouldRiseException()
     {
         // Arrange
+        await SetTestData();
+
         var bookingId = Guid.NewGuid();
 
         // Act
         var ex = await Record.ExceptionAsync(async () =>
             await _bookingService.GetBookingByIdAsync(
                 bookingId,
-                testAdminId,
+                testAdmin.Id,
                 UserRole.Admin,
                 CancellationToken.None));
 
@@ -149,7 +164,7 @@ public class BookingServiceTests : IDisposable
         await _eventService.RemoveAsync(testEvent.Id, CancellationToken.None);
 
         // Act
-        var ex = await Record.ExceptionAsync(async () => await _bookingService.CreateBookingAsync(testEvent.Id, testUserId, CancellationToken.None));
+        var ex = await Record.ExceptionAsync(async () => await _bookingService.CreateBookingAsync(testEvent.Id, testUser.Id, CancellationToken.None));
 
         // Assert
         Assert.NotNull(ex);
@@ -161,7 +176,7 @@ public class BookingServiceTests : IDisposable
     {
         // Arrange
         await SetTestData(totalSeats: 5);
-        var tasks = Enumerable.Range(1, 20).Select(i => _bookingService.CreateBookingAsync(testEvent.Id, testUserId, CancellationToken.None)).ToArray();
+        var tasks = Enumerable.Range(1, 20).Select(i => _bookingService.CreateBookingAsync(testEvent.Id, testUser.Id, CancellationToken.None)).ToArray();
 
         // Act
         await Task.WhenAll(tasks).ContinueWith(_ => { });
@@ -183,7 +198,7 @@ public class BookingServiceTests : IDisposable
     {
         // Arrange
         await SetTestData(totalSeats: 10);
-        var tasks = Enumerable.Range(1, 10).Select(i => _bookingService.CreateBookingAsync(testEvent.Id, testUserId, CancellationToken.None)).ToArray();
+        var tasks = Enumerable.Range(1, 10).Select(i => _bookingService.CreateBookingAsync(testEvent.Id, testUser.Id, CancellationToken.None)).ToArray();
 
         // Act
         await Task.WhenAll(tasks).ContinueWith(_ => { });
@@ -196,11 +211,82 @@ public class BookingServiceTests : IDisposable
         Assert.Equal(bookingIds.Length, new HashSet<Guid>(bookingIds).Count()); // имеют уникальные Id
     }
 
+    [Fact(DisplayName = "Попытка забронировать прошедшее событие приводит к ошибке")]
+    public async Task Create_WhenEventIsAlreadyStarted_ShouldThrowError()
+    {
+        // Arrange
+        await SetTestData();
+
+        // Act
+        var ex = await Record.ExceptionAsync(async () => await _bookingService.CreateBookingAsync(testStartedEvent.Id, testUser.Id, CancellationToken.None));
+
+        // Assert
+        Assert.NotNull(ex);
+        Assert.IsType<PastEventBookingException>(ex);
+    }
+
+    [Fact(DisplayName = "При достижении лимита активных броней новая бронь не создаётся")]
+    public async Task Create_WhenBookingLimit_ShouldThrowError()
+    {
+        // Arrange
+        const int bookingLimit = 10;
+        await SetTestData();
+
+        for (var i = 0; i <= bookingLimit; i++)
+        {
+            // Act
+            var @event = await _eventService.CreateAsync($"Title{i}", DateTime.UtcNow.AddDays(1), DateTime.UtcNow.AddDays(10), 10, $"Desctiption{i}", default);
+            var ex = await Record.ExceptionAsync(async () => await _bookingService.CreateBookingAsync(@event.Id, testUser.Id, default));
+
+            // Assert
+            if (i < bookingLimit)
+            {
+                Assert.Null(ex);
+            }
+            else
+            {
+                Assert.NotNull(ex);
+                Assert.IsType<BookingLimitException>(ex);
+            }
+        }
+    }
+    
+    [Fact(DisplayName = "Лимиты разных пользователей не влияют друг на друга")]
+    public async Task Create_UserBookingLimitNotIntersect()
+    {
+        // Arrange
+        const int bookingLimit = 10;
+        await SetTestData();
+
+        for (var i = 0; i <= bookingLimit; i++)
+        {
+            // Act
+            var @event = await _eventService.CreateAsync($"Title{i}", DateTime.UtcNow.AddDays(1), DateTime.UtcNow.AddDays(10), 10, $"Desctiption{i}", default);
+            var ex1 = await Record.ExceptionAsync(async () => await _bookingService.CreateBookingAsync(@event.Id, testUser.Id, default));
+            var ex2 = await Record.ExceptionAsync(async () => await _bookingService.CreateBookingAsync(@event.Id, testAdmin.Id, default));
+
+            // Assert
+            if (i < bookingLimit)
+            {
+                Assert.Null(ex1);
+                Assert.Null(ex2);
+            }
+            else
+            {
+                Assert.NotNull(ex1);
+                Assert.IsType<BookingLimitException>(ex1);
+                Assert.NotNull(ex2);
+                Assert.IsType<BookingLimitException>(ex2);
+            }
+        }
+    }
+
     private async Task SetTestData(int totalSeats = 100, CancellationToken ct = default)
     {
         await _eventService.RemoveAllAsync(ct);
-        testEvent = await _eventService.CreateAsync("Title", DateTime.UtcNow, DateTime.UtcNow.AddDays(10), totalSeats, "Desctiption", ct);
-        testUserId = Guid.NewGuid();
-        testAdminId = Guid.NewGuid();
+        testEvent = await _eventService.CreateAsync("Title", DateTime.UtcNow.AddDays(1), DateTime.UtcNow.AddDays(10), totalSeats, "Desctiption", ct);
+        testStartedEvent = await _eventService.CreateAsync("StartedTitle", DateTime.UtcNow.AddDays(-1), DateTime.UtcNow.AddDays(10), totalSeats, "Desctiption", ct);
+        testUser = await _userRepository.CreateAsync(new User("user", "user", UserRole.User), default);
+        testAdmin = await _userRepository.CreateAsync(new User("admin", "admin", UserRole.Admin), default);
     }
 }

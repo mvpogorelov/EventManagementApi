@@ -245,3 +245,6 @@ dotnet ef migrations add <имя-миграции> -p "..\EventManagementApi.Inf
 | EventManagement.Presentation | Слой представления |
 | EventManagement.UnitTests | Юнит-тесты |
 | EventManagement.IntegrationTests | Интеграционные тесты |
+
+## Ролевая модель
+В системе предусмотрена 

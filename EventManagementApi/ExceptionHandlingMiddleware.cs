@@ -64,7 +64,7 @@ public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Exception
             ArgumentException ae => StatusCodes.Status400BadRequest,
             ValidationException ve => StatusCodes.Status400BadRequest,
             PastEventBookingException pebe => StatusCodes.Status400BadRequest,
-            UnAuthenticatedException uae => StatusCodes.Status403Forbidden,
+            UnauthorizedException uae => StatusCodes.Status403Forbidden,
             OperationNotAllowedException onae => StatusCodes.Status403Forbidden,
             NotFoundException nfe => StatusCodes.Status404NotFound,
             NoAvailableSeatsException nas => StatusCodes.Status409Conflict,

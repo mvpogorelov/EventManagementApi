@@ -43,7 +43,7 @@ namespace EventManagement.Presentation.Controllers
         /// <param name="bookingId">Идентификатор брони</param>
         /// <param name="ct">Токен отмены</param>
         /// <returns>NoContentResult</returns>
-        /// <response code="204">Бронь отменена></response>
+        /// <response code="204">Бронь отменена</response>
         /// <response code="404">Бронь не найдена</response>
         [HttpPost("{bookingId:Guid}/cancel")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -62,7 +62,7 @@ namespace EventManagement.Presentation.Controllers
         /// <param name="bookingId">Идентификатор брони</param>
         /// <param name="ct">Токен отмены</param>
         /// <returns>NoContentResult</returns>
-        /// <response code="204">Бронь удалена></response>
+        /// <response code="204">Бронь удалена</response>
         /// <response code="404">Бронь не найдена</response>
         [HttpDelete("{bookingId:Guid}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]

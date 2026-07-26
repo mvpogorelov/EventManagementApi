@@ -37,6 +37,8 @@ public static class DependencyInjection
                 {
                     [new OpenApiSecuritySchemeReference("Bearer", document)] = []
                 });
+
+            options.UseInlineDefinitionsForEnums();
         });
 
         return services;

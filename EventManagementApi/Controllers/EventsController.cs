@@ -27,6 +27,7 @@ public class EventsController(IEventService eventService, IBookingService bookin
     /// <param name="pageSize">Размер страницы</param>
     /// <returns>Cписок событий</returns>
     /// <response code="200">Список событий</response>
+    [AllowAnonymous]
     [HttpGet]
     [Produces("application/json")]
     [ProducesResponseType(typeof(PaginatedResultDto<IReadOnlyList<EventInfoDto>>), StatusCodes.Status200OK)]
@@ -110,6 +111,8 @@ public class EventsController(IEventService eventService, IBookingService bookin
     [Consumes("application/json")]
     [ProducesResponseType(typeof(ApiResultDto<Event>), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<ApiResultDto<EventInfoDto>>> Post([FromBody] CreateEventDto eventDto, CancellationToken ct)
     {
         var @event = await eventService.CreateAsync(eventDto.Title, eventDto.StartAt, eventDto.EndAt, eventDto.TotalSeats, eventDto.Description, ct);
@@ -183,7 +186,7 @@ public class EventsController(IEventService eventService, IBookingService bookin
     /// <response code="202">Принято в обработку</response>
     /// <response code="400">Не корректный запрос</response>
     /// <response code="404">Событие не найдено</response>
-    [HttpPost("{id:Guid}/book")]
+    [HttpPost("{eventId:Guid}/book")]
     [Produces("application/json")]
     [ProducesResponseType(typeof(ApiResultDto<BookingOutDto>), StatusCodes.Status202Accepted)]
     [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status400BadRequest)]
