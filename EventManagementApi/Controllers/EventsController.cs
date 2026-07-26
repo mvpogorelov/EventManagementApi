@@ -17,8 +17,7 @@ namespace EventManagement.Presentation.Controllers;
 /// <param name="bookingService"></param>
 [ApiController]
 [Route("[controller]")]
-[Authorize]
-public class EventsController(IEventService eventService, IBookingService bookingService) : ControllerBase
+public class EventsController(IEventService eventService, IBookingService bookingService) : BaseController
 {
     /// <summary>
     /// Получение списка событий
@@ -191,7 +190,7 @@ public class EventsController(IEventService eventService, IBookingService bookin
     [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status409Conflict)]
     public async Task<ActionResult<ApiResultDto>> CreateBookingAsync(Guid eventId, CancellationToken ct = default)
     {
-        var booking = await bookingService.CreateBookingAsync(eventId, GetUserId(), ct);
+        var booking = await bookingService.CreateBookingAsync(eventId, CurrentUserId, ct);
 
         return AcceptedAtAction(
             actionName: "Get",
@@ -204,17 +203,5 @@ public class EventsController(IEventService eventService, IBookingService bookin
                     Success = true
                 }
         );
-    }
-
-    private Guid GetUserId()
-    {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-
-        if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
-        {
-            throw new UnauthorizedException("Пользователь не определён");
-        }
-
-        return userId;
     }
 }

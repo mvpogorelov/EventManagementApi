@@ -1,4 +1,5 @@
 ﻿using EventManagement.Application.Abstractions.Services;
+using EventManagement.Application.Services;
 using EventManagement.Presentation.Contracts;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
@@ -11,7 +12,7 @@ namespace EventManagement.Presentation.Controllers
     /// <param name="bookingService"></param>
     [Route("[controller]")]
     [ApiController]
-    public class BookingsController(IBookingService bookingService) : ControllerBase
+    public class BookingsController(IBookingService bookingService) : BaseController
     {
         /// <summary>
         /// Получение брони по идентификатору
@@ -35,6 +36,25 @@ namespace EventManagement.Presentation.Controllers
                 Success = true,
                 StatusCode = HttpStatusCode.OK
             };
+        }
+
+        /// <summary>
+        /// Отмена брони
+        /// </summary>
+        /// <param name="bookingId">Идентификатор брони</param>
+        /// <param name="ct">Токен отмены</param>
+        /// <returns>NoContentResult</returns>
+        /// <response code="204">Бронь отменена></response>
+        /// <response code="404">Бронь не найдена</response>
+        [HttpPost("{bookingId:Guid}/cancel")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status404NotFound)]
+        public async Task<NoContentResult> CancelAsync(Guid bookingId, CancellationToken ct)
+        {
+            await bookingService.CancelAsync(bookingId, CurrentUserId, ct);
+
+            return NoContent();
         }
     }
 }

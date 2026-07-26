@@ -15,6 +15,8 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.Login)
             .IsRequired()
             .HasMaxLength(30);
+        builder.HasIndex(u => u.Login)
+            .IsUnique();
         builder.Property(u => u.PasswordHash)
             .IsRequired()
             .HasMaxLength(64);

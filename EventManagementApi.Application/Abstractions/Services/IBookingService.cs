@@ -32,10 +32,18 @@ public interface IBookingService
     /// <returns>Бронь</returns>
     Task<Booking> CreateBookingAsync(Guid eventId, Guid userId, CancellationToken ct = default);
 
-        /// <summary>
+    /// <summary>
     /// Удаление брони
     /// </summary>
     /// <param name="id">Идентификатор брони</param>
     /// <param name="ct">Токен отмены</param>
     Task RemoveAsync(Guid id, CancellationToken ct = default);
+
+    /// <summary>
+    /// Отмена брони
+    /// </summary>
+    /// <param name="id">Идентификатор брони</param>
+    /// <param name="currentUserId">Идентификатор пользователя</param>
+    /// <param name="ct">Токен отмены</param>
+    Task CancelAsync(Guid id, Guid currentUserId, CancellationToken ct = default);
 }

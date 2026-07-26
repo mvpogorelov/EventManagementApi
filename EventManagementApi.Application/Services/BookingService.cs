@@ -9,10 +9,15 @@ namespace EventManagement.Application.Services;
 /// <summary>
 /// Сервис для работы с бронью
 /// </summary>
-public class BookingService(IBookingRepository bookingRepository, IEventRepository eventRepository) : IBookingService
+public class BookingService(
+    IBookingRepository bookingRepository,
+    IEventRepository eventRepository,
+    IUserRepository userRepository)
+        : IBookingService
 {
+    private const int UserBookingLimit = 10;
     private static readonly SemaphoreSlim _createSemaphore = new(1, 1);
-
+    
     /// <summary>
     /// Получение списка брони
     /// </summary>
@@ -46,6 +51,23 @@ public class BookingService(IBookingRepository bookingRepository, IEventReposito
         {
             var @event = await eventRepository.GetByIdAsync(eventId, ct)
                 ?? throw new NotFoundException($"Событие не найдено: {eventId}");
+            var user = await userRepository.GetByIdAsync(userId, ct)
+                ?? throw new NotFoundException($"Пользователь не найден: {userId}"); ;
+
+            if (@event.StartAt >= DateTime.UtcNow)
+            {
+                throw new PastEventBookingException("Событие уже началось");
+            }
+
+            if (user.Bookings
+                .Where(b =>
+                    (b.Status == BookingStatus.Confirmed || b.Status == BookingStatus.Pending)
+                    && b.Event?.StartAt >= DateTime.UtcNow
+                )
+                .Count() >= UserBookingLimit)
+            {
+                throw new BookingLimitException("Превышен лимит активных броней");
+            }
 
             if (!@event.TryReserveSeats())
             {
@@ -81,5 +103,23 @@ public class BookingService(IBookingRepository bookingRepository, IEventReposito
             ?? throw new NotFoundException($"Бронь с Id: {id} не найдена");
 
         await bookingRepository.DeleteAsync(booking);
+    }
+
+    /// <summary>
+    /// Отмена брони
+    /// </summary>
+    /// <param name="id">Идентификатор брони</param>
+    /// <param name="currentUserId">Идентификатор пользователя</param>
+    /// <param name="ct">Токен отмены</param>
+    public async Task CancelAsync(Guid id, Guid currentUserId, CancellationToken ct = default)
+    {
+        var booking = await bookingRepository.GetByIdAsync(id, ct)
+            ?? throw new NotFoundException($"Бронь с Id: {id} не найдена");
+        var currentUser = await userRepository.GetByIdAsync(currentUserId, ct)
+            ?? throw new NotFoundException($"Пользователь с Id: {id} не найден");
+        var bookingUserId = currentUser.Role == UserRole.Admin ? booking.UserId : currentUserId;
+
+        booking.Cancel(bookingUserId);
+        await bookingRepository.UpdateAsync(booking, ct);
     }
 }
