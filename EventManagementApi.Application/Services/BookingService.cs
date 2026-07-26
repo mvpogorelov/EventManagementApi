@@ -66,7 +66,7 @@ public class BookingService(
                 )
                 .Count() >= UserBookingLimit)
             {
-                throw new BookingLimitException("Превышен лимит активных броней");
+                throw new BookingLimitException($"Превышен лимит активных броней: {UserBookingLimit}");
             }
 
             if (!@event.TryReserveSeats())
