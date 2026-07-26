@@ -11,11 +11,13 @@ namespace EventManagement.Infrastructure.Persistence.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.Sql("delete from bookings");
+
             migrationBuilder.AddColumn<Guid>(
                 name: "UserId",
                 table: "bookings",
                 type: "uuid",
-                nullable: true);
+                nullable: false);
 
             migrationBuilder.CreateTable(
                 name: "users",

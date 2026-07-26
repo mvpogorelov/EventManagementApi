@@ -38,7 +38,7 @@ public sealed class Booking
     /// </summary>
     public DateTime? ProcessedAt { get; set; }
 
-    public Guid? UserId { get; init; }
+    public required Guid UserId { get; init; }
     public User? User { get; init; }
 
     public void Confirm()
@@ -53,16 +53,14 @@ public sealed class Booking
         ProcessedAt = DateTime.UtcNow;
     }
     
-    public void Cancel(Guid? userId)
+    public void Cancel()
     {
-        if (UserId != userId
-            || Status != BookingStatus.Pending && Status != BookingStatus.Confirmed)
+        if (Status != BookingStatus.Pending && Status != BookingStatus.Confirmed)
         {
             throw new OperationNotAllowedException("Бронь нельзя отменить");
         }
 
         Status = BookingStatus.Cancelled;
         ProcessedAt = DateTime.UtcNow;
-
     }
 }

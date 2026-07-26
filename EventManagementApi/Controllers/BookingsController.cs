@@ -1,5 +1,4 @@
 ﻿using EventManagement.Application.Abstractions.Services;
-using EventManagement.Application.Services;
 using EventManagement.Presentation.Contracts;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
@@ -28,7 +27,7 @@ namespace EventManagement.Presentation.Controllers
         [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status404NotFound)]
         public async Task<ApiResultDto<BookingOutDto>> Get(Guid bookingId, CancellationToken ct)
         {
-            var booking = await bookingService.GetBookingByIdAsync(bookingId, ct);
+            var booking = await bookingService.GetBookingByIdAsync(bookingId, CurrentUserId, CurrentUserRole, ct);
 
             return new ApiResultDto<BookingOutDto>
             {
@@ -52,7 +51,26 @@ namespace EventManagement.Presentation.Controllers
         [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status404NotFound)]
         public async Task<NoContentResult> CancelAsync(Guid bookingId, CancellationToken ct)
         {
-            await bookingService.CancelAsync(bookingId, CurrentUserId, ct);
+            await bookingService.CancelAsync(bookingId, CurrentUserId, CurrentUserRole, ct);
+
+            return NoContent();
+        }
+        
+        /// <summary>
+        /// Удаление брони
+        /// </summary>
+        /// <param name="bookingId">Идентификатор брони</param>
+        /// <param name="ct">Токен отмены</param>
+        /// <returns>NoContentResult</returns>
+        /// <response code="204">Бронь удалена></response>
+        /// <response code="404">Бронь не найдена</response>
+        [HttpDelete("{bookingId:Guid}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status404NotFound)]
+        public async Task<NoContentResult> DeleteAsync(Guid bookingId, CancellationToken ct)
+        {
+            await bookingService.RemoveAsync(bookingId, CurrentUserId, CurrentUserRole, ct);
 
             return NoContent();
         }

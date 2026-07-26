@@ -3,6 +3,7 @@ using EventManagement.Application.Abstractions.Services;
 using EventManagement.Domain.Common;
 using EventManagement.Domain.Entities;
 using EventManagement.Domain.Exceptions;
+using System.Data;
 
 namespace EventManagement.Application.Services;
 
@@ -19,23 +20,22 @@ public class BookingService(
     private static readonly SemaphoreSlim _createSemaphore = new(1, 1);
     
     /// <summary>
-    /// Получение списка брони
-    /// </summary>
-    /// <param name="status">Фильтр по статусу</param>
-    /// <param name="ct">Токен отмены</param>
-    /// <returns>Список брони</returns>
-    public async Task<Booking[]> GetByStatusAsync(BookingStatus status, CancellationToken ct = default) =>
-        await bookingRepository.GetByStatusAsync(status, ct);
-
-    /// <summary>
     /// Получение брони по идентификатору
     /// </summary>
     /// <param name="bookingId">Идентификатор брони</param>
+    /// <param name="userId">Идентификатор пользователя</param>
+    /// <param name="role">Роль пользователя</param>
     /// <param name="ct">Токен отмены</param>
     /// <returns>Бронь</returns>
-    public async Task<Booking> GetBookingByIdAsync(Guid bookingId, CancellationToken ct = default) =>
-        await bookingRepository.GetByIdAsync(bookingId, ct)
-        ?? throw new NotFoundException($"Бронь с Id: {bookingId} не найдена");
+    public async Task<Booking> GetBookingByIdAsync(Guid bookingId, Guid userId, UserRole userRole, CancellationToken ct = default)
+    {
+        var booking = await bookingRepository.GetByIdAsync(bookingId, ct)
+            ?? throw new NotFoundException($"Бронь с Id: {bookingId} не найдена");
+
+        CheckOperationAllowed(booking.UserId, userId, userRole);
+
+        return booking;
+    }
 
     /// <summary>
     /// Создание брони
@@ -97,10 +97,12 @@ public class BookingService(
     /// <param name="id">Идентификатор брони</param>
     /// <param name="ct">Токен отмены</param>
     /// <exception cref="NotFoundException">Если бронь не найдена</exception>
-    public async Task RemoveAsync(Guid id, CancellationToken ct = default)
+    public async Task RemoveAsync(Guid id, Guid userId, UserRole userRole, CancellationToken ct = default)
     {
         var booking = await bookingRepository.GetByIdAsync(id, ct)
             ?? throw new NotFoundException($"Бронь с Id: {id} не найдена");
+
+        CheckOperationAllowed(booking.UserId, userId, userRole);
 
         await bookingRepository.DeleteAsync(booking);
     }
@@ -111,15 +113,22 @@ public class BookingService(
     /// <param name="id">Идентификатор брони</param>
     /// <param name="currentUserId">Идентификатор пользователя</param>
     /// <param name="ct">Токен отмены</param>
-    public async Task CancelAsync(Guid id, Guid currentUserId, CancellationToken ct = default)
+    public async Task CancelAsync(Guid id, Guid userId, UserRole userRole, CancellationToken ct = default)
     {
         var booking = await bookingRepository.GetByIdAsync(id, ct)
             ?? throw new NotFoundException($"Бронь с Id: {id} не найдена");
-        var currentUser = await userRepository.GetByIdAsync(currentUserId, ct)
-            ?? throw new NotFoundException($"Пользователь с Id: {id} не найден");
-        var bookingUserId = currentUser.Role == UserRole.Admin ? booking.UserId : currentUserId;
 
-        booking.Cancel(bookingUserId);
+        CheckOperationAllowed(booking.UserId, userId, userRole);
+
+        booking.Cancel();
         await bookingRepository.UpdateAsync(booking, ct);
+    }
+
+    private void CheckOperationAllowed(Guid bookingUserId, Guid userId, UserRole userRole)
+    {
+        if (userRole != UserRole.Admin && bookingUserId != userId)
+        {
+            throw new OperationNotAllowedException();
+        }
     }
 }

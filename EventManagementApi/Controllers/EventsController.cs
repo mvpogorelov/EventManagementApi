@@ -1,12 +1,10 @@
 using EventManagement.Application.Abstractions.Services;
 using EventManagement.Domain.Entities;
-using EventManagement.Domain.Exceptions;
 using EventManagement.Presentation.Contracts;
 using EventManagement.Presentation.Dto;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
-using System.Security.Claims;
 
 namespace EventManagement.Presentation.Controllers;
 
@@ -107,6 +105,7 @@ public class EventsController(IEventService eventService, IBookingService bookin
     /// <returns>Событие</returns>
     /// <response code="201">Событие создано</response>
     /// <response code="400">Неверные данные события</response>
+    [Authorize(Roles = "Admin")]
     [HttpPost]
     [Consumes("application/json")]
     [ProducesResponseType(typeof(ApiResultDto<Event>), StatusCodes.Status201Created)]
@@ -143,6 +142,7 @@ public class EventsController(IEventService eventService, IBookingService bookin
     /// <response code="204">Успешное обновление</response>
     /// <response code="400">Неверные данные события</response>
     /// <response code="404">Событие не найдено</response>
+    [Authorize(Roles = "Admin")]
     [HttpPut("{id:Guid}")]
     [Consumes("application/json")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -163,6 +163,7 @@ public class EventsController(IEventService eventService, IBookingService bookin
     /// <returns>NoContentResult</returns>
     /// <response code="204">Событие удалено</response>
     /// <response code="404">Событие не найдено</response>
+    [Authorize(Roles = "Admin")]
     [HttpDelete("{id:Guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status404NotFound)]

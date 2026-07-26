@@ -8,6 +8,7 @@ using EventManagement.Infrastructure.Persistence;
 using EventManagement.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace EventManagmentApi.Tests.Application.Services;
 
@@ -20,6 +21,7 @@ public class BookingServiceTests : IDisposable
     
     private Event testEvent;
     private Guid testUserId;
+    private Guid testAdminId;
 
     public BookingServiceTests()
     {
@@ -75,18 +77,35 @@ public class BookingServiceTests : IDisposable
         Assert.NotEqual(booking2.Id, booking3.Id);
     }
     
-    [Fact(DisplayName = "Получение брони по Id — возвращается корректная информация")]
-    public async Task Create_GetBookingById_ShouldReturnCorrectData()
+    [Fact(DisplayName = "Получение своей брони (или Admin) по Id — возвращается корректная информация")]
+    public async Task Create_OwnOrAdminGetBookingById_ShouldReturnCorrectData()
     {
         // Arrange
         await SetTestData();
 
         // Act
-        var booking = await _bookingService.CreateBookingAsync(testEvent.Id, testUserId, CancellationToken.None);
-        var getByIdBooking = await _bookingService.GetBookingByIdAsync(booking.Id, CancellationToken.None);
+        var bookingUser = await _bookingService.CreateBookingAsync(testEvent.Id, testUserId, CancellationToken.None);
+        var getByIdBookingUserUser = await _bookingService.GetBookingByIdAsync(bookingUser.Id, testUserId, UserRole.User, CancellationToken.None);
+        var getByIdBookingUserAdmin = await _bookingService.GetBookingByIdAsync(bookingUser.Id, testAdminId, UserRole.Admin, CancellationToken.None);
 
         // Assert
-        Assert.Equal(booking, getByIdBooking);
+        Assert.Equal(bookingUser, getByIdBookingUserUser);
+        Assert.Equal(bookingUser, getByIdBookingUserAdmin);
+    }
+    
+    [Fact(DisplayName = "Получение не своей брони по Id — возвращается корректная информация")]
+    public async Task Create_NotOwnGetBookingById_ShouldReturnCorrectData()
+    {
+        // Arrange
+        await SetTestData();
+
+        // Act
+        var bookingAdmin = await _bookingService.CreateBookingAsync(testEvent.Id, testAdminId, CancellationToken.None);
+        var ex = await Record.ExceptionAsync(async () => await _bookingService.GetBookingByIdAsync(bookingAdmin.Id, testUserId, UserRole.User, CancellationToken.None));
+
+        // Assert
+        Assert.NotNull(ex);
+        Assert.IsType<OperationNotAllowedException>(ex);
     }
     
     [Fact(DisplayName = "Для несуществующего события должна выбрасываться ошибка")]
@@ -110,7 +129,12 @@ public class BookingServiceTests : IDisposable
         var bookingId = Guid.NewGuid();
 
         // Act
-        var ex = await Record.ExceptionAsync(async () => await _bookingService.GetBookingByIdAsync(bookingId, CancellationToken.None));
+        var ex = await Record.ExceptionAsync(async () =>
+            await _bookingService.GetBookingByIdAsync(
+                bookingId,
+                testAdminId,
+                UserRole.Admin,
+                CancellationToken.None));
 
         // Assert
         Assert.NotNull(ex);
@@ -177,5 +201,6 @@ public class BookingServiceTests : IDisposable
         await _eventService.RemoveAllAsync(ct);
         testEvent = await _eventService.CreateAsync("Title", DateTime.UtcNow, DateTime.UtcNow.AddDays(10), totalSeats, "Desctiption", ct);
         testUserId = Guid.NewGuid();
+        testAdminId = Guid.NewGuid();
     }
 }
