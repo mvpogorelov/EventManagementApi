@@ -67,6 +67,7 @@ public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Exception
             UnauthorizedException uae => StatusCodes.Status403Forbidden,
             OperationNotAllowedException onae => StatusCodes.Status403Forbidden,
             NotFoundException nfe => StatusCodes.Status404NotFound,
+            UserNotFoundException unfe => StatusCodes.Status404NotFound,
             NoAvailableSeatsException nas => StatusCodes.Status409Conflict,
             BookingLimitException bl => StatusCodes.Status409Conflict,
             _ => StatusCodes.Status500InternalServerError

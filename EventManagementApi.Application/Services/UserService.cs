@@ -36,14 +36,9 @@ public class UserService(
     {
         var user = await userRepository.GetByLoginAsync(login, ct);
 
-        if (user is null)
+        if (user is null || !passwordService.Verify(password, user.PasswordHash))
         {
-            throw new UnauthorizedException($"Пользователь не найден");
-        }
-
-        if (!passwordService.Verify(password, user.PasswordHash))
-        {
-            throw new UnauthorizedException($"Неверный пароль");
+            throw new UserNotFoundException($"Ошибка входа");
         }
 
         return jwtService.GenerateToken(user);
