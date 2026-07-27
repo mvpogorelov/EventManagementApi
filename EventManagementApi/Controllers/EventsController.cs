@@ -1,8 +1,8 @@
 using EventManagement.Application.Abstractions.Services;
 using EventManagement.Domain.Entities;
-using EventManagement.Domain.Exceptions;
 using EventManagement.Presentation.Contracts;
 using EventManagement.Presentation.Dto;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 
@@ -15,7 +15,7 @@ namespace EventManagement.Presentation.Controllers;
 /// <param name="bookingService"></param>
 [ApiController]
 [Route("[controller]")]
-public class EventsController(IEventService eventService, IBookingService bookingService) : ControllerBase
+public class EventsController(IEventService eventService, IBookingService bookingService) : BaseController
 {
     /// <summary>
     /// Получение списка событий
@@ -27,6 +27,7 @@ public class EventsController(IEventService eventService, IBookingService bookin
     /// <param name="pageSize">Размер страницы</param>
     /// <returns>Cписок событий</returns>
     /// <response code="200">Список событий</response>
+    [AllowAnonymous]
     [HttpGet]
     [Produces("application/json")]
     [ProducesResponseType(typeof(PaginatedResultDto<IReadOnlyList<EventInfoDto>>), StatusCodes.Status200OK)]
@@ -105,10 +106,13 @@ public class EventsController(IEventService eventService, IBookingService bookin
     /// <returns>Событие</returns>
     /// <response code="201">Событие создано</response>
     /// <response code="400">Неверные данные события</response>
+    [Authorize(Roles = "Admin")]
     [HttpPost]
     [Consumes("application/json")]
     [ProducesResponseType(typeof(ApiResultDto<Event>), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<ApiResultDto<EventInfoDto>>> Post([FromBody] CreateEventDto eventDto, CancellationToken ct)
     {
         var @event = await eventService.CreateAsync(eventDto.Title, eventDto.StartAt, eventDto.EndAt, eventDto.TotalSeats, eventDto.Description, ct);
@@ -141,6 +145,7 @@ public class EventsController(IEventService eventService, IBookingService bookin
     /// <response code="204">Успешное обновление</response>
     /// <response code="400">Неверные данные события</response>
     /// <response code="404">Событие не найдено</response>
+    [Authorize(Roles = "Admin")]
     [HttpPut("{id:Guid}")]
     [Consumes("application/json")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -161,6 +166,7 @@ public class EventsController(IEventService eventService, IBookingService bookin
     /// <returns>NoContentResult</returns>
     /// <response code="204">Событие удалено</response>
     /// <response code="404">Событие не найдено</response>
+    [Authorize(Roles = "Admin")]
     [HttpDelete("{id:Guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status404NotFound)]
@@ -174,21 +180,21 @@ public class EventsController(IEventService eventService, IBookingService bookin
     /// <summary>
     /// Создание брони
     /// </summary>
-    /// <param name="id">Идентификатор события</param>
+    /// <param name="eventId">Идентификатор события</param>
     /// <param name="ct">Токен отмены</param>
     /// <returns>Бронь</returns>
     /// <response code="202">Принято в обработку</response>
     /// <response code="400">Не корректный запрос</response>
     /// <response code="404">Событие не найдено</response>
-    [HttpPost("{id:Guid}/book")]
+    [HttpPost("{eventId:Guid}/book")]
     [Produces("application/json")]
     [ProducesResponseType(typeof(ApiResultDto<BookingOutDto>), StatusCodes.Status202Accepted)]
     [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status409Conflict)]
-    public async Task<ActionResult<ApiResultDto>> CreateBookingAsync(Guid id, CancellationToken ct = default)
+    public async Task<ActionResult<ApiResultDto>> CreateBookingAsync(Guid eventId, CancellationToken ct = default)
     {
-        var booking = await bookingService.CreateBookingAsync(id, ct);
+        var booking = await bookingService.CreateBookingAsync(eventId, CurrentUserId, ct);
 
         return AcceptedAtAction(
             actionName: "Get",

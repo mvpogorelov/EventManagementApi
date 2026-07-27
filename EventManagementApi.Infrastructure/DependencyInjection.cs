@@ -4,6 +4,8 @@ using EventManagement.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Builder;
+using EventManagement.Application.Abstractions.Security;
+using EventManagement.Infrastructure.Security;
 
 namespace EventManagement.Infrastructure;
 
@@ -23,6 +25,9 @@ public static class DependencyInjection
 
         services.AddScoped<IEventRepository, EventRepository>();
         services.AddScoped<IBookingRepository, BookingRepository>();
+        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IPasswordService, PasswordService>();
+        services.AddScoped<IJwtService, JwtService>();
 
         return services;
     }

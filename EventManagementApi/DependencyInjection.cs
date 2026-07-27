@@ -1,3 +1,4 @@
+using Microsoft.OpenApi;
 using System.Reflection;
 
 namespace EventManagement.Presentation;
@@ -22,6 +23,22 @@ public static class DependencyInjection
             var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
 
             options.IncludeXmlComments(xmlPath);
+
+            options.AddSecurityDefinition("Bearer", securityScheme: new OpenApiSecurityScheme
+            {
+                Name = "Authorization",
+                Description = "Enter the Bearer token. Format: Bearer <token>",
+                Type = SecuritySchemeType.Http,
+                Scheme = "Bearer",
+                BearerFormat = "JWT"
+            });
+            options.AddSecurityRequirement(document =>
+                new OpenApiSecurityRequirement
+                {
+                    [new OpenApiSecuritySchemeReference("Bearer", document)] = []
+                });
+
+            options.UseInlineDefinitionsForEnums();
         });
 
         return services;

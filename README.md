@@ -223,12 +223,10 @@ docker compose up -d
 ### Схема БД управляется миграциями EF Core
 Для создания миграции используется команда
 ```
-dotnet ef migrations add <имя-миграции>
+dotnet ef migrations add <имя-миграции> -p "..\EventManagementApi.Infrastructure\EventManagement.Infrastructure.csproj" -s "EventManagement.Presentation.csproj"
 ```
-Перед использование команды перейдите в папку Persistence проекта EventManagement.Infrastructure
-```
-cd <ваш-путь>\Persistence
-```
+Перед использование команды перейдите в корневую папку  проекта EventManagement.Presentation
+
 
 При старте приложения, для применения миграций вызывается Migrate()
 
@@ -247,3 +245,27 @@ cd <ваш-путь>\Persistence
 | EventManagement.Presentation | Слой представления |
 | EventManagement.UnitTests | Юнит-тесты |
 | EventManagement.IntegrationTests | Интеграционные тесты |
+
+## Ролевая модель
+В системе предусмотрено использование следующих ролей пользователя:
+* Admin - администратор
+* User - пользователь
+
+Ендпоинт для регистрации пользователя: **/Auth/register**. Укажите логин, пароль и роль (по-умолчанию: User)
+
+Ендпоинт для получения токена аутентификации: **/Auth/login**
+
+### Доступность ендпоинтов по ролям
+| Ендпоинт | Описание | Роли |
+|-|-|-|
+| POST /Auth/register | Регистрация нового пользователя | Анонимный |
+| POST /Auth/login | Логин | Анонимный |
+| GET /Bookings/{bookingId} | Получение брони по идентификатору | User (только свои), Admin (любые) |
+| DELETE/Bookings/{bookingId} | Удаление брони | User (только свои), Admin (любые) |
+| POST /Bookings/{bookingId}/cancel | Отмена брони | User (только свои), Admin (любые) |
+| GET /Events | Получение списка событий | Анонимный |
+| POST /Events | Создание нового события | Admin |
+| GET /Events/{id} | Получение события по идентификатору | User (только свои), Admin (любые) |
+| PUT /Events/{id} | Обновление события | Admin |
+| DELETE /Events/{id} | Удаление события | Admin |
+| POST /Events/{eventId}/book | Создание брони | User, Admin | 

@@ -224,16 +224,20 @@ public class EventRepositoryTests(DatabaseFixture databaseFixture)
         await databaseFixture.ResetDatabaseAsync();
         await SetTestData();
         await using var context = databaseFixture.CreateContext();
+
         var repository = new EventRepository(context);
         var bookingId = Guid.NewGuid();
+        var user = new User("Login", "12345");
         var booking = new Booking
         {
             Id = bookingId,
             EventId = event1.Id,
+            UserId = user.Id,
             Status = BookingStatus.Confirmed,
             CreatedAt = DateTime.UtcNow
         };
 
+        context.Users.Add(user);
         await context.Bookings.AddAsync(booking);
         await context.SaveChangesAsync();
 

@@ -9,20 +9,13 @@ namespace EventManagement.Application.Abstractions.Services;
 public interface IBookingService
 {
     /// <summary>
-    /// Получение списка брони
-    /// </summary>
-    /// <param name="status">Фильтр по статусу</param>
-    /// <param name="ct">Токен отмены</param>
-    /// <returns>Список брони</returns>
-    Task<Booking[]> GetByStatusAsync(BookingStatus status, CancellationToken ct = default);
-
-    /// <summary>
     /// Получение брони по идентификатору
     /// </summary>
     /// <param name="bookingId">Идентификатор брони</param>
+    /// <param name="userId">Идентификатор пользователя</param>
     /// <param name="ct">Токен отмены</param>
     /// <returns>Бронь</returns>
-    Task<Booking> GetBookingByIdAsync(Guid bookingId, CancellationToken ct = default);
+    Task<Booking> GetBookingByIdAsync(Guid bookingId, Guid userId, UserRole userRole, CancellationToken ct = default);
 
     /// <summary>
     /// Создание брони
@@ -30,20 +23,20 @@ public interface IBookingService
     /// <param name="eventId">Идентификатор события</param>
     /// <param name="ct">Токен отмены</param>
     /// <returns>Бронь</returns>
-    Task<Booking> CreateBookingAsync(Guid eventId, CancellationToken ct = default);
-
-    /// <summary>
-    /// Обновление брони
-    /// </summary>
-    /// <param name="id">Идентификатор брони</param>
-    /// <param name="status">Статус брони</param>
-    /// <param name="ct">Токен отмены</param>
-    Task UpdateStatusAsync(Guid id, BookingStatus status, CancellationToken ct = default);
+    Task<Booking> CreateBookingAsync(Guid eventId, Guid userId, CancellationToken ct = default);
 
     /// <summary>
     /// Удаление брони
     /// </summary>
     /// <param name="id">Идентификатор брони</param>
     /// <param name="ct">Токен отмены</param>
-    Task RemoveAsync(Guid id, CancellationToken ct = default);
+    Task RemoveAsync(Guid id, Guid userId, UserRole userRole, CancellationToken ct = default);
+
+    /// <summary>
+    /// Отмена брони
+    /// </summary>
+    /// <param name="id">Идентификатор брони</param>
+    /// <param name="currentUserId">Идентификатор пользователя</param>
+    /// <param name="ct">Токен отмены</param>
+    Task CancelAsync(Guid id, Guid userId, UserRole userRole, CancellationToken ct = default);
 }
