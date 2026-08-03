@@ -1,9 +1,10 @@
-﻿using EventManagement.Application.Abstractions.Services;
-using EventManagement.Presentation.Contracts;
+﻿using BookingsService.Application.Abstractions.Services;
+using EventManagement.Contracts.Api;
+using EventManagement.Contracts.Api.Bookings;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 
-namespace EventManagement.Presentation.Controllers;
+namespace BookingsService.Presentation.Controllers;
 
 /// <summary>
 /// 
@@ -55,7 +56,7 @@ public class BookingsController(IBookingService bookingService) : BaseController
 
         return NoContent();
     }
-    
+
     /// <summary>
     /// Удаление брони
     /// </summary>
@@ -73,5 +74,37 @@ public class BookingsController(IBookingService bookingService) : BaseController
         await bookingService.RemoveAsync(bookingId, CurrentUserId, CurrentUserRole, ct);
 
         return NoContent();
+    }
+
+    /// <summary>
+    /// Создание брони
+    /// </summary>
+    /// <param name="eventId">Идентификатор события</param>
+    /// <param name="ct">Токен отмены</param>
+    /// <returns>Бронь</returns>
+    /// <response code="202">Принято в обработку</response>
+    /// <response code="400">Не корректный запрос</response>
+    /// <response code="404">Событие не найдено</response>
+    [HttpPost("{eventId:Guid}")]
+    [Produces("application/json")]
+    [ProducesResponseType(typeof(ApiResultDto<BookingOutDto>), StatusCodes.Status202Accepted)]
+    [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<ApiResultDto>> CreateBookingAsync(Guid eventId, CancellationToken ct = default)
+    {
+        var booking = await bookingService.CreateBookingAsync(eventId, CurrentUserId, ct);
+
+        return AcceptedAtAction(
+            actionName: "Get",
+            controllerName: "Bookings",
+            routeValues: new { bookingId = booking.Id },
+            value: new ApiResultDto<BookingOutDto>
+            {
+                Data = new BookingOutDto(booking.Id, booking.EventId, booking.Status.ToString()),
+                StatusCode = HttpStatusCode.Accepted,
+                Success = true
+            }
+        );
     }
 }

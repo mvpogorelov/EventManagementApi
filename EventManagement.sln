@@ -37,6 +37,14 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventManagement.Contracts",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UsersService.Application", "MicroServices\UsersService\UsersService.Application\UsersService.Application.csproj", "{D2E473D0-8837-4FB4-A4C6-4DD28A756FB4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BookingsService.Presentation", "MicroServices\BookingsService\BookingsService.Presentation\BookingsService.Presentation.csproj", "{E33DF7FC-F457-4023-B285-4E1597FE1749}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BookingsService.Infrastructure", "MicroServices\BookingsService\BookingsService.Infrastructure\BookingsService.Infrastructure.csproj", "{B2600E9A-8BFA-4A72-87A4-58D4C8EBC327}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BookingsService.Domain", "MicroServices\BookingsService\BookingsService.Domain\BookingsService.Domain.csproj", "{B5CA6099-B33F-4A96-96EF-3CB40D234229}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BookingsService.Application", "MicroServices\BookingsService\BookingsService.Application\BookingsService.Application.csproj", "{4BC6CACA-D166-4E4D-BD25-B6AB046AC62A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -87,6 +95,22 @@ Global
 		{D2E473D0-8837-4FB4-A4C6-4DD28A756FB4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D2E473D0-8837-4FB4-A4C6-4DD28A756FB4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D2E473D0-8837-4FB4-A4C6-4DD28A756FB4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E33DF7FC-F457-4023-B285-4E1597FE1749}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E33DF7FC-F457-4023-B285-4E1597FE1749}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E33DF7FC-F457-4023-B285-4E1597FE1749}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E33DF7FC-F457-4023-B285-4E1597FE1749}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B2600E9A-8BFA-4A72-87A4-58D4C8EBC327}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B2600E9A-8BFA-4A72-87A4-58D4C8EBC327}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B2600E9A-8BFA-4A72-87A4-58D4C8EBC327}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B2600E9A-8BFA-4A72-87A4-58D4C8EBC327}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B5CA6099-B33F-4A96-96EF-3CB40D234229}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B5CA6099-B33F-4A96-96EF-3CB40D234229}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B5CA6099-B33F-4A96-96EF-3CB40D234229}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B5CA6099-B33F-4A96-96EF-3CB40D234229}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4BC6CACA-D166-4E4D-BD25-B6AB046AC62A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4BC6CACA-D166-4E4D-BD25-B6AB046AC62A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4BC6CACA-D166-4E4D-BD25-B6AB046AC62A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4BC6CACA-D166-4E4D-BD25-B6AB046AC62A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -100,6 +124,10 @@ Global
 		{87BE8574-5EEA-45C5-9366-193FD097A0D7} = {EBB24C5D-215F-4365-A511-87F5FFF985D4}
 		{CEC91FB5-617D-48A5-9082-706001139CE4} = {D2EA6AC4-1259-4B76-80ED-FD92D36CD022}
 		{D2E473D0-8837-4FB4-A4C6-4DD28A756FB4} = {EBB24C5D-215F-4365-A511-87F5FFF985D4}
+		{E33DF7FC-F457-4023-B285-4E1597FE1749} = {B8E3FB4A-4A47-49D9-AD86-8F9EA182E413}
+		{B2600E9A-8BFA-4A72-87A4-58D4C8EBC327} = {B8E3FB4A-4A47-49D9-AD86-8F9EA182E413}
+		{B5CA6099-B33F-4A96-96EF-3CB40D234229} = {B8E3FB4A-4A47-49D9-AD86-8F9EA182E413}
+		{4BC6CACA-D166-4E4D-BD25-B6AB046AC62A} = {B8E3FB4A-4A47-49D9-AD86-8F9EA182E413}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {94132ED5-72D6-48ED-87A3-B6E148F4244B}

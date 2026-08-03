@@ -1,17 +1,12 @@
-﻿using EventManagement.Application.Abstractions.Persistence.Repositories;
-using EventManagement.Domain.Common;
-using EventManagement.Domain.Entities;
+﻿using BookingsService.Application.Abstractions.Persistence.Repositories;
+using BookingsService.Domain.Common;
+using BookingsService.Domain.Entities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace EventManagement.Application.Services;
+namespace BookingsService.Application.Services;
 
-/// <summary>
-/// 
-/// </summary>
-/// <param name="logger"></param>
-/// <param name="scopeFactory"></param>
 public class BookingBackgroundService(
     ILogger<BookingBackgroundService> logger,
     IServiceScopeFactory scopeFactory)
@@ -34,11 +29,10 @@ public class BookingBackgroundService(
             try
             {
                 using var scope = scopeFactory.CreateScope();
-                var eventRepository = scope.ServiceProvider.GetRequiredService<IEventRepository>();
                 var bookingRepository = scope.ServiceProvider.GetRequiredService<IBookingRepository>();
 
                 var pendingBookings = await bookingRepository.GetByStatusAsync(BookingStatus.Pending, ct);
-                var tasks = pendingBookings.Select(booking => ProcessBookingAsync(eventRepository, bookingRepository, booking, ct));
+                var tasks = pendingBookings.Select(booking => ProcessBookingAsync(bookingRepository, booking, ct));
 
                 await Task.WhenAll(tasks);
                 await Task.Delay(PollingInterval, ct);
@@ -59,38 +53,23 @@ public class BookingBackgroundService(
     /// <summary>
     /// Обработка брони
     /// </summary>
-    /// <param name="eventRepository"></param>
     /// <param name="bookingRepository"></param>
     /// <param name="booking">Бронь</param>
     /// <param name="ct"></param>
     /// <returns></returns>
     public async Task ProcessBookingAsync(
-        IEventRepository eventRepository,
         IBookingRepository bookingRepository,
         Booking booking,
         CancellationToken ct)
     {
-        Event? @event = null;
-
         await _processingSemaphore.WaitAsync(ct);
 
         try
         {
-            @event = await eventRepository.GetByIdAsync(booking.EventId, ct);
-
-            if (@event is null)
-            {
-                booking.Reject();
-
-                logger.LogWarning($"Бронь {booking.Id} отклонена, отсутствует событие {booking.EventId}");
-            }
-            else
-            {
-                booking.Confirm();
-            }
-
+            booking.Processing();
             await bookingRepository.UpdateAsync(booking, ct);
 
+            // ToDo: здесь будет отправка в кафку BookingCreated или BookingProcessing
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
         {
@@ -100,15 +79,6 @@ public class BookingBackgroundService(
         }
         catch (Exception e)
         {
-            booking.Reject();
-            await bookingRepository.UpdateAsync(booking, ct);
-
-            if (@event is not null)
-            {
-                @event.ReleaseSeats();
-                await eventRepository.UpdateAsync(@event, ct);
-            }
-
             logger.LogError($"Неожиданная ошибка при обработке брони {booking.Id}: {e}");
 
             throw;

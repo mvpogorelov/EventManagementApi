@@ -1,0 +1,32 @@
+﻿namespace BookingsService.Domain.Common;
+
+/// <summary>
+/// Статус брони
+/// </summary>
+public enum BookingStatus
+{
+    /// <summary>
+    /// Бронь создана, ожидает обработки
+    /// </summary>
+    Pending,
+    
+    /// <summary>
+    /// Бронь в обработке
+    /// </summary>
+    Processing,
+
+    /// <summary>
+    /// Бронь подтверждена
+    /// </summary>
+    Confirmed,
+
+    /// <summary>
+    /// Бронь отклонена
+    /// </summary>
+    Rejected,
+
+    /// <summary>
+    /// Бронь отменена
+    /// </summary>
+    Cancelled
+}
