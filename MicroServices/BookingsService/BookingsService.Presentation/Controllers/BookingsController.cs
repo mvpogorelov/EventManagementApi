@@ -80,6 +80,7 @@ public class BookingsController(IBookingService bookingService) : BaseController
     /// Создание брони
     /// </summary>
     /// <param name="eventId">Идентификатор события</param>
+    /// <param name="seats">Количество мест</param>
     /// <param name="ct">Токен отмены</param>
     /// <returns>Бронь</returns>
     /// <response code="202">Принято в обработку</response>
@@ -91,9 +92,9 @@ public class BookingsController(IBookingService bookingService) : BaseController
     [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status409Conflict)]
-    public async Task<ActionResult<ApiResultDto>> CreateBookingAsync(Guid eventId, CancellationToken ct = default)
+    public async Task<ActionResult<ApiResultDto>> CreateBookingAsync(Guid eventId, int seats = 1, CancellationToken ct = default)
     {
-        var booking = await bookingService.CreateBookingAsync(eventId, CurrentUserId, ct);
+        var booking = await bookingService.CreateBookingAsync(eventId, seats, CurrentUserId, ct);
 
         return AcceptedAtAction(
             actionName: "Get",

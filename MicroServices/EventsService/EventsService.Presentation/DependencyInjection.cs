@@ -1,7 +1,7 @@
-using Microsoft.OpenApi;
+﻿using Microsoft.OpenApi;
 using System.Reflection;
 
-namespace EventManagement.Presentation;
+namespace EventsService.Presentation;
 
 /// <summary>
 /// 

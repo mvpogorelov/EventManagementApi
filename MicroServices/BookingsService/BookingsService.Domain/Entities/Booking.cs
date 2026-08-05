@@ -34,7 +34,9 @@ public sealed class Booking
     public DateTime? ProcessedAt { get; set; }
 
     public required Guid UserId { get; init; }
-    
+
+    public int Seats { get; init; }
+
     public void Confirm()
     {
         Status = BookingStatus.Confirmed;

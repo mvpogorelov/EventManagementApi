@@ -60,11 +60,10 @@ public class BookingService(
             }
 
             if (user.Bookings
-                .Where(b =>
+                .Count(b =>
                     (b.Status == BookingStatus.Confirmed || b.Status == BookingStatus.Pending)
-                    && b.Event?.StartAt >= DateTime.UtcNow
-                )
-                .Count() >= UserBookingLimit)
+                    && b.Event?.StartAt >= DateTime.UtcNow)
+                >= UserBookingLimit)
             {
                 throw new BookingLimitException($"Превышен лимит активных броней: {UserBookingLimit}");
             }

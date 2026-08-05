@@ -36,13 +36,14 @@ public class BookingService(IBookingRepository bookingRepository) : IBookingServ
     /// <param name="eventId">Идентификатор события</param>
     /// /// <param name="ct">Токен отмены</param>
     /// <returns>Бронь</returns>
-    public async Task<Booking> CreateBookingAsync(Guid eventId, Guid userId, CancellationToken ct = default)
+    public async Task<Booking> CreateBookingAsync(Guid eventId, int seats, Guid userId, CancellationToken ct = default)
     {
         var booking = new Booking
         {
             Id = Guid.NewGuid(),
             EventId = eventId,
             UserId = userId,
+            Seats = seats,
             Status = BookingStatus.Pending,
             CreatedAt = DateTime.UtcNow
         };

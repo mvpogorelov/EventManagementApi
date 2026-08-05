@@ -1,9 +1,8 @@
-using EventManagement.Application;
-using EventManagement.Infrastructure;
-using EventManagement.Infrastructure.Security;
-using EventManagement.Presentation;
+using EventsService.Application;
+using EventsService.Infrastructure;
+using EventsService.Infrastructure.Security;
+using EventsService.Presentation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 

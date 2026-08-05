@@ -23,7 +23,7 @@ public interface IBookingService
     /// <param name="eventId">Идентификатор события</param>
     /// <param name="ct">Токен отмены</param>
     /// <returns>Бронь</returns>
-    Task<Booking> CreateBookingAsync(Guid eventId, Guid userId, CancellationToken ct = default);
+    Task<Booking> CreateBookingAsync(Guid eventId, int seats, Guid userId, CancellationToken ct = default);
 
     /// <summary>
     /// Удаление брони

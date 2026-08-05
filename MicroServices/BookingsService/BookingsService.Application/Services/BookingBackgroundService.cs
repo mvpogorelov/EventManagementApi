@@ -1,6 +1,8 @@
 ﻿using BookingsService.Application.Abstractions.Persistence.Repositories;
+using BookingsService.Application.Abstractions.Services;
 using BookingsService.Domain.Common;
 using BookingsService.Domain.Entities;
+using EventManagement.Contracts.Kafka;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -9,7 +11,10 @@ namespace BookingsService.Application.Services;
 
 public class BookingBackgroundService(
     ILogger<BookingBackgroundService> logger,
-    IServiceScopeFactory scopeFactory)
+    IServiceScopeFactory scopeFactory
+    //,
+    //IKafkaProducerService kafkaProducer
+    )
         : BackgroundService
 {
     private const int PollingInterval = 10000;
@@ -69,7 +74,14 @@ public class BookingBackgroundService(
             booking.Processing();
             await bookingRepository.UpdateAsync(booking, ct);
 
-            // ToDo: здесь будет отправка в кафку BookingCreated или BookingProcessing
+            //await kafkaProducer.PublishAsync("bookings",
+            //    booking.Id.ToString(),
+            //    new BookingProcessing
+            //    {
+            //        BookingId = booking.Id,
+            //        EventId = booking.EventId,
+            //        UserId = booking.UserId
+            //    });
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
         {
