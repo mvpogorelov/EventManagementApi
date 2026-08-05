@@ -26,19 +26,32 @@ public static class DependencyInjection
         services.AddDbContext<AppDbContext>(options => options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
         
         services.AddScoped<IBookingRepository, BookingRepository>();
-        
+
+        var bootstrapServers = configuration["Kafka:BootstrapServers"];
+
         services.AddSingleton<IKafkaProducerService>(sp =>
             new KafkaProducerService(
                 new ProducerBuilder<string, string>(
                     new ProducerConfig
                     {
-                        BootstrapServers = configuration["Kafka:BootstrapServers"],
+                        BootstrapServers = bootstrapServers,
                         Acks = Acks.All
                     }
                 )
                 .Build()
             )
         );
+
+        var consumerConfig = new ConsumerConfig
+        {
+            BootstrapServers = bootstrapServers,
+            GroupId = "event-processing-group",
+            AutoOffsetReset = AutoOffsetReset.Earliest,
+            EnableAutoCommit = false
+        };
+        services.AddSingleton(consumerConfig);
+
+        services.AddHostedService<KafkaConsumerService>();
 
         return services;
     }

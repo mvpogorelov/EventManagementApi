@@ -28,18 +28,31 @@ public static class DependencyInjection
         services.AddScoped<IEventRepository, EventRepository>();
         services.AddScoped<IBookingRepository, BookingRepository>();
 
+        var bootstrapServers = configuration["Kafka:BootstrapServers"];
+
         services.AddSingleton<IKafkaProducerService>(sp =>
             new KafkaProducerService(
                 new ProducerBuilder<string, string>(
                     new ProducerConfig
                     {
-                        BootstrapServers = configuration["Kafka:BootstrapServers"],
+                        BootstrapServers = bootstrapServers,
                         Acks = Acks.All
                     }
                 )
                 .Build()
             )
         );
+
+        var consumerConfig = new ConsumerConfig
+        {
+            BootstrapServers = bootstrapServers,
+            GroupId = "bookings-processing-group",
+            AutoOffsetReset = AutoOffsetReset.Earliest,
+            EnableAutoCommit = false
+        };
+        services.AddSingleton(consumerConfig);
+
+        services.AddHostedService<KafkaConsumerService>();
 
         return services;
     }
