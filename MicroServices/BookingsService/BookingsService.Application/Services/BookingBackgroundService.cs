@@ -6,15 +6,15 @@ using EventManagement.Contracts.Kafka;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace BookingsService.Application.Services;
 
 public class BookingBackgroundService(
     ILogger<BookingBackgroundService> logger,
-    IServiceScopeFactory scopeFactory
-    //,
-    //IKafkaProducerService kafkaProducer
-    )
+    IServiceScopeFactory scopeFactory,
+    IKafkaProducerService kafkaProducer,
+    IOptions<KafkaTopics> kafkaTopics)
         : BackgroundService
 {
     private const int PollingInterval = 10000;
@@ -74,14 +74,15 @@ public class BookingBackgroundService(
             booking.Processing();
             await bookingRepository.UpdateAsync(booking, ct);
 
-            //await kafkaProducer.PublishAsync("bookings",
-            //    booking.Id.ToString(),
-            //    new BookingProcessing
-            //    {
-            //        BookingId = booking.Id,
-            //        EventId = booking.EventId,
-            //        UserId = booking.UserId
-            //    });
+            await kafkaProducer.PublishAsync(kafkaTopics.Value.Bookings,
+                booking.Id.ToString(),
+                new BookingProcessing
+                {
+                    BookingId = booking.Id,
+                    EventId = booking.EventId,
+                    UserId = booking.UserId,
+                    Seats = booking.Seats,
+                });
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
         {

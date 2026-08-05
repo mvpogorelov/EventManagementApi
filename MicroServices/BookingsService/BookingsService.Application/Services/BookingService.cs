@@ -4,13 +4,20 @@ using BookingsService.Domain.Common;
 using BookingsService.Domain.Entities;
 using BookingsService.Domain.Exceptions;
 using EventManagement.Contracts.Common;
+using EventManagement.Contracts.Kafka;
+using Microsoft.Extensions.Options;
+using System.ComponentModel.DataAnnotations;
 
 namespace BookingsService.Application.Services;
 
 /// <summary>
 /// Сервис для работы с бронью
 /// </summary>
-public class BookingService(IBookingRepository bookingRepository) : IBookingService
+public class BookingService(
+    IBookingRepository bookingRepository,
+    IKafkaProducerService kafkaProducer,
+    IOptions<KafkaTopics> kafkaTopics)
+        : IBookingService
 {
     /// <summary>
     /// Получение брони по идентификатору
@@ -38,6 +45,11 @@ public class BookingService(IBookingRepository bookingRepository) : IBookingServ
     /// <returns>Бронь</returns>
     public async Task<Booking> CreateBookingAsync(Guid eventId, int seats, Guid userId, CancellationToken ct = default)
     {
+        if (seats <= 0)
+        {
+            throw new ValidationException("Мест должно быть больше 0");
+        }
+
         var booking = new Booking
         {
             Id = Guid.NewGuid(),
@@ -66,7 +78,13 @@ public class BookingService(IBookingRepository bookingRepository) : IBookingServ
 
         await bookingRepository.DeleteAsync(booking);
 
-        // ToDo: Отправка сообщения BookingRemoved
+        await kafkaProducer.PublishAsync(
+            kafkaTopics.Value.Bookings,
+            booking.Id.ToString(),
+            new BookingRemoved
+            {
+                BookingId = booking.Id,
+            });
     }
 
     /// <summary>
@@ -85,7 +103,13 @@ public class BookingService(IBookingRepository bookingRepository) : IBookingServ
         booking.Cancel();
         await bookingRepository.UpdateAsync(booking, ct);
 
-        // ToDo: Отправка сообщения BookingCanceled
+        await kafkaProducer.PublishAsync(
+             kafkaTopics.Value.Bookings,
+             booking.Id.ToString(),
+             new BookingCancelled
+             {
+                 BookingId = booking.Id,
+             });
     }
 
     private void CheckOperationAllowed(Guid bookingUserId, Guid userId, UserRole userRole)

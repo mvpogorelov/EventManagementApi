@@ -35,6 +35,9 @@ public sealed class Booking
 
     public required Guid UserId { get; init; }
 
+    /// <summary>
+    /// Количество мест
+    /// </summary>
     public int Seats { get; init; }
 
     public void Confirm()

@@ -1,8 +1,12 @@
-﻿using EventsService.Application.Abstractions.Persistence.Repositories;
+﻿using Confluent.Kafka;
+using EventsService.Application.Abstractions.Persistence.Repositories;
+using EventsService.Application.Abstractions.Services;
 using EventsService.Infrastructure.Persistence;
 using EventsService.Infrastructure.Persistence.Repositories;
+using EventsService.Infrastructure.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace EventsService.Infrastructure;
@@ -17,12 +21,25 @@ public static class DependencyInjection
     /// </summary>
     /// <param name="services">IServiceCollection</param>
     /// <returns>IServiceCollection</returns>
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services, string connectionString)
+    public static IServiceCollection AddInfrastructure(this IServiceCollection services, ConfigurationManager configuration)
     {
-        services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
+        services.AddDbContext<AppDbContext>(options => options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
 
         services.AddScoped<IEventRepository, EventRepository>();
         services.AddScoped<IBookingRepository, BookingRepository>();
+
+        services.AddSingleton<IKafkaProducerService>(sp =>
+            new KafkaProducerService(
+                new ProducerBuilder<string, string>(
+                    new ProducerConfig
+                    {
+                        BootstrapServers = configuration["Kafka:BootstrapServers"],
+                        Acks = Acks.All
+                    }
+                )
+                .Build()
+            )
+        );
 
         return services;
     }

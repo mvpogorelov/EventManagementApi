@@ -1,4 +1,5 @@
 using EventsService.Application;
+using EventsService.Application.Services;
 using EventsService.Infrastructure;
 using EventsService.Infrastructure.Security;
 using EventsService.Presentation;
@@ -12,6 +13,7 @@ var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSetting
     ?? throw new InvalidOperationException("JWT конфигурация не найдена или некорректна");
 
 builder.Services.Configure<JwtSettings>(configuration.GetSection("JwtSettings"));
+builder.Services.Configure<KafkaTopics>(configuration.GetSection("KafkaTopics"));
 builder.Services
 .AddAuthentication(o =>
 {
@@ -36,7 +38,7 @@ builder.Services
         ClockSkew = TimeSpan.Zero
     };
 });
-builder.Services.AddInfrastructure(configuration.GetConnectionString("DefaultConnection"));
+builder.Services.AddInfrastructure(configuration);
 builder.Services.AddApplication();
 builder.Services.AddPresentation();
 

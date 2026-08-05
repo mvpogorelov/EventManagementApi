@@ -1,9 +1,10 @@
-﻿using EventManagement.Contracts.Api;
+﻿using EventManagement.Contracts.Kafka;
 using EventsService.Application.Abstractions.Persistence.Repositories;
 using EventsService.Application.Abstractions.Services;
 using EventsService.Application.DTOs;
 using EventsService.Domain.Entities;
 using EventsService.Domain.Exceptions;
+using Microsoft.Extensions.Options;
 using System.ComponentModel.DataAnnotations;
 
 namespace EventsService.Application.Services;
@@ -11,7 +12,11 @@ namespace EventsService.Application.Services;
 /// <summary>
 /// Сервис по работе с событиями
 /// </summary>
-public class EventService(IEventRepository repository, IBookingRepository bookingRepository) : IEventService
+public class EventService(IEventRepository repository,
+    IBookingRepository bookingRepository,
+    IKafkaProducerService kafkaProducer,
+    IOptions<KafkaTopics> kafkaTopics)
+        : IEventService
 {
     private const int UserBookingLimit = 10;
     private static readonly SemaphoreSlim _createSemaphore = new(1, 1);
@@ -159,7 +164,7 @@ public class EventService(IEventRepository repository, IBookingRepository bookin
         }
     }
 
-    public async Task<Booking> CreateBookingAsync(Guid eventId, Guid userId, Guid bookingId, CancellationToken ct = default)
+    public async Task CheckBookingAsync(Guid eventId, Guid userId, Guid bookingId, int seats, CancellationToken ct = default)
     {
         await _createSemaphore.WaitAsync(ct);
 
@@ -180,7 +185,7 @@ public class EventService(IEventRepository repository, IBookingRepository bookin
                 throw new BookingLimitException($"Превышен лимит активных броней: {UserBookingLimit}");
             }
 
-            if (!@event.TryReserveSeats())
+            if (!@event.TryReserveSeats(seats))
             {
                 throw new NoAvailableSeatsException($"Нет доступных мест для события: {eventId}");
             }
@@ -192,7 +197,28 @@ public class EventService(IEventRepository repository, IBookingRepository bookin
                 UserId = userId
             };
 
-            return await bookingRepository.CreateAsync(booking, ct);
+            await bookingRepository.CreateAsync(booking, ct);
+
+            await kafkaProducer.PublishAsync(
+                kafkaTopics.Value.Events,
+                eventId.ToString(),
+                new EventAllowed
+                {
+                    EventId = @event.Id,
+                    BookingId = booking.Id,
+                });
+        }
+        catch (Exception e)
+        {
+            await kafkaProducer.PublishAsync(
+                kafkaTopics.Value.Events,
+                eventId.ToString(),
+                new EventDisabled
+                {
+                    EventId = eventId,
+                    BookingId = bookingId,
+                    Reason = e.Message
+                });
         }
         finally
         {

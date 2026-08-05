@@ -24,8 +24,4 @@
     <ProjectReference Include="..\UsersService.Domain\UsersService.Domain.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Persistence\Migrations\" />
-  </ItemGroup>
-
 </Project>
