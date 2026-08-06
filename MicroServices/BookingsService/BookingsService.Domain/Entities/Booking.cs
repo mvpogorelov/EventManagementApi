@@ -40,6 +40,11 @@ public sealed class Booking
     /// </summary>
     public int Seats { get; init; }
 
+    /// <summary>
+    /// Причина отказа
+    /// </summary>
+    public string RejectReason { get; set; } = string.Empty;
+
     public void Confirm()
     {
         Status = BookingStatus.Confirmed;
@@ -52,9 +57,10 @@ public sealed class Booking
         ProcessedAt = DateTime.UtcNow;
     }
 
-    public void Reject()
+    public void Reject(string rejectReason)
     {
         Status = BookingStatus.Rejected;
+        RejectReason = rejectReason;
         ProcessedAt = DateTime.UtcNow;
     }
 

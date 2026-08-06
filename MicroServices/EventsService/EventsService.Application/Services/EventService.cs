@@ -170,6 +170,14 @@ public class EventService(IEventRepository repository,
 
         try
         {
+            var existingBooking = await bookingRepository.GetByIdAsync(bookingId, ct);
+
+            // проверка на повторную обработку
+            if (existingBooking is not null)
+            {
+                return;
+            }
+
             var @event = await repository.GetByIdAsync(eventId, ct)
                 ?? throw new NotFoundException($"Событие не найдено: {eventId}");
 
@@ -204,8 +212,8 @@ public class EventService(IEventRepository repository,
                 eventId.ToString(),
                 new EventAllowed
                 {
-                    EventId = @event.Id,
-                    BookingId = booking.Id,
+                    EventId = eventId,
+                    BookingId = bookingId,
                 });
         }
         catch (Exception e)

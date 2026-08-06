@@ -32,7 +32,7 @@ public class BookingsController(IBookingService bookingService) : BaseController
 
         return new ApiResultDto<BookingOutDto>
         {
-            Data = new BookingOutDto(booking.Id, booking.EventId, booking.Status.ToString()),
+            Data = new BookingOutDto(booking.Id, booking.EventId, booking.Status.ToString(), booking.RejectReason),
             Success = true,
             StatusCode = HttpStatusCode.OK
         };

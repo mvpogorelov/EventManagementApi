@@ -91,6 +91,7 @@ services:
 
   users-service:
       image: users-service:latest
+      container_name: users-service
       build:
         context: .
         dockerfile: MicroServices/UsersService/UsersService.Presentation/Dockerfile
@@ -106,6 +107,7 @@ services:
 
   bookings-service:
       image: bookings-service:latest
+      container_name: bookings-service
       build:
         context: .
         dockerfile: MicroServices/BookingsService/BookingsService.Presentation/Dockerfile
@@ -121,6 +123,7 @@ services:
   
   events-service:
       image: events-service:latest
+      container_name: events-service
       build:
         context: .
         dockerfile: MicroServices/EventsService/EventsService.Presentation/Dockerfile

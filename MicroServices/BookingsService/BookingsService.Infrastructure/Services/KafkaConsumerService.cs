@@ -91,7 +91,7 @@ public class KafkaConsumerService(
 
                     if (disabledBooking is not null)
                     {
-                        disabledBooking.Reject();
+                        disabledBooking.Reject(eventDisabled.Reason);
                         await bookingRepository.UpdateAsync(disabledBooking, ct);
                     }
                     break;

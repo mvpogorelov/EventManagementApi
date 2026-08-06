@@ -269,3 +269,4 @@ dotnet ef migrations add <имя-миграции> -p "..\EventManagementApi.Inf
 | PUT /Events/{id} | Обновление события | Admin |
 | DELETE /Events/{id} | Удаление события | Admin |
 | POST /Events/{eventId}/book | Создание брони | User, Admin | 
+
