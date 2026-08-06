@@ -8,13 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="EventManagmentApi.Tests\**" />
-    <Content Remove="EventManagmentApi.Tests\**" />
-    <EmbeddedResource Remove="EventManagmentApi.Tests\**" />
-    <None Remove="EventManagmentApi.Tests\**" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.10" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.10" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.10" />
@@ -28,8 +21,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\EventManagementApi.Application\EventManagement.Application.csproj" />
-    <ProjectReference Include="..\EventManagementApi.Infrastructure\EventManagement.Infrastructure.csproj" />
+    <ProjectReference Include="..\EventManagement.Application\EventManagement.Application.csproj" />
+    <ProjectReference Include="..\EventManagement.Infrastructure\EventManagement.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

@@ -12,19 +12,19 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["MicroServices/BookingsService/BookingsService.Presentation/BookingsService.Presentation.csproj", "MicroServices/BookingsService/BookingsService.Presentation/"]
-RUN dotnet restore "./MicroServices/BookingsService/BookingsService.Presentation/BookingsService.Presentation.csproj"
+COPY ["UsersService/UsersService.Presentation/UsersService.Presentation.csproj", "UsersService/UsersService.Presentation/"]
+RUN dotnet restore "./UsersService/UsersService.Presentation/UsersService.Presentation.csproj"
 COPY . .
-WORKDIR "/src/MicroServices/BookingsService/BookingsService.Presentation"
-RUN dotnet build "./BookingsService.Presentation.csproj" -c $BUILD_CONFIGURATION -o /app/build
+WORKDIR "/src/UsersService/UsersService.Presentation"
+RUN dotnet build "./UsersService.Presentation.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # Этот этап используется для публикации проекта службы, который будет скопирован на последний этап
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./BookingsService.Presentation.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "./UsersService.Presentation.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 # Этот этап используется в рабочей среде или при запуске из VS в обычном режиме (по умолчанию, когда конфигурация отладки не используется)
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "BookingsService.Presentation.dll"]
+ENTRYPOINT ["dotnet", "UsersService.Presentation.dll"]

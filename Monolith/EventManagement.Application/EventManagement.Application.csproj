@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\EventManagementApi.Domain\EventManagement.Domain.csproj" />
+    <ProjectReference Include="..\EventManagement.Domain\EventManagement.Domain.csproj" />
   </ItemGroup>
 
 </Project>

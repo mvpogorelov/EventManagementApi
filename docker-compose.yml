@@ -90,11 +90,11 @@ services:
       retries: 10
 
   users-service:
-      image: users-service:latest
+      image: users-service
       container_name: users-service
       build:
         context: .
-        dockerfile: MicroServices/UsersService/UsersService.Presentation/Dockerfile
+        dockerfile: UsersService/UsersService.Presentation/Dockerfile
       ports:
         - "8081:8080"
       environment:
@@ -106,11 +106,11 @@ services:
         - kafka
 
   bookings-service:
-      image: bookings-service:latest
+      image: bookings-service
       container_name: bookings-service
       build:
         context: .
-        dockerfile: MicroServices/BookingsService/BookingsService.Presentation/Dockerfile
+        dockerfile: BookingsService/BookingsService.Presentation/Dockerfile
       ports:
         - "8082:8080"
       environment:
@@ -122,11 +122,11 @@ services:
         - kafka
   
   events-service:
-      image: events-service:latest
+      image: events-service
       container_name: events-service
       build:
         context: .
-        dockerfile: MicroServices/EventsService/EventsService.Presentation/Dockerfile
+        dockerfile: EventsService/EventsService.Presentation/Dockerfile
       ports:
         - "8083:8080"
       environment:
