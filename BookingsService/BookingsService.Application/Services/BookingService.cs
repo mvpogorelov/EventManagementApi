@@ -89,14 +89,6 @@ public class BookingService(
         CheckOperationAllowed(booking.UserId, userId, userRole);
 
         await bookingRepository.DeleteAsync(booking);
-
-        await kafkaProducer.PublishAsync(
-            kafkaTopics.Value.Bookings,
-            booking.Id.ToString(),
-            new BookingRemoved
-            {
-                BookingId = booking.Id,
-            });
     }
 
     /// <summary>
@@ -114,14 +106,6 @@ public class BookingService(
 
         booking.Cancel();
         await bookingRepository.UpdateAsync(booking, ct);
-
-        await kafkaProducer.PublishAsync(
-             kafkaTopics.Value.Bookings,
-             booking.Id.ToString(),
-             new BookingCancelled
-             {
-                 BookingId = booking.Id,
-             });
     }
 
     private void CheckOperationAllowed(Guid bookingUserId, Guid userId, UserRole userRole)
