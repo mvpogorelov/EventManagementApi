@@ -1,5 +1,7 @@
 ﻿using BookingsService.Application.Abstractions.Persistence.Repositories;
 using BookingsService.Application.Services;
+using BookingsService.Domain.Common;
+using BookingsService.Domain.Entities;
 using Confluent.Kafka;
 using EventManagement.Contracts.Kafka;
 using Microsoft.Extensions.DependencyInjection;
@@ -64,42 +66,67 @@ public class KafkaConsumerService(
 
     private async Task ProcessMessageAsync(ConsumeResult<string, string> consumeResult, CancellationToken ct)
     {
+        using var scope = serviceProvider.CreateScope();
+        var bookingRepository = scope.ServiceProvider.GetRequiredService<IBookingRepository>();
+        var inboxRepository = scope.ServiceProvider.GetRequiredService<IInboxRepository>();
+        Inbox? inbox = null;
+
         try
         {
-            using var scope = serviceProvider.CreateScope();
-            var bookingRepository = scope.ServiceProvider.GetRequiredService<IBookingRepository>();
-
+            var topic = kafkaTopics.Value.Events;
+            var messageKey = consumeResult.Message.Key;
             var message = consumeResult.Message.Value;
             var messageType = GetHeaderValue(consumeResult.Message.Headers, "message-type");
 
+            inbox = await inboxRepository.GetByMessageAsync(topic, messageKey, messageType, ct);
+
+            if (inbox is not null)
+            {
+                return;
+            }
+
+            inbox = new Inbox(topic, messageKey, message, DateTime.UtcNow, InboxStatus.Processing, messageType);
+            await inboxRepository.CreateAsync(inbox);
+
             switch (messageType)
             {
-                case nameof(EventAllowed):
-                    var eventAllowed = JsonSerializer.Deserialize<EventAllowed>(message);
-                    var allowedBooking = await bookingRepository.GetByIdAsync(eventAllowed.BookingId, ct);
+                case nameof(BookingRejected):
+                    var bookingRejected = JsonSerializer.Deserialize<BookingRejected>(message);
+                    var rejectedBooking = await bookingRepository.GetByIdAsync(bookingRejected.BookingId, ct);
 
-                    if (allowedBooking is not null)
+                    if (rejectedBooking is not null)
                     {
-                        allowedBooking.Confirm();
-                        await bookingRepository.UpdateAsync(allowedBooking, ct);
+                        rejectedBooking.Reject(bookingRejected.Reason);
+                        await bookingRepository.UpdateAsync(rejectedBooking, ct);
                     }
+
+                    inbox.Status = InboxStatus.Processed;
+                    await inboxRepository.UpdateAsync(inbox);
+
                     break;
 
-                case nameof(EventDisabled):
-                    var eventDisabled = JsonSerializer.Deserialize<EventDisabled>(message);
-                    var disabledBooking = await bookingRepository.GetByIdAsync(eventDisabled.BookingId, ct);
+                default:
+                    inbox.Status = InboxStatus.Failed;
+                    inbox.StatusComment = "Нет обработчика";
 
-                    if (disabledBooking is not null)
-                    {
-                        disabledBooking.Reject(eventDisabled.Reason);
-                        await bookingRepository.UpdateAsync(disabledBooking, ct);
-                    }
+                    await inboxRepository.UpdateAsync(inbox);
+
                     break;
             }
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, $"Ошибка при обработке сообщения с ключом {consumeResult.Message.Key}");
+            var errorMessage = ex.InnerException?.Message ?? ex.Message;
+
+            if (inbox is not null)
+            {
+                inbox.Status = InboxStatus.Failed;
+                inbox.StatusComment = $"{errorMessage}";
+
+                await inboxRepository.UpdateAsync(inbox);
+            }
+
+            logger.LogError(ex, "При обработке сообщения возникла ошибка: {Error}", errorMessage);
         }
     }
 

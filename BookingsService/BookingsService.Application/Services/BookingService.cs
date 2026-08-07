@@ -56,11 +56,23 @@ public class BookingService(
             EventId = eventId,
             UserId = userId,
             Seats = seats,
-            Status = BookingStatus.Pending,
+            Status = BookingStatus.Confirmed,
             CreatedAt = DateTime.UtcNow
         };
 
-        return await bookingRepository.CreateAsync(booking, ct);
+        await bookingRepository.CreateAsync(booking, ct);
+        await kafkaProducer.PublishAsync(kafkaTopics.Value.Bookings,
+            booking.Id.ToString(),
+            new BookingConfirmed
+            {
+                BookingId = booking.Id,
+                EventId = booking.EventId,
+                UserId = booking.UserId,
+                Seats = booking.Seats,
+                ConfirmedAt = DateTime.UtcNow
+            });
+
+        return booking;
     }
 
     /// <summary>

@@ -26,6 +26,7 @@ public static class DependencyInjection
         services.AddDbContext<AppDbContext>(options => options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
         
         services.AddScoped<IBookingRepository, BookingRepository>();
+        services.AddScoped<IInboxRepository, InboxRepository>();
 
         var bootstrapServers = configuration["Kafka:BootstrapServers"];
 

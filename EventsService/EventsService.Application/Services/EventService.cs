@@ -12,8 +12,9 @@ namespace EventsService.Application.Services;
 /// <summary>
 /// Сервис по работе с событиями
 /// </summary>
-public class EventService(IEventRepository repository,
-    IBookingRepository bookingRepository,
+public class EventService(
+    IEventRepository eventRepository,
+    IInboxRepository inboxRepository,
     IKafkaProducerService kafkaProducer,
     IOptions<KafkaTopics> kafkaTopics)
         : IEventService
@@ -49,7 +50,7 @@ public class EventService(IEventRepository repository,
             throw new ArgumentOutOfRangeException($"Неверный размер страницы: {nameof(pageSize)}");
         }
 
-        return await repository.GetPaginatedAsync(title, from, to, page, pageSize, ct);
+        return await eventRepository.GetPaginatedAsync(title, from, to, page, pageSize, ct);
     }
 
     /// <summary>
@@ -60,7 +61,7 @@ public class EventService(IEventRepository repository,
     /// <returns>Событие</returns>
     public async Task<Event> GetByIdAsync(Guid id, CancellationToken ct = default)
     {
-        var @event = await repository.GetByIdAsync(id, ct);
+        var @event = await eventRepository.GetByIdAsync(id, ct);
 
         if (@event is null)
         {
@@ -87,7 +88,7 @@ public class EventService(IEventRepository repository,
 
         var @event = new Event(title, startAt.Value, endAt.Value, totalSeats, description);
 
-        return await repository.CreateAsync(@event);
+        return await eventRepository.CreateAsync(@event);
     }
 
     /// <summary>
@@ -106,7 +107,7 @@ public class EventService(IEventRepository repository,
     {
         ValidateEventDataAndThrow(title, startAt, endAt, totalSeats);
 
-        var @event = await repository.GetByIdAsync(id, ct) ?? throw new NotFoundException($"Событие с Id: {id} не найдено");
+        var @event = await eventRepository.GetByIdAsync(id, ct) ?? throw new NotFoundException($"Событие с Id: {id} не найдено");
 
         @event.Title = title;
         @event.StartAt = startAt.Value;
@@ -114,7 +115,7 @@ public class EventService(IEventRepository repository,
         @event.Description = description;
         @event.TotalSeats = totalSeats;
 
-        await repository.UpdateAsync(@event);
+        await eventRepository.UpdateAsync(@event);
     }
 
     /// <summary>
@@ -125,16 +126,16 @@ public class EventService(IEventRepository repository,
     /// <exception cref="NotFoundException">Если событие не найдено</exception>
     public async Task RemoveAsync(Guid id, CancellationToken ct = default)
     {
-        var @event = await repository.GetByIdAsync(id, ct) ?? throw new NotFoundException($"Событие с Id: {id} не найдено");
+        var @event = await eventRepository.GetByIdAsync(id, ct) ?? throw new NotFoundException($"Событие с Id: {id} не найдено");
 
-        await repository.DeleteAsync(@event);
+        await eventRepository.DeleteAsync(@event);
     }
 
     /// <summary>
     /// Удаление всех событий
     /// </summary>
     /// <param name="ct">Токен отмены</param>
-    public async Task RemoveAllAsync(CancellationToken ct = default) => await repository.DeleteAllAsync(ct);
+    public async Task RemoveAllAsync(CancellationToken ct = default) => await eventRepository.DeleteAllAsync(ct);
 
     private void ValidateEventDataAndThrow(string title, DateTime? startAt, DateTime? endAt, int totalSeats, string? description = null)
     {
@@ -164,21 +165,18 @@ public class EventService(IEventRepository repository,
         }
     }
 
-    public async Task CheckBookingAsync(Guid eventId, Guid userId, Guid bookingId, int seats, CancellationToken ct = default)
+    public async Task ApproveBookingAsync(
+        Guid eventId,
+        Guid userId,
+        Guid bookingId,
+        int seats,
+        CancellationToken ct = default)
     {
         await _createSemaphore.WaitAsync(ct);
 
         try
         {
-            var existingBooking = await bookingRepository.GetByIdAsync(bookingId, ct);
-
-            // проверка на повторную обработку
-            if (existingBooking is not null)
-            {
-                return;
-            }
-
-            var @event = await repository.GetByIdAsync(eventId, ct)
+            var @event = await eventRepository.GetByIdAsync(eventId, ct)
                 ?? throw new NotFoundException($"Событие не найдено: {eventId}");
 
             if (@event.StartAt < DateTime.UtcNow)
@@ -186,9 +184,9 @@ public class EventService(IEventRepository repository,
                 throw new PastEventBookingException("Событие уже началось");
             }
 
-            var bookings = await bookingRepository.GetAllByUserAndEvent(userId, eventId, ct);
+            var inboxes = await inboxRepository.GetByUserAndEvent(userId, eventId, ct);
 
-            if (bookings.Count(b => b.Event?.StartAt >= DateTime.UtcNow) >= UserBookingLimit)
+            if (inboxes.Count(b => b.Event?.StartAt >= DateTime.UtcNow) >= UserBookingLimit)
             {
                 throw new BookingLimitException($"Превышен лимит активных броней: {UserBookingLimit}");
             }
@@ -198,35 +196,14 @@ public class EventService(IEventRepository repository,
                 throw new NoAvailableSeatsException($"Нет доступных мест для события: {eventId}");
             }
 
-            var booking = new Booking
-            {
-                Id = bookingId,
-                EventId = eventId,
-                UserId = userId
-            };
-
-            await bookingRepository.CreateAsync(booking, ct);
-
-            await kafkaProducer.PublishAsync(
-                kafkaTopics.Value.Events,
-                eventId.ToString(),
-                new EventAllowed
-                {
-                    EventId = eventId,
-                    BookingId = bookingId,
-                });
+            await eventRepository.UpdateAsync(@event, ct);
         }
         catch (Exception e)
         {
             await kafkaProducer.PublishAsync(
                 kafkaTopics.Value.Events,
-                eventId.ToString(),
-                new EventDisabled
-                {
-                    EventId = eventId,
-                    BookingId = bookingId,
-                    Reason = e.Message
-                });
+                bookingId.ToString(),
+                new BookingRejected { BookingId = bookingId, Reason = e.Message });
         }
         finally
         {

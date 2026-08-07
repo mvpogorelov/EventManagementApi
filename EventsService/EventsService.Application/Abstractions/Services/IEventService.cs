@@ -1,4 +1,5 @@
-﻿using EventsService.Application.DTOs;
+﻿using EventsService.Application.Abstractions.Persistence.Repositories;
+using EventsService.Application.DTOs;
 using EventsService.Domain.Entities;
 
 namespace EventsService.Application.Abstractions.Services;
@@ -69,6 +70,6 @@ public interface IEventService
     /// <summary>
     /// Проверка возможности брони
     /// </summary>
-    Task CheckBookingAsync(Guid eventId, Guid userId, Guid bookingId, int seats, CancellationToken ct = default);
+    Task ApproveBookingAsync(Guid eventId, Guid userId, Guid bookingId, int seats, CancellationToken ct = default);
 }
 

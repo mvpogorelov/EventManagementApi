@@ -27,9 +27,8 @@ public class EventConfiguration : IEntityTypeConfiguration<Event>
             .IsRequired();
         builder.Property(e => e.AvailableSeats)
             .IsRequired();
-        builder.HasMany(e => e.Bookings)
+        builder.HasMany(e => e.Inbox)
             .WithOne(b => b.Event)
-            .HasForeignKey(b => b.EventId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .HasForeignKey(b => b.EventId);
     }
 }
