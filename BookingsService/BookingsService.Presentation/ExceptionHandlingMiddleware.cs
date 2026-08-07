@@ -64,7 +64,7 @@ public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Exception
             ArgumentException ae => StatusCodes.Status400BadRequest,
             ValidationException ve => StatusCodes.Status400BadRequest,
             OperationNotAllowedException onae => StatusCodes.Status403Forbidden,
-            UnauthorizedException uae => StatusCodes.Status403Forbidden,
+            UnauthorizedException uae => StatusCodes.Status401Unauthorized,
             NotFoundException nfe => StatusCodes.Status404NotFound,
             _ => StatusCodes.Status500InternalServerError
         };
