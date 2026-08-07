@@ -50,7 +50,7 @@ public sealed class Booking
         Status = BookingStatus.Confirmed;
         ProcessedAt = DateTime.UtcNow;
     }
-    
+
     public void Processing()
     {
         Status = BookingStatus.Processing;

@@ -18,7 +18,7 @@ public class BookingService(
 {
     private const int UserBookingLimit = 10;
     private static readonly SemaphoreSlim _createSemaphore = new(1, 1);
-    
+
     /// <summary>
     /// Получение брони по идентификатору
     /// </summary>

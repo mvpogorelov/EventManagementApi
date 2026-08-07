@@ -55,7 +55,7 @@ public class BookingsController(IBookingService bookingService) : BaseController
 
         return NoContent();
     }
-    
+
     /// <summary>
     /// Удаление брони
     /// </summary>

@@ -201,11 +201,11 @@ public class EventsController(IEventService eventService, IBookingService bookin
             controllerName: "Bookings",
             routeValues: new { bookingId = booking.Id },
             value: new ApiResultDto<BookingOutDto>
-                {
-                    Data = new BookingOutDto(booking.Id, booking.EventId, booking.Status.ToString()),
-                    StatusCode = HttpStatusCode.Accepted,
-                    Success = true
-                }
+            {
+                Data = new BookingOutDto(booking.Id, booking.EventId, booking.Status.ToString()),
+                StatusCode = HttpStatusCode.Accepted,
+                Success = true
+            }
         );
     }
 }

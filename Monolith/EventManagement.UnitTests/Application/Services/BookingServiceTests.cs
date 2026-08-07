@@ -23,7 +23,7 @@ public class BookingServiceTests : IDisposable
     // private readonly IUserService _userService;
     private readonly IUserRepository _userRepository;
 
-    
+
     private Event testEvent;
     private Event testStartedEvent;
     private User testUser;
@@ -48,7 +48,7 @@ public class BookingServiceTests : IDisposable
         _serviceScope = _serviceProvider.CreateScope();
         _eventService = _serviceScope.ServiceProvider.GetRequiredService<IEventService>();
         _bookingService = _serviceScope.ServiceProvider.GetRequiredService<IBookingService>();
-        _userRepository = _serviceScope.ServiceProvider.GetRequiredService <IUserRepository>();
+        _userRepository = _serviceScope.ServiceProvider.GetRequiredService<IUserRepository>();
     }
 
     public void Dispose()
@@ -70,7 +70,7 @@ public class BookingServiceTests : IDisposable
         Assert.Equal(testEvent.Id, booking.EventId);
         Assert.Equal(BookingStatus.Pending, booking.Status);
     }
-    
+
     [Fact(DisplayName = "Создание нескольких броней для одного события — все создаются с уникальными Id")]
     public async Task Create_MultipleBookingForSingleEvent_ShouldCreateBookingWithUniqueId()
     {
@@ -87,7 +87,7 @@ public class BookingServiceTests : IDisposable
         Assert.NotEqual(booking1.Id, booking3.Id);
         Assert.NotEqual(booking2.Id, booking3.Id);
     }
-    
+
     [Fact(DisplayName = "Получение своей брони (или Admin) по Id — возвращается корректная информация")]
     public async Task Create_OwnOrAdminGetBookingById_ShouldReturnCorrectData()
     {
@@ -103,7 +103,7 @@ public class BookingServiceTests : IDisposable
         Assert.Equal(bookingUser, getByIdBookingUserUser);
         Assert.Equal(bookingUser, getByIdBookingUserAdmin);
     }
-    
+
     [Fact(DisplayName = "Получение несвоей брони по Id — выбрасываться ошибка")]
     public async Task Create_NotOwnGetBookingById_ShouldThrowExcepion()
     {
@@ -118,7 +118,7 @@ public class BookingServiceTests : IDisposable
         Assert.NotNull(ex);
         Assert.IsType<OperationNotAllowedException>(ex);
     }
-    
+
     [Fact(DisplayName = "Для несуществующего события должна выбрасываться ошибка")]
     public async Task Create_WhenEventDoNotExists_ShouldRiseException()
     {
@@ -170,7 +170,7 @@ public class BookingServiceTests : IDisposable
         Assert.NotNull(ex);
         Assert.IsType<NotFoundException>(ex);
     }
-    
+
     [Fact(DisplayName = "20 параллельных запросов на 5 мест")]
     public async Task Create_When20BookingsOn5Seats_ShouldCorrectResult()
     {
@@ -250,7 +250,7 @@ public class BookingServiceTests : IDisposable
             }
         }
     }
-    
+
     [Fact(DisplayName = "Лимиты разных пользователей не влияют друг на друга")]
     public async Task Create_UserBookingLimitNotIntersect()
     {

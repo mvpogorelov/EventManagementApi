@@ -57,7 +57,8 @@ public sealed class Event
     /// <summary>
     /// Общее количество мест на событии
     /// </summary>
-    public required int TotalSeats {
+    public required int TotalSeats
+    {
         get;
         set
         {

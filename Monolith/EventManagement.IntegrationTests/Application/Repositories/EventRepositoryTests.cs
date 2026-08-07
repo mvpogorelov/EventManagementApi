@@ -215,8 +215,8 @@ public class EventRepositoryTests(DatabaseFixture databaseFixture)
 
         Assert.Equal("Title", saved.Title);
     }
-    
-    
+
+
     [Fact(DisplayName = "Удаление события, должны удаляться связанные брони")]
     public async Task DeleteAsync()
     {
@@ -252,8 +252,8 @@ public class EventRepositoryTests(DatabaseFixture databaseFixture)
         Assert.Null(saved);
         Assert.Null(savedBookings);
     }
-    
-    
+
+
     [Fact(DisplayName = "Удаление всех событий")]
     public async Task DeleteAllAsync()
     {

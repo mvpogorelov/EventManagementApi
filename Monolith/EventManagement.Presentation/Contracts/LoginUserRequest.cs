@@ -9,7 +9,7 @@ public class LoginUserRequest
     /// Логин
     /// </summary>
     public string Login { get; set; } = string.Empty;
-    
+
     /// <summary>
     /// Пароль
     /// </summary>

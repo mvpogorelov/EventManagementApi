@@ -46,13 +46,13 @@ public sealed class Booking
         Status = BookingStatus.Confirmed;
         ProcessedAt = DateTime.UtcNow;
     }
-    
+
     public void Reject()
     {
         Status = BookingStatus.Rejected;
         ProcessedAt = DateTime.UtcNow;
     }
-    
+
     public void Cancel()
     {
         if (Status != BookingStatus.Pending && Status != BookingStatus.Confirmed)

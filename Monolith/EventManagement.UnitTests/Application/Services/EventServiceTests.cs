@@ -115,7 +115,7 @@ public class EventServiceTests : IDisposable
         Assert.Equal(4, events.TotalItems);
         Assert.Equal(1, events.TotalPages);
     }
-    
+
     [Theory(DisplayName = "Получение списка событий: Если заданы параметры пагинации, то должны вернуться соответствующие данные")]
     [InlineData(1, 2, 2, 4, 2)]
     [InlineData(2, 1, 1, 4, 4)]
@@ -166,7 +166,7 @@ public class EventServiceTests : IDisposable
         // Assert
         Assert.Equal(2, events.Items.Count);
     }
-    
+
     [Fact(DisplayName = "Получение списка событий: Если задан фильтр по дате окончания, то должны вернуться соотвествующие события")]
     public async Task GetAll_WhenEndAtIsDefined_ShouldReturnCorrectEvents()
     {
@@ -210,7 +210,7 @@ public class EventServiceTests : IDisposable
         Assert.NotNull(ex);
         Assert.IsType<NotFoundException>(ex);
     }
-    
+
     [Fact(DisplayName = "Получение события по id: Если передан сущестующий id, то должно вернуться событие")]
     public async Task Get_WhenIdIsСorrect_ShouldReturnEvent()
     {
@@ -239,7 +239,7 @@ public class EventServiceTests : IDisposable
         Assert.NotNull(ex);
         Assert.IsType<ValidationException>(ex);
     }
-    
+
     [Theory(DisplayName = "Обновление: Если переданы несуществующий id, то должно выбрасываться исключение")]
     [InlineData("b0d4ce5d-2757-4699-948c-cfa72ba94f86")]
     [InlineData("3f2504e0-4f89-11d3-9a0c-0305e82c3301")]
@@ -329,8 +329,8 @@ public class EventServiceTests : IDisposable
         Assert.True(res);
         Assert.Equal(avilableSeats - 1, @event?.AvailableSeats);
     }
-    
-    
+
+
     [Fact(DisplayName = "При попытке резервирования до лимита, должно возвращаться false")]
     public async Task ReserveSeats_WhenReserveToLimit_ShouldReturnFalse()
     {
@@ -352,7 +352,7 @@ public class EventServiceTests : IDisposable
         // Assert
         Assert.False(res);
     }
-    
+
     [Fact(DisplayName = "При попытке резервирования при отсутствии мест должно выбрасываться исключение NoAvailableSeatsException")]
     public async Task ReserveSeats_WhenNoAvailableSeats_ShouldReturnFalse()
     {

@@ -12,6 +12,6 @@ public class PasswordService : IPasswordService
 
         return Convert.ToHexString(bytes);
     }
-    
+
     public bool Verify(string password, string passwordHash) => Hash(password) == passwordHash;
 }

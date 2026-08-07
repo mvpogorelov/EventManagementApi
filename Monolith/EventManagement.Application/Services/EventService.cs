@@ -120,7 +120,7 @@ public class EventService(IEventRepository repository) : IEventService
 
         await repository.DeleteAsync(@event);
     }
-    
+
     /// <summary>
     /// Удаление всех событий
     /// </summary>
@@ -138,7 +138,7 @@ public class EventService(IEventRepository repository) : IEventService
         {
             throw new ValidationException($"Дата начала должна быть заполнена: {nameof(startAt)}");
         }
-        
+
         if (!endAt.HasValue)
         {
             throw new ValidationException($"Дата окончания должна быть заполнена: {nameof(endAt)}");

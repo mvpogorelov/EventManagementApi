@@ -50,7 +50,7 @@ public interface IEventService
     /// <param name="totalSeats">Общее количество мест на событии</param>
     /// <param name="description">Описание события</param>
     /// <param name="ct">Токен отмены</param>
-    Task UpdateAsync(Guid id, string title, DateTime? startAt, DateTime? endAt,int totalSeats, string? description = null, CancellationToken ct = default);
+    Task UpdateAsync(Guid id, string title, DateTime? startAt, DateTime? endAt, int totalSeats, string? description = null, CancellationToken ct = default);
 
 
     /// <summary>

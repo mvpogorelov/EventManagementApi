@@ -38,7 +38,7 @@ public interface IEventRepository
     /// <param name="ct">Токен отмены</param>
     /// <returns>Событие</returns>
     Task<Event> CreateAsync(Event @event, CancellationToken ct = default);
-    
+
     /// <summary>
     /// Обновление события
     /// </summary>
@@ -46,7 +46,7 @@ public interface IEventRepository
     /// <param name="ct">Токен отмены</param>
     /// <returns>Событие</returns>
     Task<Event> UpdateAsync(Event @event, CancellationToken ct = default);
-   
+
     /// <summary>
     /// Удаление события
     /// </summary>

@@ -50,7 +50,7 @@ public class UserService(
         {
             throw new ValidationException($"Логин не может быть пустым");
         }
-        
+
         if (login.Length > LoginMaxLength)
         {
             throw new ValidationException($"Логин не может быть диннее {LoginMaxLength} символов");

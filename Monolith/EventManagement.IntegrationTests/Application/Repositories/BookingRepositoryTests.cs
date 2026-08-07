@@ -67,7 +67,7 @@ public class BookingRepositoryTests(DatabaseFixture databaseFixture)
         Assert.Single(verifyBooks3);
         Assert.Equal(booking3.Id, verifyBooks3[0].Id);
     }
-    
+
     [Fact(DisplayName = "Корректный поиск брони по id")]
     public async Task GetById_ShouldFindCorrectBooking()
     {
@@ -116,7 +116,7 @@ public class BookingRepositoryTests(DatabaseFixture databaseFixture)
         Assert.Equal(booking2Id, verifyBook2?.Id);
         Assert.Null(verifyBook3);
     }
-    
+
     [Fact(DisplayName = "Создание брони")]
     public async Task CreateAsync()
     {
@@ -152,8 +152,8 @@ public class BookingRepositoryTests(DatabaseFixture databaseFixture)
         Assert.NotNull(savedBooking);
         Assert.Equal(bookingId, savedBooking.Id);
     }
-    
-    
+
+
     [Fact(DisplayName = "Создание дубликата брони, должна выбрасываться ошибка")]
     public async Task CreateAsync_IfDublicate_ShouldThrowError()
     {

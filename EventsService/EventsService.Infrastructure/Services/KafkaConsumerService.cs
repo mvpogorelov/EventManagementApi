@@ -124,7 +124,7 @@ public class KafkaConsumerService(
             var errorMessage = ex.InnerException?.Message ?? ex.Message;
 
             if (inbox is not null)
-            { 
+            {
                 inbox.Status = InboxStatus.Failed;
                 inbox.StatusComment = $"{errorMessage}";
 

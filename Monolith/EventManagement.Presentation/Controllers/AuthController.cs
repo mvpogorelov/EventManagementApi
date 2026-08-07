@@ -25,7 +25,7 @@ public class AuthController(IUserService userService) : ControllerBase
     [Consumes("application/json")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status400BadRequest)]
-    public async Task<NoContentResult> RegisterAsync([FromBody]RegisterUserRequest registerUserRequest, CancellationToken ct = default)
+    public async Task<NoContentResult> RegisterAsync([FromBody] RegisterUserRequest registerUserRequest, CancellationToken ct = default)
     {
         await userService.RegisterAsync(registerUserRequest.Login, registerUserRequest.Password, registerUserRequest.Role, ct);
 
@@ -43,7 +43,7 @@ public class AuthController(IUserService userService) : ControllerBase
     [Consumes("application/json")]
     [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResultDto), StatusCodes.Status400BadRequest)]
-    public async Task<OkObjectResult> LoginAsync([FromBody]LoginUserRequest loginUserRequest, CancellationToken ct = default)
+    public async Task<OkObjectResult> LoginAsync([FromBody] LoginUserRequest loginUserRequest, CancellationToken ct = default)
     {
         var token = await userService.LoginAsync(loginUserRequest.Login, loginUserRequest.Password, ct);
 
