@@ -22,24 +22,6 @@ namespace EventsService.Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("EventsService.Domain.Entities.Booking", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("EventId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("EventId");
-
-                    b.ToTable("bookings", (string)null);
-                });
-
             modelBuilder.Entity("EventsService.Domain.Entities.Event", b =>
                 {
                     b.Property<Guid>("Id")
@@ -70,20 +52,69 @@ namespace EventsService.Infrastructure.Migrations
                     b.ToTable("events", (string)null);
                 });
 
-            modelBuilder.Entity("EventsService.Domain.Entities.Booking", b =>
+            modelBuilder.Entity("EventsService.Domain.Entities.Inbox", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<Guid?>("BookingId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("EventId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("MessageKey")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<string>("MessageType")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTimeOffset>("ProcessedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("StatusComment")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Topic")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EventId");
+
+                    b.ToTable("inbox", (string)null);
+                });
+
+            modelBuilder.Entity("EventsService.Domain.Entities.Inbox", b =>
                 {
                     b.HasOne("EventsService.Domain.Entities.Event", "Event")
-                        .WithMany("Bookings")
-                        .HasForeignKey("EventId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .WithMany("Inbox")
+                        .HasForeignKey("EventId");
 
                     b.Navigation("Event");
                 });
 
             modelBuilder.Entity("EventsService.Domain.Entities.Event", b =>
                 {
-                    b.Navigation("Bookings");
+                    b.Navigation("Inbox");
                 });
 #pragma warning restore 612, 618
         }
