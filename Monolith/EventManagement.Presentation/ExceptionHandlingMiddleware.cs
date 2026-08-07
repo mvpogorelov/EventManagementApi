@@ -47,11 +47,19 @@ public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Exception
         httpContext.Response.StatusCode = statusCode;
         httpContext.Response.ContentType = "application/json";
 
+        var message = ex.InnerException?.Message ?? ex.Message;
+
+        if (statusCode == StatusCodes.Status500InternalServerError)
+        {
+            logger.LogError("{Error}", message);
+            message = "Internal server error";
+        }
+
         var error = new ApiResultDto
         {
             Success = false,
             StatusCode = (HttpStatusCode)statusCode,
-            Message = ex.Message
+            Message = message
         };
 
         await httpContext.Response.WriteAsJsonAsync(error);
