@@ -48,6 +48,7 @@ public static class DependencyInjection
             BootstrapServers = bootstrapServers,
             GroupId = "bookings-processing-group",
             AutoOffsetReset = AutoOffsetReset.Earliest,
+            EnableAutoOffsetStore = false,
             EnableAutoCommit = false
         };
         services.AddSingleton(consumerConfig);
