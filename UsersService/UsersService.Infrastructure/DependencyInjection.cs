@@ -30,7 +30,7 @@ public static class DependencyInjection
         return services;
     }
 
-    public static IApplicationBuilder ApplayMigrations(this IApplicationBuilder app)
+    public static IApplicationBuilder ApplyMigrations(this IApplicationBuilder app)
     {
         using (var scope = app.ApplicationServices.CreateScope())
         {
