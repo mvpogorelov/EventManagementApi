@@ -62,7 +62,7 @@ public class BookingService(
 
         await bookingRepository.CreateAsync(booking, ct);
         await kafkaProducer.PublishAsync(kafkaTopics.Value.Bookings,
-            booking.Id.ToString(),
+            booking.EventId.ToString(),
             new BookingConfirmed
             {
                 BookingId = booking.Id,
