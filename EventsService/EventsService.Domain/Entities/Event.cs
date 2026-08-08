@@ -1,4 +1,5 @@
-﻿using EventsService.Domain.Exceptions;
+﻿using EventManagement.Shared.Entities;
+using EventsService.Domain.Exceptions;
 using System.Diagnostics.CodeAnalysis;
 
 namespace EventsService.Domain.Entities;
@@ -107,4 +108,6 @@ public sealed class Event
             ? TotalSeats
             : AvailableSeats + count;
     }
+
+    public ICollection<Inbox> Inboxes { get; set; } = [];
 }

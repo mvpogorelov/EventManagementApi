@@ -62,13 +62,13 @@ public class BookingService(
             Status = BookingStatus.Pending,
             CreatedAt = DateTime.UtcNow
         };
-        var kafkaMessage = new BookingPending
+        var kafkaMessage = new BookingCreated
         {
             BookingId = booking.Id,
             Seats = booking.Seats,
             EventId = booking.EventId,
             UserId = booking.UserId,
-            PendingAt = booking.CreatedAt
+            CreatedAt = booking.CreatedAt
         };
         var outbox = new Outbox
         {

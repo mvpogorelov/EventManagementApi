@@ -1,4 +1,5 @@
-﻿using EventsService.Application.Abstractions.Persistence.Repositories;
+﻿using EventManagement.Shared.Entities;
+using EventsService.Application.Abstractions.Persistence.Repositories;
 using EventsService.Application.DTOs;
 using EventsService.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -112,4 +113,27 @@ public class EventRepository(AppDbContext context) : IEventRepository
         context.Events.RemoveRange(allEvents);
         await context.SaveChangesAsync(ct);
     }
+
+    public async Task SaveChangesAsync(CancellationToken ct = default) => await context.SaveChangesAsync(ct);
+
+    public async Task<Inbox?> GetInboxByIdAsync(int id, CancellationToken ct = default) =>
+        await context.Inbox.FirstOrDefaultAsync(i => i.Id == id);
+
+    public async Task<Inbox?> GetInboxByMessageTypeAndBookingId(
+        string topic,
+        string messageType,
+        Guid bookingId,
+        CancellationToken ct = default) =>
+            await context.Inbox
+                .AsNoTracking()
+                .FirstOrDefaultAsync(
+                    i => i.ProcessedAt != null
+                        && i.Topic == topic
+                        && i.MessageType == messageType
+                        && i.BookingId == bookingId,
+                    ct
+                );
+
+    public async Task AddOutboxAsync(Outbox outbox, CancellationToken ct = default) =>
+        await context.Outbox.AddAsync(outbox);
 }

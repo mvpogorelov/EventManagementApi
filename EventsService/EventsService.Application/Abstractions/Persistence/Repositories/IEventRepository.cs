@@ -1,4 +1,5 @@
-﻿using EventsService.Application.DTOs;
+﻿using EventManagement.Shared.Entities;
+using EventsService.Application.DTOs;
 using EventsService.Domain.Entities;
 
 namespace EventsService.Application.Abstractions.Persistence.Repositories;
@@ -60,5 +61,13 @@ public interface IEventRepository
     /// </summary>
     /// <param name="ct">Токен отмены</param>
     Task DeleteAllAsync(CancellationToken ct = default);
+
+    Task SaveChangesAsync(CancellationToken ct = default);
+
+    Task<Inbox?> GetInboxByIdAsync(int id, CancellationToken ct = default);
+
+    Task<Inbox?> GetInboxByMessageTypeAndBookingId(string topic, string messageType, Guid bookingId, CancellationToken ct = default);
+
+    Task AddOutboxAsync(Outbox outbox, CancellationToken ct = default);
 }
 

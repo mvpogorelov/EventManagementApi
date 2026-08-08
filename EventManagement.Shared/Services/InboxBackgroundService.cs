@@ -1,4 +1,5 @@
-﻿using EventManagement.Shared.Abstractions;
+﻿using Confluent.Kafka;
+using EventManagement.Shared.Abstractions;
 using EventManagement.Shared.Entities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -56,32 +57,20 @@ public abstract class InboxBackgroundService(
     {
         using var scope = scopeFactory.CreateScope();
         var inboxRepository = scope.ServiceProvider.GetRequiredService<IInboxRepository>();
-        var messages = await inboxRepository.GetUnprocessedMessages(Topic, ct);
+        var messagesIds = await inboxRepository.GetUnprocessedMessageIds(Topic, ct);
 
-        if (!messages.Any())
+        if (!messagesIds.Any())
         {
             return;
         }
 
-        foreach (var message in messages)
+        foreach (var messagesId in messagesIds)
         {
-            try
-            {
-                message.AttemptCount++;
-
-                await ProcessBusinessLogicAsync(message, ct);
-
-                message.ProcessedAt = DateTime.UtcNow;
-                message.Error = null;
-            }
-            catch (Exception e)
-            {
-                message.Error = e.Message;
-            }
+            await ProcessBusinessLogicAsync(messagesId, ct);
         }
 
         await inboxRepository.SaveChangesAsync(ct);
     }
 
-    protected abstract Task ProcessBusinessLogicAsync(Inbox inbox, CancellationToken ct);
+    protected abstract Task ProcessBusinessLogicAsync(int inboxId, CancellationToken ct);
 }

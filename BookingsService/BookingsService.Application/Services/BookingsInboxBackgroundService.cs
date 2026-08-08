@@ -14,7 +14,7 @@ public class BookingsInboxBackgroundService : InboxBackgroundService
 
     protected override string Topic => throw new NotImplementedException();
 
-    protected override Task ProcessBusinessLogicAsync(Inbox inbox, CancellationToken ct)
+    protected override Task ProcessBusinessLogicAsync(int inboxId, CancellationToken ct)
     {
         throw new NotImplementedException();
     }
