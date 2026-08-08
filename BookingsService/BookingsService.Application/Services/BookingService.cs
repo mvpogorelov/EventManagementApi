@@ -18,7 +18,7 @@ namespace BookingsService.Application.Services;
 public class BookingService(
     IBookingRepository bookingRepository,
     IKafkaProducerService kafkaProducer,
-    IOptions<KafkaTopics> kafkaTopics)
+    IOptions<KafkaSettings> kafkaSettings)
         : IBookingService
 {
     /// <summary>
@@ -71,7 +71,7 @@ public class BookingService(
         };
         var outbox = new Outbox
         {
-            Topic = kafkaTopics.Value.Bookings,
+            Topic = kafkaSettings.Value.Topics.Bookings,
             MessageKey = booking.EventId.ToString(),
             MessageType = kafkaProducer.GetMessageType(bookingPendingMessage),
             Message = kafkaProducer.GetMessageString(bookingPendingMessage)

@@ -1,5 +1,4 @@
 using BookingsService.Application;
-using BookingsService.Application.Services;
 using BookingsService.Infrastructure;
 using BookingsService.Infrastructure.Security;
 using BookingsService.Presentation;
@@ -13,9 +12,8 @@ var configuration = builder.Configuration;
 var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>()
     ?? throw new InvalidOperationException("JWT конфигурация не найдена или некорректна");
 
-
 builder.Services.Configure<JwtSettings>(configuration.GetSection("JwtSettings"));
-builder.Services.Configure<KafkaTopics>(configuration.GetSection("KafkaTopics"));
+builder.Services.Configure<KafkaSettings>(configuration.GetSection("Kafka"));
 builder.Services
 .AddAuthentication(o =>
 {

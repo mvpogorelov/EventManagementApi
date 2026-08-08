@@ -1,6 +1,5 @@
 using EventManagement.Shared.Models;
 using EventsService.Application;
-using EventsService.Application.Services;
 using EventsService.Infrastructure;
 using EventsService.Infrastructure.Security;
 using EventsService.Presentation;
@@ -14,7 +13,7 @@ var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSetting
     ?? throw new InvalidOperationException("JWT конфигурация не найдена или некорректна");
 
 builder.Services.Configure<JwtSettings>(configuration.GetSection("JwtSettings"));
-builder.Services.Configure<KafkaTopics>(configuration.GetSection("KafkaTopics"));
+builder.Services.Configure<KafkaSettings>(configuration.GetSection("Kafka"));
 builder.Services
 .AddAuthentication(o =>
 {

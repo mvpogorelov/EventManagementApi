@@ -18,7 +18,7 @@ public class EventService(
     IEventRepository eventRepository,
     IInboxRepository inboxRepository,
     IKafkaProducerService kafkaProducer,
-    IOptions<KafkaTopics> kafkaTopics)
+    IOptions<KafkaSettings> kafkaSettings)
         : IEventService
 {
     private const int UserBookingLimit = 10;
@@ -203,7 +203,7 @@ public class EventService(
         catch (Exception e)
         {
             await kafkaProducer.PublishAsync(
-                kafkaTopics.Value.Events,
+                kafkaSettings.Value.Topics.Events,
                 eventId.ToString(),
                 new BookingRejected { BookingId = bookingId, Reason = e.Message }, ct);
         }

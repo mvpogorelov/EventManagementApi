@@ -17,7 +17,7 @@ namespace BookingsService.Infrastructure.Services;
 public class KafkaConsumerService(
     ConsumerConfig config,
     IServiceProvider serviceProvider,
-    IOptions<KafkaTopics> kafkaTopics,
+    IOptions<KafkaSettings> kafkaSettings,
     ILogger<KafkaConsumerService> logger)
         : BackgroundService
 {
@@ -26,8 +26,8 @@ public class KafkaConsumerService(
         {
             using var consumer = new ConsumerBuilder<string, string>(config).Build();
 
-            consumer.Subscribe(kafkaTopics.Value.Events);
-            logger.LogInformation($"Kafka Consumer подписка оформлена на '{kafkaTopics.Value.Events}'");
+            consumer.Subscribe(kafkaSettings.Value.Topics.Events);
+            logger.LogInformation($"Kafka Consumer подписка оформлена на '{kafkaSettings.Value.Topics.Events}'");
 
             try
             {
@@ -74,7 +74,7 @@ public class KafkaConsumerService(
 
         try
         {
-            var topic = kafkaTopics.Value.Events;
+            var topic = kafkaSettings.Value.Topics.Events;
             var messageKey = consumeResult.Message.Key;
             var message = consumeResult.Message.Value;
             var messageType = GetHeaderValue(consumeResult.Message.Headers, "message-type");
