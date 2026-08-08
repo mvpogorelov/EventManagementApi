@@ -1,6 +1,5 @@
 ﻿using BookingsService.Application.Abstractions.Services;
 using BookingsService.Application.Services;
-using EventManagement.Shared.Services;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace BookingsService.Application;
@@ -17,6 +16,7 @@ public static class DependencyInjection
     /// <returns>IServiceCollection</returns>
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
+        services.AddHostedService<BookingsInboxBackgroundService>();
         services.AddScoped<IBookingService, BookingService>();
 
         return services;

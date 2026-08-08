@@ -7,9 +7,9 @@ using Microsoft.Extensions.Logging;
 namespace EventManagement.Shared.Services;
 
 public abstract class InboxBackgroundService(
-    ILogger<InboxBackgroundService> logger,
-     IServiceScopeFactory scopeFactory
-    ) : BackgroundService
+    ILogger logger,
+    IServiceScopeFactory scopeFactory)
+        : BackgroundService
 {
     private const int PollingInterval = 10000;
     private const int MaxCriticalExeptions = 10;
@@ -56,7 +56,7 @@ public abstract class InboxBackgroundService(
     {
         using var scope = scopeFactory.CreateScope();
         var inboxRepository = scope.ServiceProvider.GetRequiredService<IInboxRepository>();
-        var messages = await inboxRepository.GetUnprocessedMessages(ct);
+        var messages = await inboxRepository.GetUnprocessedMessages(Topic, ct);
 
         if (!messages.Any())
         {

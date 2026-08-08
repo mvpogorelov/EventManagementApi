@@ -1,5 +1,4 @@
-﻿using EventManagement.Shared.Services;
-using EventsService.Application.Abstractions.Services;
+﻿using EventsService.Application.Abstractions.Services;
 using EventsService.Application.Services;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -17,6 +16,7 @@ public static class DependencyInjection
     /// <returns>IServiceCollection</returns>
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
+        services.AddHostedService<EventsInboxBackgroundService>();
         services.AddScoped<IEventService, EventService>();
 
         return services;

@@ -12,9 +12,9 @@ public class InboxRepository(AppDbContext context) : IInboxRepository
         await context.SaveChangesAsync(ct);
     }
 
-    public async Task<IReadOnlyList<Inbox>> GetUnprocessedMessages(CancellationToken ct) =>
+    public async Task<IReadOnlyList<Inbox>> GetUnprocessedMessages(string topic, CancellationToken ct) =>
         await context.Inbox
-            .Where(m => m.ProcessedAt == null && m.AttemptCount < 5)
+            .Where(m => m.Topic == topic && m.ProcessedAt == null && m.AttemptCount < 5)
             .OrderBy(m => m.CreatedAt)
             .Take(10)
             .ToListAsync(ct);
