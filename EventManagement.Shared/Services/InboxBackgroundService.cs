@@ -1,27 +1,23 @@
 ﻿using EventManagement.Shared.Abstractions;
+using EventManagement.Shared.Entities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace EventManagement.Shared.Services;
 
-public class OutboxBackgroundService(
-    ILogger<OutboxBackgroundService> logger,
-    IServiceScopeFactory scopeFactory,
-    IKafkaProducerService kafkaProducer)
-        : BackgroundService
+public abstract class InboxBackgroundService(
+    ILogger<InboxBackgroundService> logger,
+     IServiceScopeFactory scopeFactory
+    ) : BackgroundService
 {
     private const int PollingInterval = 10000;
     private const int MaxCriticalExeptions = 10;
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="ct"></param>
-    /// <returns></returns>
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    protected abstract string Topic { get; }
+    
+    protected async override Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        logger.LogInformation("OutboxBackgroundService запущен");
+        logger.LogInformation("InboxBackgroundService для топика {Topic} запущен", Topic);
 
         int errorCount = 0;
 
@@ -29,7 +25,7 @@ public class OutboxBackgroundService(
         {
             try
             {
-                await ProcessOutboxMessagesAsync(stoppingToken);
+                await ProcessInboxMessagesAsync(stoppingToken);
                 await Task.Delay(PollingInterval, stoppingToken);
                 errorCount = 0;
             }
@@ -40,7 +36,7 @@ public class OutboxBackgroundService(
             catch (Exception e)
             {
                 errorCount++;
-                logger.LogCritical(e, $"Outbox критическая ошибка");
+                logger.LogCritical(e, $"Inbox критическая ошибка");
 
                 if (errorCount > MaxCriticalExeptions)
                 {
@@ -53,14 +49,14 @@ public class OutboxBackgroundService(
             }
         }
 
-        logger.LogInformation("OutboxBackgroundService остановлен");
+        logger.LogInformation("InboxBackgroundService для топика {Topic} остановлен", Topic);
     }
 
-    private async Task ProcessOutboxMessagesAsync(CancellationToken ct)
+    protected async Task ProcessInboxMessagesAsync(CancellationToken ct)
     {
         using var scope = scopeFactory.CreateScope();
-        var outboxRepository = scope.ServiceProvider.GetRequiredService<IOutboxRepository>();
-        var messages = await outboxRepository.GetUnprocessedMessages(ct);
+        var inboxRepository = scope.ServiceProvider.GetRequiredService<IInboxRepository>();
+        var messages = await inboxRepository.GetUnprocessedMessages(ct);
 
         if (!messages.Any())
         {
@@ -73,22 +69,19 @@ public class OutboxBackgroundService(
             {
                 message.AttemptCount++;
 
-                await kafkaProducer.PublishAsync(message.Topic, message.MessageKey, message.Message, message.MessageType, ct);
+                await ProcessBusinessLogicAsync(message, ct);
 
                 message.ProcessedAt = DateTime.UtcNow;
                 message.Error = null;
             }
             catch (Exception e)
             {
-                logger.LogError(e,
-                    "Ошибка отправки Outbox. Topic: {Topic}, MessageKey: {MessageKey}, Message: {Message}, MessageType: {MessageType}",
-                    message.Topic, message.MessageKey, message.Message, message.MessageType);
-
                 message.Error = e.Message;
             }
         }
 
-        await outboxRepository.SaveChangesAsync(ct);
+        await inboxRepository.SaveChangesAsync(ct);
     }
-}
 
+    protected abstract Task ProcessBusinessLogicAsync(Inbox inbox, CancellationToken ct);
+}

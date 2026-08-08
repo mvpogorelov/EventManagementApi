@@ -1,5 +1,6 @@
 ﻿using EventManagement.Shared.Abstractions;
 using EventManagement.Shared.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace BookingsService.Infrastructure.Persistence.Repositories;
 
@@ -10,4 +11,13 @@ public class InboxRepository(AppDbContext context) : IInboxRepository
         await context.Inbox.AddAsync(inbox, ct);
         await context.SaveChangesAsync(ct);
     }
+
+    public async Task<IReadOnlyList<Inbox>> GetUnprocessedMessages(CancellationToken ct) =>
+        await context.Inbox
+            .Where(m => m.ProcessedAt == null && m.AttemptCount < 5)
+            .OrderBy(m => m.CreatedAt)
+            .Take(10)
+            .ToListAsync(ct);
+
+    public async Task SaveChangesAsync(CancellationToken ct) => await context.SaveChangesAsync(ct);
 }
