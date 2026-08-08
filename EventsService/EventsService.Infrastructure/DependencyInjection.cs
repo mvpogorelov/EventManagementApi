@@ -1,4 +1,6 @@
 ﻿using Confluent.Kafka;
+using EventManagement.Shared.Abstractions;
+using EventManagement.Shared.Services;
 using EventsService.Application.Abstractions.Persistence.Repositories;
 using EventsService.Application.Abstractions.Services;
 using EventsService.Infrastructure.Persistence;

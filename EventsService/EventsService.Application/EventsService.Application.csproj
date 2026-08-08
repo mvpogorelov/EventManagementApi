@@ -15,6 +15,7 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\..\EventManagement.Contracts\EventManagement.Contracts.csproj" />
+	  <ProjectReference Include="..\..\EventManagement.Shared\EventManagement.Shared.csproj" />
 	  <ProjectReference Include="..\EventsService.Domain\EventsService.Domain.csproj" />
 	</ItemGroup>
 

@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\EventManagement.Contracts\EventManagement.Contracts.csproj" />
+    <ProjectReference Include="..\..\EventManagement.Shared\EventManagement.Shared.csproj" />
     <ProjectReference Include="..\BookingsService.Domain\BookingsService.Domain.csproj" />
   </ItemGroup>
 

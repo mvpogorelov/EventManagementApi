@@ -1,4 +1,5 @@
 ﻿using EventManagement.Contracts.Kafka;
+using EventManagement.Shared.Abstractions;
 using EventsService.Application.Abstractions.Persistence.Repositories;
 using EventsService.Application.Abstractions.Services;
 using EventsService.Application.DTOs;

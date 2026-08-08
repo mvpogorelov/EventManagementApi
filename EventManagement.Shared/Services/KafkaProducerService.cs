@@ -1,9 +1,9 @@
-﻿using BookingsService.Application.Abstractions.Services;
-using Confluent.Kafka;
+﻿using Confluent.Kafka;
+using EventManagement.Shared.Abstractions;
 using System.Text;
 using System.Text.Json;
 
-namespace BookingsService.Infrastructure.Services;
+namespace EventManagement.Shared.Services;
 
 public class KafkaProducerService : IKafkaProducerService, IDisposable
 {

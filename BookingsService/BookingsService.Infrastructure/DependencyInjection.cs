@@ -4,6 +4,8 @@ using BookingsService.Infrastructure.Persistence;
 using BookingsService.Infrastructure.Persistence.Repositories;
 using BookingsService.Infrastructure.Services;
 using Confluent.Kafka;
+using EventManagement.Shared.Abstractions;
+using EventManagement.Shared.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;

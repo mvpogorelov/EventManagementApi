@@ -1,4 +1,4 @@
-﻿namespace EventsService.Application.Abstractions.Services;
+﻿namespace EventManagement.Shared.Abstractions;
 
 public interface IKafkaProducerService
 {
