@@ -1,5 +1,6 @@
 ﻿using Confluent.Kafka;
 using EventManagement.Shared.Abstractions;
+using EventManagement.Shared.Models;
 using EventManagement.Shared.Services;
 using EventsService.Application.Abstractions.Persistence.Repositories;
 using EventsService.Application.Abstractions.Services;
@@ -30,31 +31,11 @@ public static class DependencyInjection
         services.AddScoped<IEventRepository, EventRepository>();
         services.AddScoped<IInboxRepository, InboxRepository>();
 
-        var bootstrapServers = configuration["Kafka:BootstrapServers"];
+        services.Configure<KafkaSettings>(configuration.GetSection("Kafka"));
 
-        services.AddSingleton<IKafkaProducerService>(sp =>
-            new KafkaProducerService(
-                new ProducerBuilder<string, string>(
-                    new ProducerConfig
-                    {
-                        BootstrapServers = bootstrapServers,
-                        Acks = Acks.All
-                    }
-                )
-                .Build()
-            )
-        );
+        var kafkaSettings = configuration.GetSection("Kafka").Get<KafkaSettings>() ?? throw new InvalidOperationException(nameof(KafkaSettings));
 
-        var consumerConfig = new ConsumerConfig
-        {
-            BootstrapServers = bootstrapServers,
-            GroupId = "bookings-processing-group",
-            AutoOffsetReset = AutoOffsetReset.Earliest,
-            EnableAutoOffsetStore = false,
-            EnableAutoCommit = false
-        };
-        services.AddSingleton(consumerConfig);
-
+        services.AddSingleton<IKafkaProducerService>(sp => new KafkaProducerService(kafkaSettings));
         services.AddHostedService<KafkaConsumerService>();
 
         return services;

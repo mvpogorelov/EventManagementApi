@@ -2,18 +2,17 @@ using BookingsService.Application;
 using BookingsService.Infrastructure;
 using BookingsService.Infrastructure.Security;
 using BookingsService.Presentation;
-using EventManagement.Shared.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
-var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>()
+var jwtSettings = configuration.GetSection("JwtSettings").Get<JwtSettings>()
     ?? throw new InvalidOperationException("JWT конфигурация не найдена или некорректна");
 
 builder.Services.Configure<JwtSettings>(configuration.GetSection("JwtSettings"));
-builder.Services.Configure<KafkaSettings>(configuration.GetSection("Kafka"));
+
 builder.Services
 .AddAuthentication(o =>
 {

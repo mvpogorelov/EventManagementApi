@@ -1,10 +1,10 @@
 ﻿using BookingsService.Application.Abstractions.Persistence.Repositories;
-using BookingsService.Application.Abstractions.Services;
 using BookingsService.Infrastructure.Persistence;
 using BookingsService.Infrastructure.Persistence.Repositories;
 using BookingsService.Infrastructure.Services;
 using Confluent.Kafka;
 using EventManagement.Shared.Abstractions;
+using EventManagement.Shared.Models;
 using EventManagement.Shared.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
@@ -31,31 +31,11 @@ public static class DependencyInjection
         services.AddScoped<IInboxRepository, InboxRepository>();
         services.AddScoped<IOutboxRepository, OutboxRepository>();
 
-        var bootstrapServers = configuration["Kafka:BootstrapServers"];
+        services.Configure<KafkaSettings>(configuration.GetSection("Kafka"));
 
-        services.AddSingleton<IKafkaProducerService>(sp =>
-            new KafkaProducerService(
-                new ProducerBuilder<string, string>(
-                    new ProducerConfig
-                    {
-                        BootstrapServers = bootstrapServers,
-                        Acks = Acks.All
-                    }
-                )
-                .Build()
-            )
-        );
+        var kafkaSettings = configuration.GetSection("Kafka").Get<KafkaSettings>() ?? throw new InvalidOperationException(nameof(KafkaSettings));
 
-        var consumerConfig = new ConsumerConfig
-        {
-            BootstrapServers = bootstrapServers,
-            GroupId = "event-processing-group",
-            AutoOffsetReset = AutoOffsetReset.Earliest,
-            EnableAutoOffsetStore = false,
-            EnableAutoCommit = false
-        };
-        services.AddSingleton(consumerConfig);
-
+        services.AddSingleton<IKafkaProducerService>(sp => new KafkaProducerService(kafkaSettings));
         services.AddHostedService<KafkaConsumerService>();
 
         return services;

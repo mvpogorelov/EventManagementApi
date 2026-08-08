@@ -1,5 +1,6 @@
 ﻿using Confluent.Kafka;
 using EventManagement.Shared.Abstractions;
+using EventManagement.Shared.Models;
 using System.Text;
 using System.Text.Json;
 
@@ -9,9 +10,15 @@ public class KafkaProducerService : IKafkaProducerService, IDisposable
 {
     private readonly IProducer<string, string> _producer;
 
-    public KafkaProducerService(IProducer<string, string> producer)
+    public KafkaProducerService(KafkaSettings settings)
     {
-        _producer = producer;
+        var config = new ProducerConfig
+        {
+            BootstrapServers = settings.BootstrapServers,
+            Acks = Acks.All
+        };
+
+        _producer = new ProducerBuilder<string, string>(config).Build();
     }
 
     public async Task PublishAsync<T>(string topic, string key, T message, CancellationToken ct) where T : class

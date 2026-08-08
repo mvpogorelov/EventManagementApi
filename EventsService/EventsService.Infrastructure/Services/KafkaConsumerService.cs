@@ -3,7 +3,6 @@ using EventManagement.Contracts.Kafka;
 using EventManagement.Shared.Models;
 using EventsService.Application.Abstractions.Persistence.Repositories;
 using EventsService.Application.Abstractions.Services;
-using EventsService.Application.Services;
 using EventsService.Domain.Common;
 using EventsService.Domain.Entities;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,7 +15,6 @@ using System.Text.Json;
 namespace EventsService.Infrastructure.Services;
 
 public class KafkaConsumerService(
-    ConsumerConfig config,
     IServiceProvider serviceProvider,
     IOptions<KafkaSettings> kafkaSettings,
     ILogger<KafkaConsumerService> logger)
@@ -25,6 +23,14 @@ public class KafkaConsumerService(
     protected override async Task ExecuteAsync(CancellationToken stoppingToken) =>
         await Task.Run(async () =>
         {
+            var config = new ConsumerConfig
+            {
+                BootstrapServers = kafkaSettings.Value.BootstrapServers,
+                GroupId = "event-processing-group",
+                AutoOffsetReset = AutoOffsetReset.Earliest,
+                EnableAutoOffsetStore = false,
+                EnableAutoCommit = false
+            };
             using var consumer = new ConsumerBuilder<string, string>(config).Build();
 
             consumer.Subscribe(kafkaSettings.Value.Topics.Bookings);

@@ -1,5 +1,4 @@
 ﻿using BookingsService.Application.Abstractions.Persistence.Repositories;
-using BookingsService.Application.Services;
 using BookingsService.Domain.Common;
 using BookingsService.Domain.Entities;
 using Confluent.Kafka;
@@ -15,7 +14,6 @@ using System.Text.Json;
 namespace BookingsService.Infrastructure.Services;
 
 public class KafkaConsumerService(
-    ConsumerConfig config,
     IServiceProvider serviceProvider,
     IOptions<KafkaSettings> kafkaSettings,
     ILogger<KafkaConsumerService> logger)
@@ -24,6 +22,14 @@ public class KafkaConsumerService(
     protected override async Task ExecuteAsync(CancellationToken stoppingToken) =>
         await Task.Run(async () =>
         {
+            var config = new ConsumerConfig
+            {
+                BootstrapServers = kafkaSettings.Value.BootstrapServers,
+                GroupId = "booking-processing-group",
+                AutoOffsetReset = AutoOffsetReset.Earliest,
+                EnableAutoOffsetStore = false,
+                EnableAutoCommit = false
+            };
             using var consumer = new ConsumerBuilder<string, string>(config).Build();
 
             consumer.Subscribe(kafkaSettings.Value.Topics.Events);
