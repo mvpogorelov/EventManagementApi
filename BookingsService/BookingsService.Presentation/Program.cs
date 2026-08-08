@@ -3,6 +3,7 @@ using BookingsService.Application.Services;
 using BookingsService.Infrastructure;
 using BookingsService.Infrastructure.Security;
 using BookingsService.Presentation;
+using EventManagement.Shared.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;

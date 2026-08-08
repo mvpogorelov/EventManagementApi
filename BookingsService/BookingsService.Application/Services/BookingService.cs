@@ -6,6 +6,7 @@ using BookingsService.Domain.Exceptions;
 using EventManagement.Contracts.Common;
 using EventManagement.Contracts.Kafka;
 using EventManagement.Shared.Abstractions;
+using EventManagement.Shared.Models;
 using Microsoft.Extensions.Options;
 using System.ComponentModel.DataAnnotations;
 

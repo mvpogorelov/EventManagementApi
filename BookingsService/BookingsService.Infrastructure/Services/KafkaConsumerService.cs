@@ -4,6 +4,7 @@ using BookingsService.Domain.Common;
 using BookingsService.Domain.Entities;
 using Confluent.Kafka;
 using EventManagement.Contracts.Kafka;
+using EventManagement.Shared.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;

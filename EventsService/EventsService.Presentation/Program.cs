@@ -1,3 +1,4 @@
+using EventManagement.Shared.Models;
 using EventsService.Application;
 using EventsService.Application.Services;
 using EventsService.Infrastructure;
