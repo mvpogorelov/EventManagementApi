@@ -1,5 +1,6 @@
 ﻿using BookingsService.Application.Abstractions.Services;
 using BookingsService.Application.Services;
+using EventManagement.Shared.Services;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace BookingsService.Application;

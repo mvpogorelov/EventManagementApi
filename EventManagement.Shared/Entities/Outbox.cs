@@ -1,4 +1,4 @@
-﻿namespace BookingsService.Domain.Entities;
+﻿namespace EventManagement.Shared.Entities;
 
 public sealed class Outbox
 {

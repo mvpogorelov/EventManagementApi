@@ -2,7 +2,7 @@
 using EventManagement.Shared.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace BookingsService.Infrastructure.Persistence.Repositories;
+namespace EventsService.Infrastructure.Persistence.Repositories;
 
 public class OutboxRepository(AppDbContext context) : IOutboxRepository
 {

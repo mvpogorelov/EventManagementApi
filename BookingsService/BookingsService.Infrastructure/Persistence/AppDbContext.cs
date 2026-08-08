@@ -1,4 +1,5 @@
 ﻿using BookingsService.Domain.Entities;
+using EventManagement.Shared.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace BookingsService.Infrastructure.Persistence;

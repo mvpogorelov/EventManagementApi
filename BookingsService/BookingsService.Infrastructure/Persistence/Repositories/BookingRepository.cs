@@ -1,6 +1,7 @@
 ﻿using BookingsService.Application.Abstractions.Persistence.Repositories;
 using BookingsService.Domain.Common;
 using BookingsService.Domain.Entities;
+using EventManagement.Shared.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace BookingsService.Infrastructure.Persistence.Repositories;

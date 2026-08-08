@@ -1,6 +1,6 @@
-﻿using BookingsService.Domain.Entities;
+﻿using EventManagement.Shared.Entities;
 
-namespace BookingsService.Application.Abstractions.Persistence.Repositories;
+namespace EventManagement.Shared.Abstractions;
 
 public interface IOutboxRepository
 {

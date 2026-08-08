@@ -1,5 +1,6 @@
 ﻿using BookingsService.Domain.Common;
 using BookingsService.Domain.Entities;
+using EventManagement.Shared.Entities;
 
 namespace BookingsService.Application.Abstractions.Persistence.Repositories;
 

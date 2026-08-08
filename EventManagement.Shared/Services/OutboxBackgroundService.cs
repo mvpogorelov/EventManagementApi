@@ -1,10 +1,9 @@
-﻿using BookingsService.Application.Abstractions.Persistence.Repositories;
-using EventManagement.Shared.Abstractions;
+﻿using EventManagement.Shared.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace BookingsService.Application.Services;
+namespace EventManagement.Shared.Services;
 
 public class OutboxBackgroundService(
     ILogger<OutboxBackgroundService> logger,
@@ -50,8 +49,8 @@ public class OutboxBackgroundService(
         var messages = await outboxRepository.GetUnprocessedMessages(ct);
 
         if (!messages.Any())
-        { 
-            return; 
+        {
+            return;
         }
 
         foreach (var message in messages)
@@ -78,3 +77,4 @@ public class OutboxBackgroundService(
         await outboxRepository.SaveChangesAsync(ct);
     }
 }
+

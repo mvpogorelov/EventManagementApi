@@ -30,6 +30,7 @@ public static class DependencyInjection
 
         services.AddScoped<IEventRepository, EventRepository>();
         services.AddScoped<IInboxRepository, InboxRepository>();
+        services.AddScoped<IOutboxRepository, OutboxRepository>();
 
         services.Configure<KafkaSettings>(configuration.GetSection("Kafka"));
 
