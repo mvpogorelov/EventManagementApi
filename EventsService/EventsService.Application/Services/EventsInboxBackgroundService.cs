@@ -16,7 +16,6 @@ public class EventsInboxBackgroundService : InboxBackgroundService
     private readonly KafkaSettings _kafkaSettings;
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly IKafkaProducerService _kafkaProducer;
-
     
     public EventsInboxBackgroundService(
         ILogger<EventsInboxBackgroundService> logger,

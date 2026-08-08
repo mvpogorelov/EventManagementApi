@@ -49,4 +49,10 @@ public interface IBookingRepository
     Task DeleteAsync(Booking booking, Outbox outbox, CancellationToken ct = default);
 
     Task CancelAsync(Booking booking, Outbox outbox, CancellationToken ct = default);
+
+    Task<Inbox?> GetInboxByIdAsync(int id, CancellationToken ct = default);
+
+    Task<Inbox?> GetInboxByMessageTypeAndBookingId(string topic, string messageType, Guid bookingId, CancellationToken ct = default);
+    
+    Task SaveChangesAsync(CancellationToken ct = default);
 }

@@ -80,4 +80,24 @@ public class BookingRepository(AppDbContext context) : IBookingRepository
 
         await context.SaveChangesAsync(ct);
     }
+
+    public async Task SaveChangesAsync(CancellationToken ct = default) => await context.SaveChangesAsync(ct);
+
+    public async Task<Inbox?> GetInboxByIdAsync(int id, CancellationToken ct = default) =>
+        await context.Inbox.FirstOrDefaultAsync(i => i.Id == id, ct);
+
+    public async Task<Inbox?> GetInboxByMessageTypeAndBookingId(
+        string topic,
+        string messageType,
+        Guid bookingId,
+        CancellationToken ct = default) =>
+            await context.Inbox
+                .AsNoTracking()
+                .FirstOrDefaultAsync(
+                    i => i.ProcessedAt != null
+                        && i.Topic == topic
+                        && i.MessageType == messageType
+                        && i.BookingId == bookingId,
+                    ct
+                );
 }

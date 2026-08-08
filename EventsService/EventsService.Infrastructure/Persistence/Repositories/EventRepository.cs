@@ -117,7 +117,7 @@ public class EventRepository(AppDbContext context) : IEventRepository
     public async Task SaveChangesAsync(CancellationToken ct = default) => await context.SaveChangesAsync(ct);
 
     public async Task<Inbox?> GetInboxByIdAsync(int id, CancellationToken ct = default) =>
-        await context.Inbox.FirstOrDefaultAsync(i => i.Id == id);
+        await context.Inbox.FirstOrDefaultAsync(i => i.Id == id, ct);
 
     public async Task<Inbox?> GetInboxByMessageTypeAndBookingId(
         string topic,
