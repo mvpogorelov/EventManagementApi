@@ -36,7 +36,10 @@ public static class DependencyInjection
         var kafkaSettings = configuration.GetSection("Kafka").Get<KafkaSettings>() ?? throw new InvalidOperationException(nameof(KafkaSettings));
 
         services.AddSingleton<IKafkaProducerService>(sp => new KafkaProducerService(kafkaSettings));
+        services.AddHostedService<KafkaConsumerBackgroundService>();
+
         services.AddHostedService<KafkaConsumerService>();
+        services.AddHostedService<OutboxBackgroundService>();
 
         return services;
     }

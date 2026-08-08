@@ -80,11 +80,6 @@ public sealed class Event
     public int AvailableSeats { get; private set; }
 
     /// <summary>
-    /// Список сообщений
-    /// </summary>
-    public ICollection<Inbox> Inbox { get; set; } = [];
-
-    /// <summary>
     /// Попытка резервирования мест
     /// </summary>
     /// <param name="count">Количество мест</param>

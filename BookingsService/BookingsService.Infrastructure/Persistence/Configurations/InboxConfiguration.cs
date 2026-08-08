@@ -1,4 +1,4 @@
-﻿using BookingsService.Domain.Entities;
+﻿using EventManagement.Shared.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

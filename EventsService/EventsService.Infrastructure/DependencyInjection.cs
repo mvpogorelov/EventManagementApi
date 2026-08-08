@@ -1,9 +1,7 @@
-﻿using Confluent.Kafka;
-using EventManagement.Shared.Abstractions;
+﻿using EventManagement.Shared.Abstractions;
 using EventManagement.Shared.Models;
 using EventManagement.Shared.Services;
 using EventsService.Application.Abstractions.Persistence.Repositories;
-using EventsService.Application.Abstractions.Services;
 using EventsService.Infrastructure.Persistence;
 using EventsService.Infrastructure.Persistence.Repositories;
 using EventsService.Infrastructure.Services;
@@ -37,7 +35,10 @@ public static class DependencyInjection
         var kafkaSettings = configuration.GetSection("Kafka").Get<KafkaSettings>() ?? throw new InvalidOperationException(nameof(KafkaSettings));
 
         services.AddSingleton<IKafkaProducerService>(sp => new KafkaProducerService(kafkaSettings));
+        services.AddHostedService<KafkaConsumerBackgroundService>();
+
         services.AddHostedService<KafkaConsumerService>();
+        services.AddHostedService<OutboxBackgroundService>();
 
         return services;
     }

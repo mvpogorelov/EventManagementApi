@@ -1,6 +1,5 @@
 ﻿using BookingsService.Application.Abstractions.Persistence.Repositories;
 using BookingsService.Domain.Common;
-using BookingsService.Domain.Entities;
 using Confluent.Kafka;
 using EventManagement.Contracts.Kafka;
 using EventManagement.Shared.Models;
