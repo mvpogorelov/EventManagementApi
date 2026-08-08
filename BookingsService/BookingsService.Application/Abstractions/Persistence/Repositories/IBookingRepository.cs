@@ -46,5 +46,7 @@ public interface IBookingRepository
     /// </summary>
     /// <param name="booking">бронь</param>
     /// <param name="ct">Токен отмены</param>
-    Task DeleteAsync(Booking booking, CancellationToken ct = default);
+    Task DeleteAsync(Booking booking, Outbox outbox, CancellationToken ct = default);
+
+    Task CancelAsync(Booking booking, Outbox outbox, CancellationToken ct = default);
 }

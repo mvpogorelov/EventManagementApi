@@ -64,9 +64,20 @@ public class BookingRepository(AppDbContext context) : IBookingRepository
     /// </summary>
     /// <param name="booking">бронь</param>
     /// <param name="ct">Токен отмены</param>
-    public async Task DeleteAsync(Booking booking, CancellationToken ct = default)
+    public async Task DeleteAsync(Booking booking, Outbox outbox, CancellationToken ct = default)
     {
         context.Bookings.Remove(booking);
+        context.Outbox.Add(outbox);
+
+        await context.SaveChangesAsync(ct);
+    }
+
+    public async Task CancelAsync(Booking booking, Outbox outbox, CancellationToken ct = default)
+    {
+        booking.Cancel();
+        context.Bookings.Update(booking);
+        context.Outbox.Add(outbox);
+
         await context.SaveChangesAsync(ct);
     }
 }

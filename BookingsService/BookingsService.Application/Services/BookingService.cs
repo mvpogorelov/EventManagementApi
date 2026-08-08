@@ -62,7 +62,7 @@ public class BookingService(
             Status = BookingStatus.Pending,
             CreatedAt = DateTime.UtcNow
         };
-        var bookingPendingMessage = new BookingPending
+        var kafkaMessage = new BookingPending
         {
             BookingId = booking.Id,
             Seats = booking.Seats,
@@ -74,8 +74,8 @@ public class BookingService(
         {
             Topic = kafkaSettings.Value.Topics.Bookings,
             MessageKey = booking.EventId.ToString(),
-            MessageType = kafkaProducer.GetMessageType(bookingPendingMessage),
-            Message = kafkaProducer.GetMessageString(bookingPendingMessage)
+            MessageType = kafkaProducer.GetMessageType(kafkaMessage),
+            Message = kafkaProducer.GetMessageString(kafkaMessage)
         };
 
         await bookingRepository.CreateAsync(booking, outbox, ct);
@@ -96,7 +96,23 @@ public class BookingService(
 
         CheckOperationAllowed(booking.UserId, userId, userRole);
 
-        await bookingRepository.DeleteAsync(booking);
+        var kafkaMessage = new BookingRemoved
+        {
+            BookingId = booking.Id,
+            Seats = booking.Seats,
+            EventId = booking.EventId,
+            UserId = booking.UserId,
+            RemovedAt = DateTime.UtcNow
+        };
+        var outbox = new Outbox
+        {
+            Topic = kafkaSettings.Value.Topics.Bookings,
+            MessageKey = booking.EventId.ToString(),
+            MessageType = kafkaProducer.GetMessageType(kafkaMessage),
+            Message = kafkaProducer.GetMessageString(kafkaMessage)
+        };
+
+        await bookingRepository.DeleteAsync(booking, outbox);
     }
 
     /// <summary>
@@ -112,8 +128,23 @@ public class BookingService(
 
         CheckOperationAllowed(booking.UserId, userId, userRole);
 
-        booking.Cancel();
-        await bookingRepository.UpdateAsync(booking, ct);
+        var kafkaMessage = new BookingCanceled
+        {
+            BookingId = booking.Id,
+            Seats = booking.Seats,
+            EventId = booking.EventId,
+            UserId = booking.UserId,
+            CanceledAt = DateTime.UtcNow
+        };
+        var outbox = new Outbox
+        {
+            Topic = kafkaSettings.Value.Topics.Bookings,
+            MessageKey = booking.EventId.ToString(),
+            MessageType = kafkaProducer.GetMessageType(kafkaMessage),
+            Message = kafkaProducer.GetMessageString(kafkaMessage)
+        };
+
+        await bookingRepository.CancelAsync(booking, outbox, ct);
     }
 
     private void CheckOperationAllowed(Guid bookingUserId, Guid userId, UserRole userRole)
