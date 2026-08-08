@@ -16,6 +16,7 @@ public static class DependencyInjection
     /// <returns>IServiceCollection</returns>
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
+        services.AddHostedService<OutboxBackgroundService>();
         services.AddScoped<IBookingService, BookingService>();
 
         return services;

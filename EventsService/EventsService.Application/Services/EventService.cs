@@ -205,7 +205,7 @@ public class EventService(
             await kafkaProducer.PublishAsync(
                 kafkaTopics.Value.Events,
                 eventId.ToString(),
-                new BookingRejected { BookingId = bookingId, Reason = e.Message });
+                new BookingRejected { BookingId = bookingId, Reason = e.Message }, ct);
         }
         finally
         {

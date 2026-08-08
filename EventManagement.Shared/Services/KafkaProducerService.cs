@@ -14,15 +14,15 @@ public class KafkaProducerService : IKafkaProducerService, IDisposable
         _producer = producer;
     }
 
-    public async Task PublishAsync<T>(string topic, string key, T message) where T : class
+    public async Task PublishAsync<T>(string topic, string key, T message, CancellationToken ct) where T : class
     {
         var messageValue = GetMessageString(message);
         var messageType = GetMessageType(message);
 
-        await PublishAsync(topic, key, messageValue, messageType);
+        await PublishAsync(topic, key, messageValue, messageType, ct);
     }
 
-    public async Task PublishAsync(string topic, string key, string message, string messageType)
+    public async Task PublishAsync(string topic, string key, string message, string messageType, CancellationToken ct)
     {
         var kafkaHeaders = new Headers
         {
@@ -36,7 +36,7 @@ public class KafkaProducerService : IKafkaProducerService, IDisposable
             Headers = kafkaHeaders
         };
 
-        await _producer.ProduceAsync(topic, kafkaMessage);
+        await _producer.ProduceAsync(topic, kafkaMessage, ct);
     }
 
     public string GetMessageString<T>(T message) where T : class => JsonSerializer.Serialize(message);

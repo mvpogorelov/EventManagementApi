@@ -29,6 +29,7 @@ public static class DependencyInjection
 
         services.AddScoped<IBookingRepository, BookingRepository>();
         services.AddScoped<IInboxRepository, InboxRepository>();
+        services.AddScoped<IOutboxRepository, OutboxRepository>();
 
         var bootstrapServers = configuration["Kafka:BootstrapServers"];
 
