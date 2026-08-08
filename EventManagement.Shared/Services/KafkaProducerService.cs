@@ -14,27 +14,35 @@ public class KafkaProducerService : IKafkaProducerService, IDisposable
         _producer = producer;
     }
 
-    public async Task PublishAsync<T>(
-        string topic,
-        string key,
-        T message) where T : class
+    public async Task PublishAsync<T>(string topic, string key, T message) where T : class
     {
-        var jsonValue = JsonSerializer.Serialize(message);
+        var messageValue = GetMessageString(message);
+        var messageType = GetMessageType(message);
+
+        await PublishAsync(topic, key, messageValue, messageType);
+    }
+
+    public async Task PublishAsync(string topic, string key, string message, string messageType)
+    {
         var kafkaHeaders = new Headers
         {
-            { "message-type", Encoding.UTF8.GetBytes(typeof(T).Name) }
+            { "message-type", Encoding.UTF8.GetBytes(messageType) }
         };
 
         var kafkaMessage = new Message<string, string>
         {
             Key = key,
-            Value = jsonValue,
+            Value = message,
             Headers = kafkaHeaders
         };
 
         await _producer.ProduceAsync(topic, kafkaMessage);
     }
 
+    public string GetMessageString<T>(T message) where T : class => JsonSerializer.Serialize(message);
+
+    public string GetMessageType<T>(T message) where T : class => typeof(T).Name;
+    
     public void Dispose()
     {
         _producer?.Flush(TimeSpan.FromSeconds(10));

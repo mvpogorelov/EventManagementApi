@@ -57,21 +57,26 @@ public class BookingService(
             EventId = eventId,
             UserId = userId,
             Seats = seats,
-            Status = BookingStatus.Confirmed,
+            Status = BookingStatus.Pending,
             CreatedAt = DateTime.UtcNow
         };
+        var bookingPendingMessage = new BookingPending
+        {
+            BookingId = booking.Id,
+            Seats = booking.Seats,
+            EventId = booking.EventId,
+            UserId = booking.UserId,
+            PendingAt = booking.CreatedAt
+        };
+        var outbox = new Outbox
+        {
+            Topic = kafkaTopics.Value.Bookings,
+            MessageKey = booking.EventId.ToString(),
+            MessageType = kafkaProducer.GetMessageType(bookingPendingMessage),
+            Message = kafkaProducer.GetMessageString(bookingPendingMessage)
+        };
 
-        await bookingRepository.CreateAsync(booking, ct);
-        await kafkaProducer.PublishAsync(kafkaTopics.Value.Bookings,
-            booking.EventId.ToString(),
-            new BookingConfirmed
-            {
-                BookingId = booking.Id,
-                EventId = booking.EventId,
-                UserId = booking.UserId,
-                Seats = booking.Seats,
-                ConfirmedAt = DateTime.UtcNow
-            });
+        await bookingRepository.CreateAsync(booking, outbox, ct);
 
         return booking;
     }

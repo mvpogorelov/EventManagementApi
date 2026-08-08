@@ -30,7 +30,7 @@ public interface IBookingRepository
     /// <param name="booking">бронь</param>
     /// <param name="ct">Токен отмены</param>
     /// <returns>Событие</returns>
-    Task<Booking> CreateAsync(Booking booking, CancellationToken ct = default);
+    Task<Booking> CreateAsync(Booking booking, Outbox outbox, CancellationToken ct = default);
 
     /// <summary>
     /// Обновление брони
