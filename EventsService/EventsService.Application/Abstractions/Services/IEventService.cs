@@ -66,10 +66,5 @@ public interface IEventService
     /// </summary>
     /// <param name="ct">Токен отмены</param>
     Task RemoveAllAsync(CancellationToken ct = default);
-
-    /// <summary>
-    /// Проверка возможности брони
-    /// </summary>
-    Task ApproveBookingAsync(Guid eventId, Guid userId, Guid bookingId, int seats, CancellationToken ct = default);
 }
 

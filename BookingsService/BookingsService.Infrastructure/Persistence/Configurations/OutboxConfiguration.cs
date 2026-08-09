@@ -2,17 +2,17 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace EventsService.Infrastructure.Persistence.Configurations;
+namespace BookingsService.Infrastructure.Persistence.Configurations;
 
 /// <summary>
-/// DB конфигурация Inbox
+/// DB конфигурация Outbox
 /// </summary>
-public class InboxConfiguration : IEntityTypeConfiguration<Inbox>
+public class OutboxConfiguration : IEntityTypeConfiguration<Outbox>
 {
     /// <inheritdoc/>
-    public void Configure(EntityTypeBuilder<Inbox> builder)
+    public void Configure(EntityTypeBuilder<Outbox> builder)
     {
-        builder.ToTable("inbox");
+        builder.ToTable("outbox");
         builder.HasKey(i => i.Id);
         builder.Property(i => i.Topic)
             .IsRequired();
@@ -22,6 +22,7 @@ public class InboxConfiguration : IEntityTypeConfiguration<Inbox>
         builder.Property(i => i.Message)
             .IsRequired();
         builder.Property(i => i.MessageType)
+            .IsRequired()
             .HasMaxLength(50);
     }
 }

@@ -4,7 +4,6 @@ using EventManagement.Shared.Services;
 using EventsService.Application.Abstractions.Persistence.Repositories;
 using EventsService.Infrastructure.Persistence;
 using EventsService.Infrastructure.Persistence.Repositories;
-using EventsService.Infrastructure.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -36,8 +35,6 @@ public static class DependencyInjection
 
         services.AddSingleton<IKafkaProducerService>(sp => new KafkaProducerService(kafkaSettings));
         services.AddHostedService<KafkaConsumerBackgroundService>();
-
-        services.AddHostedService<KafkaConsumerService>();
         services.AddHostedService<OutboxBackgroundService>();
 
         return services;

@@ -21,9 +21,6 @@ public class InboxConfiguration : IEntityTypeConfiguration<Inbox>
             .IsRequired();
         builder.Property(i => i.Message)
             .IsRequired();
-        builder.Property(i => i.Status)
-            .HasConversion<string>()
-            .IsRequired();
         builder.Property(i => i.MessageType)
             .HasMaxLength(50);
     }

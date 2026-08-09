@@ -14,16 +14,8 @@ namespace EventsService.Application.Services;
 /// <summary>
 /// Сервис по работе с событиями
 /// </summary>
-public class EventService(
-    IEventRepository eventRepository,
-    IInboxRepository inboxRepository,
-    IKafkaProducerService kafkaProducer,
-    IOptions<KafkaSettings> kafkaSettings)
-        : IEventService
+public class EventService(IEventRepository eventRepository) : IEventService
 {
-    private const int UserBookingLimit = 10;
-    private static readonly SemaphoreSlim _createSemaphore = new(1, 1);
-
     /// <summary>
     /// Получение списка событий
     /// </summary>
@@ -164,52 +156,6 @@ public class EventService(
         if (totalSeats <= 0)
         {
             throw new ValidationException($"Общее количество мест должно быть больше нуля: {nameof(totalSeats)}");
-        }
-    }
-
-    public async Task ApproveBookingAsync(
-        Guid eventId,
-        Guid userId,
-        Guid bookingId,
-        int seats,
-        CancellationToken ct = default)
-    {
-        await _createSemaphore.WaitAsync(ct);
-
-        try
-        {
-            var @event = await eventRepository.GetByIdAsync(eventId, ct)
-                ?? throw new NotFoundException($"Событие не найдено: {eventId}");
-
-            if (@event.StartAt < DateTime.UtcNow)
-            {
-                throw new PastEventBookingException("Событие уже началось");
-            }
-
-            var inboxes = await inboxRepository.GetByUserAndEvent(userId, eventId, ct);
-
-            if (inboxes.Count(b => b.Event?.StartAt >= DateTime.UtcNow) >= UserBookingLimit)
-            {
-                throw new BookingLimitException($"Превышен лимит активных броней: {UserBookingLimit}");
-            }
-
-            if (!@event.TryReserveSeats(seats))
-            {
-                throw new NoAvailableSeatsException($"Нет доступных мест для события: {eventId}");
-            }
-
-            await eventRepository.UpdateAsync(@event, ct);
-        }
-        catch (Exception e)
-        {
-            await kafkaProducer.PublishAsync(
-                kafkaSettings.Value.Topics.Events,
-                eventId.ToString(),
-                new BookingRejected { BookingId = bookingId, Reason = e.Message }, ct);
-        }
-        finally
-        {
-            _createSemaphore.Release();
         }
     }
 }

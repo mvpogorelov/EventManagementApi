@@ -108,6 +108,4 @@ public sealed class Event
             ? TotalSeats
             : AvailableSeats + count;
     }
-
-    public ICollection<Inbox> Inboxes { get; set; } = [];
 }

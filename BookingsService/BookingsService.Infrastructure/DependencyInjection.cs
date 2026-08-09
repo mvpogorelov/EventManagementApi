@@ -1,8 +1,6 @@
 ﻿using BookingsService.Application.Abstractions.Persistence.Repositories;
 using BookingsService.Infrastructure.Persistence;
 using BookingsService.Infrastructure.Persistence.Repositories;
-using BookingsService.Infrastructure.Services;
-using Confluent.Kafka;
 using EventManagement.Shared.Abstractions;
 using EventManagement.Shared.Models;
 using EventManagement.Shared.Services;
@@ -37,8 +35,6 @@ public static class DependencyInjection
 
         services.AddSingleton<IKafkaProducerService>(sp => new KafkaProducerService(kafkaSettings));
         services.AddHostedService<KafkaConsumerBackgroundService>();
-
-        services.AddHostedService<KafkaConsumerService>();
         services.AddHostedService<OutboxBackgroundService>();
 
         return services;

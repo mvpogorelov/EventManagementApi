@@ -27,8 +27,5 @@ public class EventConfiguration : IEntityTypeConfiguration<Event>
             .IsRequired();
         builder.Property(e => e.AvailableSeats)
             .IsRequired();
-        builder.HasMany(e => e.Inbox)
-            .WithOne(b => b.Event)
-            .HasForeignKey(b => b.EventId);
     }
 }
