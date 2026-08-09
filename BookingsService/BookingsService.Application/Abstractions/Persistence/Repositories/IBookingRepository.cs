@@ -53,6 +53,6 @@ public interface IBookingRepository
     Task<Inbox?> GetInboxByIdAsync(int id, CancellationToken ct = default);
 
     Task<Inbox?> GetInboxByMessageTypeAndBookingId(string topic, string messageType, Guid bookingId, CancellationToken ct = default);
-    
+
     Task SaveChangesAsync(CancellationToken ct = default);
 }

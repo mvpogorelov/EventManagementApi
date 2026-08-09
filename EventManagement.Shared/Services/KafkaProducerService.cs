@@ -49,7 +49,7 @@ public class KafkaProducerService : IKafkaProducerService, IDisposable
     public string GetMessageString<T>(T message) where T : class => JsonSerializer.Serialize(message);
 
     public string GetMessageType<T>(T message) where T : class => typeof(T).Name;
-    
+
     public void Dispose()
     {
         _producer?.Flush(TimeSpan.FromSeconds(10));

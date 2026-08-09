@@ -78,7 +78,7 @@ public class BookingsInboxBackgroundService : InboxBackgroundService
                 }
 
                 break;
-            
+
             case nameof(BookingConfirmed):
                 var bookingConfirmed = JsonSerializer.Deserialize<BookingConfirmed>(inbox.Message);
                 var existingConfirmedInbox = await bookingRepository.GetInboxByMessageTypeAndBookingId(Topic, inbox.MessageType, bookingConfirmed.BookingId, ct);

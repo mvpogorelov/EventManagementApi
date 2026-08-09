@@ -15,7 +15,7 @@ public abstract class InboxBackgroundService(
     private const int PollingInterval = 10000;
     private const int MaxCriticalExeptions = 10;
     protected abstract string Topic { get; }
-    
+
     protected async override Task ExecuteAsync(CancellationToken stoppingToken)
     {
         logger.LogInformation("InboxBackgroundService для топика {Topic} запущен", Topic);

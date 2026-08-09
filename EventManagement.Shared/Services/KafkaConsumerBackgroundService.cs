@@ -72,7 +72,7 @@ public class KafkaConsumerBackgroundService(
 
                         await Task.Delay(delay, stoppingToken);
                     }
-                    
+
                     catch (Exception e)
                     {
                         errorCount++;

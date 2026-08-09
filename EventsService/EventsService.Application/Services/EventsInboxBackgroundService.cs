@@ -16,7 +16,7 @@ public class EventsInboxBackgroundService : InboxBackgroundService
     private readonly KafkaSettings _kafkaSettings;
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly IKafkaProducerService _kafkaProducer;
-    
+
     public EventsInboxBackgroundService(
         ILogger<EventsInboxBackgroundService> logger,
         IServiceScopeFactory scopeFactory,
@@ -79,7 +79,7 @@ public class EventsInboxBackgroundService : InboxBackgroundService
                 }
 
                 break;
-            
+
             case nameof(BookingRemoved):
                 var bookingRemoved = JsonSerializer.Deserialize<BookingRemoved>(inbox.Message);
                 var existingRemovedInbox = await eventRepository.GetInboxByMessageTypeAndBookingId(Topic, inbox.MessageType, bookingRemoved.BookingId, ct);
@@ -108,7 +108,7 @@ public class EventsInboxBackgroundService : InboxBackgroundService
                 }
 
                 break;
-            
+
             case nameof(BookingCreated):
                 var bookingCreated = JsonSerializer.Deserialize<BookingCreated>(inbox.Message);
                 var existingCreatedInbox = await eventRepository.GetInboxByMessageTypeAndBookingId(Topic, inbox.MessageType, bookingCreated.BookingId, ct);
