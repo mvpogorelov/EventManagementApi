@@ -1,0 +1,103 @@
+﻿using BookingsService.Application.Abstractions.Persistence.Repositories;
+using BookingsService.Domain.Common;
+using BookingsService.Domain.Entities;
+using EventManagement.Shared.Entities;
+using Microsoft.EntityFrameworkCore;
+
+namespace BookingsService.Infrastructure.Persistence.Repositories;
+
+/// <summary>
+/// Репозиторий для работы с бронью
+/// </summary>
+/// <param name="context">Контекст базы данных</param>
+public class BookingRepository(AppDbContext context) : IBookingRepository
+{
+    /// <summary>
+    /// Получение списка брони по статусу
+    /// </summary>
+    /// <param name="status">Фильтр по статусу</param>
+    /// <param name="ct">Токен отмены</param>
+    /// <returns>Список брони</returns>
+    public async Task<Booking[]> GetByStatusAsync(BookingStatus status, CancellationToken ct = default) =>
+        await context.Bookings.Where(b => b.Status == status).ToArrayAsync(ct);
+
+    /// <summary>
+    /// Получение брони по идентификатору
+    /// </summary>
+    /// <param name="bookingId">Идентификатор брони</param>
+    /// <param name="ct">Токен отмены</param>
+    /// <returns>Бронь</returns>
+    public async Task<Booking?> GetByIdAsync(Guid bookingId, CancellationToken ct = default) =>
+        await context.Bookings.FirstOrDefaultAsync(b => b.Id == bookingId, ct);
+
+    /// <summary>
+    /// Создание брони
+    /// </summary>
+    /// <param name="booking">бронь</param>
+    /// <param name="ct">Токен отмены</param>
+    /// <returns>Событие</returns>
+    public async Task<Booking> CreateAsync(Booking booking, Outbox outbox, CancellationToken ct = default)
+    {
+        await context.Bookings.AddAsync(booking, ct);
+        await context.Outbox.AddAsync(outbox, ct);
+        await context.SaveChangesAsync(ct);
+
+        return booking;
+    }
+
+    /// <summary>
+    /// Обновление брони
+    /// </summary>
+    /// <param name="booking">бронь</param>
+    /// <param name="ct">Токен отмены</param>
+    /// <returns>Бронь</returns>
+    public async Task<Booking> UpdateAsync(Booking booking, CancellationToken ct = default)
+    {
+        context.Bookings.Update(booking);
+        await context.SaveChangesAsync(ct);
+
+        return booking;
+    }
+
+    /// <summary>
+    /// Удаление брони
+    /// </summary>
+    /// <param name="booking">бронь</param>
+    /// <param name="ct">Токен отмены</param>
+    public async Task DeleteAsync(Booking booking, Outbox outbox, CancellationToken ct = default)
+    {
+        context.Bookings.Remove(booking);
+        context.Outbox.Add(outbox);
+
+        await context.SaveChangesAsync(ct);
+    }
+
+    public async Task CancelAsync(Booking booking, Outbox outbox, CancellationToken ct = default)
+    {
+        booking.Cancel();
+        context.Bookings.Update(booking);
+        context.Outbox.Add(outbox);
+
+        await context.SaveChangesAsync(ct);
+    }
+
+    public async Task SaveChangesAsync(CancellationToken ct = default) => await context.SaveChangesAsync(ct);
+
+    public async Task<Inbox?> GetInboxByIdAsync(int id, CancellationToken ct = default) =>
+        await context.Inbox.FirstOrDefaultAsync(i => i.Id == id, ct);
+
+    public async Task<Inbox?> GetInboxByMessageTypeAndBookingId(
+        string topic,
+        string messageType,
+        Guid bookingId,
+        CancellationToken ct = default) =>
+            await context.Inbox
+                .AsNoTracking()
+                .FirstOrDefaultAsync(
+                    i => i.ProcessedAt != null
+                        && i.Topic == topic
+                        && i.MessageType == messageType
+                        && i.BookingId == bookingId,
+                    ct
+                );
+}

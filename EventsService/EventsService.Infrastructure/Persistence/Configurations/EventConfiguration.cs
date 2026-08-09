@@ -1,0 +1,31 @@
+﻿using EventsService.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace EventsService.Infrastructure.Persistence.Configurations;
+
+/// <summary>
+/// DB конфигурация Event
+/// </summary>
+public class EventConfiguration : IEntityTypeConfiguration<Event>
+{
+    /// <inheritdoc/>
+    public void Configure(EntityTypeBuilder<Event> builder)
+    {
+        builder.ToTable("events");
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.Id)
+            .ValueGeneratedNever();
+        builder.Property(e => e.Title)
+            .IsRequired()
+            .HasMaxLength(300);
+        builder.Property(e => e.StartAt)
+            .IsRequired();
+        builder.Property(e => e.EndAt)
+           .IsRequired();
+        builder.Property(e => e.TotalSeats)
+            .IsRequired();
+        builder.Property(e => e.AvailableSeats)
+            .IsRequired();
+    }
+}

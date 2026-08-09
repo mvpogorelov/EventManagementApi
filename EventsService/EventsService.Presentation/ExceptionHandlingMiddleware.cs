@@ -1,0 +1,82 @@
+﻿using EventManagement.Contracts.Api;
+using EventsService.Domain.Exceptions;
+using System.ComponentModel.DataAnnotations;
+using System.Net;
+
+namespace EventsService.Presentation;
+
+/// <summary>
+/// Глобальный обработчик исключений API
+/// </summary>
+/// <param name="next"></param>
+/// <param name="logger"></param>
+public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
+{
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="httpContext"></param>
+    /// <returns></returns>
+    public async Task InvokeAsync(HttpContext httpContext)
+    {
+        try
+        {
+            await next(httpContext);
+        }
+        catch (Exception ex)
+        {
+            await HandleException(httpContext, ex);
+        }
+    }
+
+    private async Task HandleException(HttpContext httpContext, Exception ex)
+    {
+        logger.LogError(
+            ex,
+            "Необработанное исключение. Method={Method}, Path={Path}",
+            httpContext.Request.Method,
+            httpContext.Request.Path);
+
+        if (httpContext.Response.HasStarted)
+        {
+            return;
+        }
+
+        var statusCode = MapStatusCode(ex);
+
+        httpContext.Response.StatusCode = statusCode;
+        httpContext.Response.ContentType = "application/json";
+
+        var message = ex.InnerException?.Message ?? ex.Message;
+
+        if (statusCode == StatusCodes.Status500InternalServerError)
+        {
+            logger.LogError("{Error}", message);
+            message = "Internal server error";
+        }
+
+        var error = new ApiResultDto
+        {
+            Success = false,
+            StatusCode = (HttpStatusCode)statusCode,
+            Message = message
+        };
+
+        await httpContext.Response.WriteAsJsonAsync(error);
+    }
+
+    private static int MapStatusCode(Exception ex) =>
+        ex switch
+        {
+            ArgumentOutOfRangeException aore => StatusCodes.Status400BadRequest,
+            ArgumentException ae => StatusCodes.Status400BadRequest,
+            ValidationException ve => StatusCodes.Status400BadRequest,
+            PastEventBookingException pebe => StatusCodes.Status400BadRequest,
+            UnauthorizedException uae => StatusCodes.Status401Unauthorized,
+            NotFoundException nfe => StatusCodes.Status404NotFound,
+            NoAvailableSeatsException nas => StatusCodes.Status409Conflict,
+            BookingLimitException bl => StatusCodes.Status409Conflict,
+            _ => StatusCodes.Status500InternalServerError
+        };
+}
+

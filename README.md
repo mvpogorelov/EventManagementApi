@@ -256,16 +256,54 @@ dotnet ef migrations add <имя-миграции> -p "..\EventManagementApi.Inf
 Ендпоинт для получения токена аутентификации: **/Auth/login**
 
 ### Доступность ендпоинтов по ролям
-| Ендпоинт | Описание | Роли |
-|-|-|-|
-| POST /Auth/register | Регистрация нового пользователя | Анонимный |
-| POST /Auth/login | Логин | Анонимный |
-| GET /Bookings/{bookingId} | Получение брони по идентификатору | User (только свои), Admin (любые) |
-| DELETE/Bookings/{bookingId} | Удаление брони | User (только свои), Admin (любые) |
-| POST /Bookings/{bookingId}/cancel | Отмена брони | User (только свои), Admin (любые) |
-| GET /Events | Получение списка событий | Анонимный |
-| POST /Events | Создание нового события | Admin |
-| GET /Events/{id} | Получение события по идентификатору | User (только свои), Admin (любые) |
-| PUT /Events/{id} | Обновление события | Admin |
-| DELETE /Events/{id} | Удаление события | Admin |
-| POST /Events/{eventId}/book | Создание брони | User, Admin | 
+| Ендпоинт                          | Описание                            | Роли                              |
+| --------------------------------- | ----------------------------------- | --------------------------------- |
+| POST /Auth/register               | Регистрация нового пользователя     | Анонимный                         |
+| POST /Auth/login                  | Логин                               | Анонимный                         |
+| GET /Bookings/{bookingId}         | Получение брони по идентификатору   | User (только свои), Admin (любые) |
+| DELETE/Bookings/{bookingId}       | Удаление брони                      | User (только свои), Admin (любые) |
+| POST /Bookings/{bookingId}/cancel | Отмена брони                        | User (только свои), Admin (любые) |
+| GET /Events                       | Получение списка событий            | Анонимный                         |
+| POST /Events                      | Создание нового события             | Admin                             |
+| GET /Events/{id}                  | Получение события по идентификатору | User (только свои), Admin (любые) |
+| PUT /Events/{id}                  | Обновление события                  | Admin                             |
+| DELETE /Events/{id}               | Удаление события                    | Admin                             |
+| POST /Events/{eventId}/book       | Создание брони                      | User, Admin                       |
+
+# Переход на микросервисную архитектуру
+
+В результате перехода на микросервисную архитектуру было создано три сервиса:
+* UsersService отвечает за регистрацию и логин пользователя
+* EventsService отвечает за создание, удаление, просмотр событий
+* BookingsService отвечает за создание, удаление, просмотр броней
+Каждый работает со своей базой данных. Взаимодействие между сервисами происходит по средствам обмена сообщениями через Kafka.
+
+## Потоки данных через Kafka
+### Создание и обработка брони
+* Создание брони в BookingsService (статус Pending)
+* BookingBackgroundService в фоновом режиме помечает бронь в обработку  (статус Processing) и отправляет в Kafka сообщение BookingProcessing
+* KafkaConsumerService на стороне EventsService обрабатывает это сообщение (делает проверки на то что событие ещё не началось, есть доступные места, у пользователя не превышен лимит доступных броней) и в случае успеха посылает в Kafka сообщение EventAllowed или EventDisabled, если проверки не прошли
+* KafkaConsumerService на стороне BookingsService обрабатывает события EventAllowed и EventDisabled и помечает бронь статусом Confirmed или Rejected соответственно
+### Отмена брони
+* Отмена брони в BookingsService (статус Cancelled)
+* После отмены, BookingsService посылает в Kafka сообщение BookingCancelled
+* KafkaConsumerService на стороне EventsService обрабатывает это сообщение, в результате проверка на лимит доступных броней проходит корректно
+### Удаление брони
+* Удаление брони в BookingsService
+* После удаления, BookingsService посылает в Kafka сообщение BookingRemoved
+* KafkaConsumerService на стороне EventsService обрабатывает это сообщение, в результате проверка на лимит доступных броней проходит корректно
+
+## Запуск сервисов
+Для запуска используйте docker-compose.yml (находится в корне решения):
+
+```
+docker compose up -d 
+```
+
+## Адреса сервисов
+После запуска приложения, сервисы доступны по следующим адресам:
+* UsersService: http://localhost:8081/swagger/index.html
+* EventsService: http://localhost:8083/swagger/index.html
+* BookingsService: http://localhost:8082/swagger/index.html
+Выполните логин в UsersService, полученный токен по средствам кнопки Athorize введите для EventsService и BookingsService 
+

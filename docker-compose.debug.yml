@@ -89,57 +89,6 @@ services:
       timeout: 5s
       retries: 10
 
-  users-service:
-      image: users-service
-      container_name: users-service
-      build:
-        context: .
-        dockerfile: UsersService/UsersService.Presentation/Dockerfile
-      ports:
-        - "8081:8080"
-      environment:
-        - ASPNETCORE_ENVIRONMENT=Development
-        - ConnectionStrings__DefaultConnection=Host=users-db;Database=users;Username=postgres;Password=postgres
-        - Kafka__BootstrapServers=kafka:29092
-        - JwtSettings__SecretKey=4f8b9e2c1a7d6e3f5b0c9a8b7f6e5d4c3b2a1f0e9d8c7b6a5f4e3d2c1b0a9f8e
-      depends_on:
-        - users-db
-        - kafka
-
-  bookings-service:
-      image: bookings-service
-      container_name: bookings-service
-      build:
-        context: .
-        dockerfile: BookingsService/BookingsService.Presentation/Dockerfile
-      ports:
-        - "8082:8080"
-      environment:
-        - ASPNETCORE_ENVIRONMENT=Development
-        - ConnectionStrings__DefaultConnection=Host=bookings-db;Database=bookings;Username=postgres;Password=postgres
-        - Kafka__BootstrapServers=kafka:29092
-        - JwtSettings__SecretKey=4f8b9e2c1a7d6e3f5b0c9a8b7f6e5d4c3b2a1f0e9d8c7b6a5f4e3d2c1b0a9f8e
-      depends_on:
-        - bookings-db
-        - kafka
-  
-  events-service:
-      image: events-service
-      container_name: events-service
-      build:
-        context: .
-        dockerfile: EventsService/EventsService.Presentation/Dockerfile
-      ports:
-        - "8083:8080"
-      environment:
-        - ASPNETCORE_ENVIRONMENT=Development
-        - ConnectionStrings__DefaultConnection=Host=events-db;Database=events;Username=postgres;Password=postgres
-        - Kafka__BootstrapServers=kafka:29092
-        - JwtSettings__SecretKey=4f8b9e2c1a7d6e3f5b0c9a8b7f6e5d4c3b2a1f0e9d8c7b6a5f4e3d2c1b0a9f8e
-      depends_on:
-        - events-db
-        - kafka
-
 volumes:
   users-db-data:
   events-db-data:
