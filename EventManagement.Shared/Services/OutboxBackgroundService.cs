@@ -86,9 +86,9 @@ public class OutboxBackgroundService(
 
                 message.Error = e.Message;
             }
-        }
 
-        await outboxRepository.SaveChangesAsync(ct);
+            await outboxRepository.SaveChangesAsync(ct);
+        }
     }
 }
 

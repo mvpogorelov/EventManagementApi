@@ -64,7 +64,7 @@ public class BookingsInboxBackgroundService : InboxBackgroundService
                 }
                 else
                 {
-                    var booking = await bookingRepository.GetByIdAsync(bookingRejected.EventId, ct);
+                    var booking = await bookingRepository.GetByIdAsync(bookingRejected.BookingId, ct);
 
                     if (booking is null)
                     {
@@ -93,7 +93,7 @@ public class BookingsInboxBackgroundService : InboxBackgroundService
                 }
                 else
                 {
-                    var booking = await bookingRepository.GetByIdAsync(bookingConfirmed.EventId, ct);
+                    var booking = await bookingRepository.GetByIdAsync(bookingConfirmed.BookingId, ct);
 
                     if (booking is null)
                     {
