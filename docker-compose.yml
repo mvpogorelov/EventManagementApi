@@ -39,10 +39,15 @@ services:
 
   redis:
     image: redis:7
-    container_name: redis
+    container_name: eventapi-redis
     restart: always
     ports:
       - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   # ─────────────────────────── Базы данных (по одной на сервис) ───────────────────────────
   users-db:
