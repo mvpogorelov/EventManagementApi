@@ -6,11 +6,15 @@ using EventsService.Domain.Exceptions;
 using EventsService.Infrastructure.Persistence;
 using EventsService.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Linq;
 using NSubstitute;
 using StackExchange.Redis;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json;
 
 namespace EventManagmentApi.Tests.Application.Services;
 
@@ -21,6 +25,7 @@ public class EventServiceTests : IDisposable
     private readonly IEventService _eventService;
     private readonly IDatabase _redisDb;
     private readonly ILogger<EventService> _logger;
+    private readonly IEventRepository _eventRepository;
 
     private Event testEvent1, testEvent2, testEvent3, testEvent4;
 
@@ -30,7 +35,10 @@ public class EventServiceTests : IDisposable
         var dbName = Guid.NewGuid().ToString();
 
         serviceCollection.AddDbContext<AppDbContext>(options => options.UseInMemoryDatabase(dbName));
-        serviceCollection.AddScoped<IEventRepository, EventRepository>();
+
+        _eventRepository = Substitute.For<IEventRepository>();
+
+        serviceCollection.AddScoped(_ => _eventRepository);
         serviceCollection.AddScoped<IEventService, EventService>();
 
         var redis = Substitute.For<IConnectionMultiplexer>();
@@ -56,8 +64,6 @@ public class EventServiceTests : IDisposable
 
     private async Task SetTestData(CancellationToken ct = default)
     {
-        // await _eventService.RemoveAllAsync();
-
         testEvent1 = await _eventService.CreateAsync("Aa", new DateTime(2026, 4, 1), new DateTime(2026, 4, 10), 2, "AAaa", ct);
         testEvent2 = await _eventService.CreateAsync("Bb", new DateTime(2026, 3, 1), new DateTime(2026, 3, 10), 1, "BBbb", ct);
         testEvent3 = await _eventService.CreateAsync("Cc", new DateTime(2026, 2, 1), new DateTime(2026, 2, 10), 1, "CCcc", ct);
@@ -381,6 +387,55 @@ public class EventServiceTests : IDisposable
 
         // Assert
         Assert.False(res);
+    }
+
+    [Fact(DisplayName = "Получение события по id: если событие закэшировано, то получаем его из кэша")]
+    public async Task Get_WhenEventIsCached_ShouldUseCache()
+    {
+        // Arrange
+        await SetTestData();
+        _redisDb.StringGetAsync(Arg.Is<RedisKey>(k => k == $"event:{testEvent1.Id}"))
+            .Returns(Task.FromResult((RedisValue)JsonSerializer.SerializeToUtf8Bytes(testEvent1)));
+
+        // Act
+        var @event = await _eventService.GetByIdAsync(testEvent1.Id, CancellationToken.None);
+
+        // Assert
+        Assert.NotNull(@event);
+        Assert.Equal("Aa", @event.Title);
+        await _redisDb.Received(1).StringGetAsync(Arg.Any<RedisKey>(), Arg.Any<CommandFlags>());
+        await _eventRepository.Received(0).GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+    }
+    
+    [Fact(DisplayName = "Получение события по id: если событие не закэшировано, то получаем из БД и устанавливаем в кэш")]
+    public async Task Get_WhenEventIsNoCached_ShouldUseDatabase()
+    {
+        // Arrange
+        await SetTestData();
+        _eventRepository.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(testEvent1));
+
+        // Act
+        var @event = await _eventService.GetByIdAsync(testEvent1.Id, CancellationToken.None);
+
+        // Assert
+        await _eventRepository.Received(1).GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+        await _redisDb.Received().StringSetAsync(Arg.Any<RedisKey>(), Arg.Any<RedisValue>(), Arg.Any<Expiration>(), Arg.Any<ValueCondition>(), Arg.Any<CommandFlags>());
+    }
+    
+    [Fact(DisplayName = "При удалении события срабатывает инвалидация кэша")]
+    public async Task Remove_ShouldInvalidateCache()
+    {
+        // Arrange
+        await SetTestData();
+        _eventRepository.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(testEvent1));
+
+        // Act
+        await _eventService.RemoveAsync(testEvent1.Id, CancellationToken.None);
+
+        // Assert
+        await _redisDb.Received().KeyDeleteAsync(Arg.Any<RedisKey>(), Arg.Any<CommandFlags>());
     }
 
     public static IEnumerable<object[]> WrongEventParams() =>
