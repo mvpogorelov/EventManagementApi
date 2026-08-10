@@ -1,12 +1,8 @@
-﻿using EventManagement.Contracts.Kafka;
-using EventManagement.Shared.Abstractions;
-using EventManagement.Shared.Models;
-using EventsService.Application.Abstractions.Persistence.Repositories;
+﻿using EventsService.Application.Abstractions.Persistence.Repositories;
 using EventsService.Application.Abstractions.Services;
 using EventsService.Application.DTOs;
 using EventsService.Domain.Entities;
 using EventsService.Domain.Exceptions;
-using Microsoft.Extensions.Options;
 using System.ComponentModel.DataAnnotations;
 
 namespace EventsService.Application.Services;
@@ -124,12 +120,6 @@ public class EventService(IEventRepository eventRepository) : IEventService
 
         await eventRepository.DeleteAsync(@event);
     }
-
-    /// <summary>
-    /// Удаление всех событий
-    /// </summary>
-    /// <param name="ct">Токен отмены</param>
-    public async Task RemoveAllAsync(CancellationToken ct = default) => await eventRepository.DeleteAllAsync(ct);
 
     private void ValidateEventDataAndThrow(string title, DateTime? startAt, DateTime? endAt, int totalSeats, string? description = null)
     {
