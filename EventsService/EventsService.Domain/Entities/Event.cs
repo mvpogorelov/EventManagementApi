@@ -78,7 +78,7 @@ public sealed class Event
     /// <summary>
     /// Текущее количество свободных мест
     /// </summary>
-    public int AvailableSeats { get; private set; }
+    public int AvailableSeats { get; set; }
 
     /// <summary>
     /// Попытка резервирования мест
