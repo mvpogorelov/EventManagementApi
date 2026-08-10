@@ -62,4 +62,6 @@ public interface IEventService
     Task RemoveAsync(Guid id, CancellationToken ct = default);
 
     Task<IReadOnlyList<Event>> GetTop(int count, CancellationToken ct = default);
+
+    Task InvalidateCacheAsync(Guid? eventId = null, int topCount = 10, CancellationToken ct = default);
 }

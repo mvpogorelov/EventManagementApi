@@ -18,7 +18,10 @@ public class EventService : IEventService
     private readonly IDatabase _redisDb;
     private readonly IEventRepository _repository;
     private readonly ILogger<EventService> _logger;
+
     private const string EventsTop10Key = "events:top10";
+    private const string EventKeyTemplate = "event:{0}";
+    private const int EventsTopCount = 10;
 
     public EventService(
         IConnectionMultiplexer multiplexer,
@@ -69,7 +72,7 @@ public class EventService : IEventService
     /// <returns>Событие</returns>
     public async Task<Event> GetByIdAsync(Guid id, CancellationToken ct = default)
     {
-        var cacheKey = $"event:{id}";
+        var cacheKey = string.Format(EventKeyTemplate, id);
         var cached = await GetCachedStringAsync<Event>(cacheKey);
 
         if (cached is not null)
@@ -102,7 +105,10 @@ public class EventService : IEventService
 
         var @event = new Event(title, startAt.Value, endAt.Value, totalSeats, description);
 
-        return await _repository.CreateAsync(@event);
+        await _repository.CreateAsync(@event);
+        await InvalidateCacheAsync(ct: ct);
+
+        return @event;
     }
 
     /// <summary>
@@ -130,6 +136,7 @@ public class EventService : IEventService
         @event.TotalSeats = totalSeats;
 
         await _repository.UpdateAsync(@event);
+        await InvalidateCacheAsync(id, ct: ct);
     }
 
     /// <summary>
@@ -143,6 +150,46 @@ public class EventService : IEventService
         var @event = await _repository.GetByIdAsync(id, ct) ?? throw new NotFoundException($"Событие с Id: {id} не найдено");
 
         await _repository.DeleteAsync(@event);
+        await InvalidateCacheAsync(id, ct: ct);
+    }
+
+    public async Task<IReadOnlyList<Event>> GetTop(int count = EventsTopCount, CancellationToken ct = default)
+    {
+        var cached = await GetCachedStringAsync<IReadOnlyList<Event>>(EventsTop10Key);
+
+        if (cached is not null)
+        {
+            return cached;
+        }
+
+        var events = await _repository.GetTop(count, ct);
+
+        await SetCachedStringAsync(EventsTop10Key, events, 10 * 60);
+
+        return events;
+    }
+
+    public async Task InvalidateCacheAsync(Guid? eventId = null, int topCount = EventsTopCount, CancellationToken ct = default)
+    {
+        // Delete-on-Write для Event
+        if (eventId is not null)
+        {
+            string cacheKey = string.Format(EventKeyTemplate, eventId);
+
+            try
+            {
+                await _redisDb.KeyDeleteAsync(cacheKey);
+            }
+            catch (RedisException e)
+            {
+                _logger.LogError(e, "Redis не удалось удалить ключ {Key}", cacheKey);
+            }
+        }
+
+        // Update-on-Write для топ 10
+        var events = await _repository.GetTop(topCount, ct);
+
+        await SetCachedStringAsync(EventsTop10Key, events, 10 * 60);
     }
 
     private void ValidateEventDataAndThrow(string title, DateTime? startAt, DateTime? endAt, int totalSeats, string? description = null)
@@ -214,23 +261,7 @@ public class EventService : IEventService
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Redis ошибка сохранения ключа {CacheKey}", cacheKey);
+            _logger.LogError(e, "Redis ошибка сохранения ключа {Key}", cacheKey);
         }
-    }
-
-    public async Task<IReadOnlyList<Event>> GetTop(int count, CancellationToken ct = default)
-    {
-        var cached = await GetCachedStringAsync<IReadOnlyList<Event>>(EventsTop10Key);
-
-        if (cached is not null)
-        {
-            return cached;
-        }
-
-        var events = await _repository.GetTop(count, ct);
-
-        await SetCachedStringAsync(EventsTop10Key, events, 10 * 60);
-
-        return events;
     }
 }
