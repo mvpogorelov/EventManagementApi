@@ -63,5 +63,7 @@ public interface IEventRepository
     Task<Inbox?> GetInboxByMessageTypeAndBookingId(string topic, string messageType, Guid bookingId, CancellationToken ct = default);
 
     Task AddOutboxAsync(Outbox outbox, CancellationToken ct = default);
+
+    Task<IReadOnlyList<Event>> GetTop(int count, CancellationToken ct = default);
 }
 

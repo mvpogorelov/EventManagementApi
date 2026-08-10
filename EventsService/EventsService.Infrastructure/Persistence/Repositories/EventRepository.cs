@@ -102,18 +102,6 @@ public class EventRepository(AppDbContext context) : IEventRepository
         await context.SaveChangesAsync(ct);
     }
 
-    /// <summary>
-    /// Удаление всех событий
-    /// </summary>
-    /// <param name="ct">Токен отмены</param>
-    public async Task DeleteAllAsync(CancellationToken ct = default)
-    {
-        var allEvents = await context.Events.ToListAsync(ct);
-
-        context.Events.RemoveRange(allEvents);
-        await context.SaveChangesAsync(ct);
-    }
-
     public async Task SaveChangesAsync(CancellationToken ct = default) => await context.SaveChangesAsync(ct);
 
     public async Task<Inbox?> GetInboxByIdAsync(int id, CancellationToken ct = default) =>
@@ -136,4 +124,10 @@ public class EventRepository(AppDbContext context) : IEventRepository
 
     public async Task AddOutboxAsync(Outbox outbox, CancellationToken ct = default) =>
         await context.Outbox.AddAsync(outbox);
+
+    public async Task<IReadOnlyList<Event>> GetTop(int count, CancellationToken ct = default) =>
+        await context.Events
+            .OrderByDescending(e => (e.TotalSeats - e.AvailableSeats) / e.TotalSeats)
+            .Take(count)
+            .ToListAsync();
 }

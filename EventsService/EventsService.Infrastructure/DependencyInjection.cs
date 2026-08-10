@@ -29,8 +29,7 @@ public static class DependencyInjection
         services.AddScoped<IEventRepository, EventRepository>();
         services.AddScoped<IInboxRepository, InboxRepository>();
         services.AddScoped<IOutboxRepository, OutboxRepository>();
-        services.AddScoped<ICachedEventRepository, CachedEventRepository>();
-
+        
         services.Configure<KafkaSettings>(configuration.GetSection("Kafka"));
 
         var kafkaSettings = configuration.GetSection("Kafka").Get<KafkaSettings>() ?? throw new InvalidOperationException(nameof(KafkaSettings));

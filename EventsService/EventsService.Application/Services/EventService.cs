@@ -3,6 +3,8 @@ using EventsService.Application.Abstractions.Services;
 using EventsService.Application.DTOs;
 using EventsService.Domain.Entities;
 using EventsService.Domain.Exceptions;
+using Microsoft.EntityFrameworkCore.Storage;
+using StackExchange.Redis;
 using System.ComponentModel.DataAnnotations;
 
 namespace EventsService.Application.Services;
@@ -10,8 +12,17 @@ namespace EventsService.Application.Services;
 /// <summary>
 /// Сервис по работе с событиями
 /// </summary>
-public class EventService(IEventRepository eventRepository) : IEventService
+public class EventService : IEventService
 {
+    private readonly StackExchange.Redis.IDatabase _redisDb;
+    private readonly IEventRepository _repository;
+
+    public EventService(IConnectionMultiplexer multiplexer, IEventRepository repository)
+    {
+        _redisDb = multiplexer.GetDatabase();
+        _repository = repository;
+    }
+
     /// <summary>
     /// Получение списка событий
     /// </summary>
@@ -40,7 +51,7 @@ public class EventService(IEventRepository eventRepository) : IEventService
             throw new ArgumentOutOfRangeException($"Неверный размер страницы: {nameof(pageSize)}");
         }
 
-        return await eventRepository.GetPaginatedAsync(title, from, to, page, pageSize, ct);
+        return await _repository.GetPaginatedAsync(title, from, to, page, pageSize, ct);
     }
 
     /// <summary>
@@ -51,7 +62,7 @@ public class EventService(IEventRepository eventRepository) : IEventService
     /// <returns>Событие</returns>
     public async Task<Event> GetByIdAsync(Guid id, CancellationToken ct = default)
     {
-        var @event = await eventRepository.GetByIdAsync(id, ct);
+        var @event = await _repository.GetByIdAsync(id, ct);
 
         if (@event is null)
         {
@@ -78,7 +89,7 @@ public class EventService(IEventRepository eventRepository) : IEventService
 
         var @event = new Event(title, startAt.Value, endAt.Value, totalSeats, description);
 
-        return await eventRepository.CreateAsync(@event);
+        return await _repository.CreateAsync(@event);
     }
 
     /// <summary>
@@ -97,7 +108,7 @@ public class EventService(IEventRepository eventRepository) : IEventService
     {
         ValidateEventDataAndThrow(title, startAt, endAt, totalSeats);
 
-        var @event = await eventRepository.GetByIdAsync(id, ct) ?? throw new NotFoundException($"Событие с Id: {id} не найдено");
+        var @event = await _repository.GetByIdAsync(id, ct) ?? throw new NotFoundException($"Событие с Id: {id} не найдено");
 
         @event.Title = title;
         @event.StartAt = startAt.Value;
@@ -105,7 +116,7 @@ public class EventService(IEventRepository eventRepository) : IEventService
         @event.Description = description;
         @event.TotalSeats = totalSeats;
 
-        await eventRepository.UpdateAsync(@event);
+        await _repository.UpdateAsync(@event);
     }
 
     /// <summary>
@@ -116,9 +127,9 @@ public class EventService(IEventRepository eventRepository) : IEventService
     /// <exception cref="NotFoundException">Если событие не найдено</exception>
     public async Task RemoveAsync(Guid id, CancellationToken ct = default)
     {
-        var @event = await eventRepository.GetByIdAsync(id, ct) ?? throw new NotFoundException($"Событие с Id: {id} не найдено");
+        var @event = await _repository.GetByIdAsync(id, ct) ?? throw new NotFoundException($"Событие с Id: {id} не найдено");
 
-        await eventRepository.DeleteAsync(@event);
+        await _repository.DeleteAsync(@event);
     }
 
     private void ValidateEventDataAndThrow(string title, DateTime? startAt, DateTime? endAt, int totalSeats, string? description = null)
