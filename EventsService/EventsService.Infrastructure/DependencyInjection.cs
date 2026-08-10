@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using StackExchange.Redis;
 
 namespace EventsService.Infrastructure;
 
@@ -36,6 +37,20 @@ public static class DependencyInjection
         services.AddSingleton<IKafkaProducerService>(sp => new KafkaProducerService(kafkaSettings));
         services.AddHostedService<KafkaConsumerBackgroundService>();
         services.AddHostedService<OutboxBackgroundService>();
+
+        var redisConnectionString = configuration.GetConnectionString("Redis") ?? throw new InvalidOperationException("Redis Connection String");
+
+        services.AddSingleton<IConnectionMultiplexer>(
+            ConnectionMultiplexer.Connect(
+                new ConfigurationOptions
+                {
+                    EndPoints = { redisConnectionString },
+                    ConnectTimeout = 5000,
+                    SyncTimeout = 3000,
+                    AbortOnConnectFail = false,
+                    ConnectRetry = 3,
+                })
+        );
 
         return services;
     }

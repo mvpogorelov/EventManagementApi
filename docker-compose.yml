@@ -37,6 +37,13 @@ services:
       timeout: 10s
       retries: 15
 
+  redis:
+    image: redis:7
+    container_name: redis
+    restart: always
+    ports:
+      - "6379:6379"
+
   # ─────────────────────────── Базы данных (по одной на сервис) ───────────────────────────
   users-db:
     image: postgres:17
@@ -136,9 +143,11 @@ services:
         - ConnectionStrings__DefaultConnection=${DB_EVENTS_CONN}
         - Kafka__BootstrapServers=kafka:29092
         - JwtSettings__SecretKey=${JWT_SECRET_KEY}
+        - ConnectionStrings__Redis=redis:6379
       depends_on:
         - events-db
         - kafka
+        - redis
 
 volumes:
   users-db-data:
