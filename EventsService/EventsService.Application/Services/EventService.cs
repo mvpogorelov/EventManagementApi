@@ -3,9 +3,10 @@ using EventsService.Application.Abstractions.Services;
 using EventsService.Application.DTOs;
 using EventsService.Domain.Entities;
 using EventsService.Domain.Exceptions;
-using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json;
 
 namespace EventsService.Application.Services;
 
@@ -14,13 +15,19 @@ namespace EventsService.Application.Services;
 /// </summary>
 public class EventService : IEventService
 {
-    private readonly StackExchange.Redis.IDatabase _redisDb;
+    private readonly IDatabase _redisDb;
     private readonly IEventRepository _repository;
+    private readonly ILogger<EventService> _logger;
+    private const string EventsTop10Key = "events:top10";
 
-    public EventService(IConnectionMultiplexer multiplexer, IEventRepository repository)
+    public EventService(
+        IConnectionMultiplexer multiplexer,
+        IEventRepository repository,
+        ILogger<EventService> logger)
     {
         _redisDb = multiplexer.GetDatabase();
         _repository = repository;
+        _logger = logger;
     }
 
     /// <summary>
@@ -62,12 +69,18 @@ public class EventService : IEventService
     /// <returns>Событие</returns>
     public async Task<Event> GetByIdAsync(Guid id, CancellationToken ct = default)
     {
-        var @event = await _repository.GetByIdAsync(id, ct);
+        var cacheKey = $"event:{id}";
+        var cached = await GetCachedStringAsync<Event>(cacheKey);
 
-        if (@event is null)
+        if (cached is not null)
         {
-            throw new NotFoundException($"Cобытие не найдено: {id}");
+            return cached;
         }
+
+        var @event = await _repository.GetByIdAsync(id, ct)
+            ?? throw new NotFoundException($"Cобытие не найдено: {id}");
+
+        await SetCachedStringAsync(cacheKey, @event, 5 * 60);
 
         return @event;
     }
@@ -158,5 +171,66 @@ public class EventService : IEventService
         {
             throw new ValidationException($"Общее количество мест должно быть больше нуля: {nameof(totalSeats)}");
         }
+    }
+
+    private async Task<T?> GetCachedStringAsync<T>(string cacheKey)
+    {
+        try
+        {
+            var cached = await _redisDb.StringGetAsync(cacheKey);
+
+            if (cached.HasValue && !cached.IsNullOrEmpty)
+            {
+                return JsonSerializer.Deserialize<T>(cached.ToString());
+            }
+        }
+        catch (RedisTimeoutException e)
+        {
+            _logger.LogWarning(e, "Redis timeout");
+        }
+        catch (RedisConnectionException e)
+        {
+            _logger.LogError(e, "Redis нет связи");
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Redis ошибка");
+        }
+
+        return default;
+    }
+
+    private async Task SetCachedStringAsync<T>(string cacheKey, T obj, int ttlSeconds)
+    {
+        try
+        {
+            byte[] jsonBytes = JsonSerializer.SerializeToUtf8Bytes(obj);
+
+            await _redisDb.StringSetAsync(cacheKey, jsonBytes, TimeSpan.FromSeconds(ttlSeconds));
+        }
+        catch (RedisServerException e) when (e.Message.Contains("OOM"))
+        {
+            _logger.LogCritical(e, "Redis переполнен");
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Redis ошибка сохранения ключа {CacheKey}", cacheKey);
+        }
+    }
+
+    public async Task<IReadOnlyList<Event>> GetTop(int count, CancellationToken ct = default)
+    {
+        var cached = await GetCachedStringAsync<IReadOnlyList<Event>>(EventsTop10Key);
+
+        if (cached is not null)
+        {
+            return cached;
+        }
+
+        var events = await _repository.GetTop(count, ct);
+
+        await SetCachedStringAsync(EventsTop10Key, events, 10 * 60);
+
+        return events;
     }
 }

@@ -60,4 +60,6 @@ public interface IEventService
     /// <param name="id">Идентификатор события</param>
     /// <param name="ct">Токен отмены</param>
     Task RemoveAsync(Guid id, CancellationToken ct = default);
+
+    Task<IReadOnlyList<Event>> GetTop(int count, CancellationToken ct = default);
 }
