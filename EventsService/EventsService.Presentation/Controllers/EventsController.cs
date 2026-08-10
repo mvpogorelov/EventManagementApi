@@ -64,6 +64,38 @@ public class EventsController(IEventService eventService) : BaseController
     }
 
     /// <summary>
+    /// Получение топ 10 событий
+    /// </summary>
+    /// <returns>Cписок событий</returns>
+    /// <response code="200">Список событий</response>
+    [AllowAnonymous]
+    [HttpGet("top")]
+    [Produces("application/json")]
+    [ProducesResponseType(typeof(ApiResultDto<IReadOnlyList<EventInfoDto>>), StatusCodes.Status200OK)]
+    public async Task<ApiResultDto<IReadOnlyList<EventInfoDto>>> GetTop(CancellationToken ct)
+    {
+        var result = await eventService.GetTop(10, ct);
+
+        return new ApiResultDto<IReadOnlyList<EventInfoDto>>
+        {
+            Data = result
+                .Select(e => new EventInfoDto
+                {
+                    AvailableSeats = e.AvailableSeats,
+                    Description = e.Description ?? string.Empty,
+                    EndAt = e.EndAt,
+                    Id = e.Id,
+                    StartAt = e.StartAt,
+                    Title = e.Title,
+                    TotalSeats = e.TotalSeats
+                })
+                .ToList(),
+            Success = true,
+            StatusCode = HttpStatusCode.OK
+        };
+    }
+
+    /// <summary>
     /// Получение события по идентификатору
     /// </summary>
     /// <param name="id">Идентификатор события</param>
