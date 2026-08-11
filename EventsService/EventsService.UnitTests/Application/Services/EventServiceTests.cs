@@ -406,7 +406,7 @@ public class EventServiceTests : IDisposable
         await _redisDb.Received(1).StringGetAsync(Arg.Any<RedisKey>(), Arg.Any<CommandFlags>());
         await _eventRepository.Received(0).GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
     }
-    
+
     [Fact(DisplayName = "Получение события по id: если событие не закэшировано, то получаем из БД и устанавливаем в кэш")]
     public async Task Get_WhenEventIsNoCached_ShouldUseDatabase()
     {
@@ -422,7 +422,7 @@ public class EventServiceTests : IDisposable
         await _eventRepository.Received(1).GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
         await _redisDb.Received().StringSetAsync(Arg.Any<RedisKey>(), Arg.Any<RedisValue>(), Arg.Any<Expiration>(), Arg.Any<ValueCondition>(), Arg.Any<CommandFlags>());
     }
-    
+
     [Fact(DisplayName = "При удалении события срабатывает инвалидация кэша")]
     public async Task Remove_ShouldInvalidateCache()
     {
