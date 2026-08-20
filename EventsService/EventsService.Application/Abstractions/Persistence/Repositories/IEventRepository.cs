@@ -56,12 +56,6 @@ public interface IEventRepository
     /// <returns>Событие</returns>
     Task DeleteAsync(Event @event, CancellationToken ct = default);
 
-    /// <summary>
-    /// Удаление всех событий
-    /// </summary>
-    /// <param name="ct">Токен отмены</param>
-    Task DeleteAllAsync(CancellationToken ct = default);
-
     Task SaveChangesAsync(CancellationToken ct = default);
 
     Task<Inbox?> GetInboxByIdAsync(int id, CancellationToken ct = default);
@@ -69,5 +63,7 @@ public interface IEventRepository
     Task<Inbox?> GetInboxByMessageTypeAndBookingId(string topic, string messageType, Guid bookingId, CancellationToken ct = default);
 
     Task AddOutboxAsync(Outbox outbox, CancellationToken ct = default);
+
+    Task<IReadOnlyList<Event>> GetTop(int count, CancellationToken ct = default);
 }
 

@@ -61,10 +61,7 @@ public interface IEventService
     /// <param name="ct">Токен отмены</param>
     Task RemoveAsync(Guid id, CancellationToken ct = default);
 
-    /// <summary>
-    /// Удаление всех событий
-    /// </summary>
-    /// <param name="ct">Токен отмены</param>
-    Task RemoveAllAsync(CancellationToken ct = default);
-}
+    Task<IReadOnlyList<Event>> GetTop(int count, CancellationToken ct = default);
 
+    Task InvalidateCacheAsync(Guid? eventId = null, int topCount = 10, CancellationToken ct = default);
+}

@@ -4,7 +4,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <UserSecretsId>ac487c00-1c7e-44ab-ac20-a149e3a3cbf0</UserSecretsId>
+    <UserSecretsId>EventsService.Presentation.ac487c00-1c7e-44ab-ac20-a149e3a3cbf0</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerfileContext>..\..\..</DockerfileContext>
 	  <GenerateDocumentationFile>true</GenerateDocumentationFile>

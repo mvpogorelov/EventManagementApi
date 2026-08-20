@@ -4,6 +4,7 @@ using EventManagement.Shared.Entities;
 using EventManagement.Shared.Models;
 using EventManagement.Shared.Services;
 using EventsService.Application.Abstractions.Persistence.Repositories;
+using EventsService.Application.Abstractions.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -35,6 +36,7 @@ public class EventsInboxBackgroundService : InboxBackgroundService
     {
         using var scope = _scopeFactory.CreateScope();
         var eventRepository = scope.ServiceProvider.GetRequiredService<IEventRepository>();
+        var eventService = scope.ServiceProvider.GetRequiredService<IEventService>();
         var inbox = await eventRepository.GetInboxByIdAsync(inboxId, ct);
 
         if (inbox == null)
@@ -198,5 +200,7 @@ public class EventsInboxBackgroundService : InboxBackgroundService
         inbox.UserId = userId;
 
         await eventRepository.SaveChangesAsync(ct);
+
+        await eventService.InvalidateCacheAsync(eventId: eventId, ct: ct);
     }
 }
