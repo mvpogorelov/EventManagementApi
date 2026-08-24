@@ -43,6 +43,7 @@ builder.Services.AddPresentation();
 
 var app = builder.Build();
 
+app.MapPrometheusScrapingEndpoint();
 app.UseAuthentication();
 app.UseAuthorization();
 app.ApplyMigrations();

@@ -1,4 +1,7 @@
 ﻿using Microsoft.OpenApi;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using System.Reflection;
 
 namespace EventsService.Presentation;
@@ -15,6 +18,27 @@ public static class DependencyInjection
     /// <returns></returns>
     public static IServiceCollection AddPresentation(this IServiceCollection services)
     {
+        services.AddOpenTelemetry()
+            .ConfigureResource(r => r.AddService(serviceName: "events-service"))
+            .WithTracing(tracerProviderBuilder => tracerProviderBuilder
+                .AddAspNetCoreInstrumentation(options =>
+                {
+                    options.Filter = httpContext =>
+                    {
+                        var path = httpContext.Request.Path;
+                        return !path.StartsWithSegments("/health") && !path.StartsWithSegments("/metrics");
+                    };
+                })
+                .AddHttpClientInstrumentation()
+                .AddEntityFrameworkCoreInstrumentation()
+                .AddOtlpExporter()
+            )
+            .WithMetrics(metrics => metrics
+                .AddAspNetCoreInstrumentation()
+                .AddHttpClientInstrumentation()
+                .AddRuntimeInstrumentation()
+                .AddPrometheusExporter()
+            );
         services.AddControllers()
             .AddJsonOptions(options =>
             {
