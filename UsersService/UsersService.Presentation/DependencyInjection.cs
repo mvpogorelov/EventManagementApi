@@ -14,8 +14,9 @@ public static class DependencyInjection
     /// 
     /// </summary>
     /// <param name="services"></param>
+    /// <param name="configuration"></param>
     /// <returns></returns>
-    public static IServiceCollection AddPresentation(this IServiceCollection services)
+    public static IServiceCollection AddPresentation(this IServiceCollection services, ConfigurationManager configuration)
     {
         services.AddOpenTelemetry()
             .ConfigureResource(r => r.AddService(serviceName: "users-service"))
@@ -30,7 +31,7 @@ public static class DependencyInjection
                 })
                 .AddHttpClientInstrumentation()
                 .AddEntityFrameworkCoreInstrumentation()
-                .AddOtlpExporter()
+                .AddOtlpExporter(o => o.Endpoint = new Uri(configuration["Otlp:Endpoint"]!))
             )
             .WithMetrics(metrics => metrics
                 .AddAspNetCoreInstrumentation()

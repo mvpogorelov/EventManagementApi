@@ -42,7 +42,7 @@ builder.Services
 });
 builder.Services.AddInfrastructure(configuration);
 builder.Services.AddApplication();
-builder.Services.AddPresentation();
+builder.Services.AddPresentation(configuration);
 
 var app = builder.Build();
 

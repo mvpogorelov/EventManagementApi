@@ -11,7 +11,7 @@ builder.Host.UseSerilog((ctx, cfg) => cfg.ReadFrom.Configuration(ctx.Configurati
 builder.Services.Configure<JwtSettings>(configuration.GetSection("JwtSettings"));
 builder.Services.AddInfrastructure(configuration.GetConnectionString("DefaultConnection"));
 builder.Services.AddApplication();
-builder.Services.AddPresentation();
+builder.Services.AddPresentation(configuration);
 
 var app = builder.Build();
 
