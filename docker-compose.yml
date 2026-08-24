@@ -196,3 +196,4 @@ volumes:
   users-db-data:
   events-db-data:
   bookings-db-data:
+  grafana-data:
