@@ -4,12 +4,15 @@ using BookingsService.Infrastructure.Security;
 using BookingsService.Presentation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Serilog;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
 var jwtSettings = configuration.GetSection("JwtSettings").Get<JwtSettings>()
     ?? throw new InvalidOperationException("JWT конфигурация не найдена или некорректна");
+
+builder.Host.UseSerilog((ctx, cfg) => cfg.ReadFrom.Configuration(ctx.Configuration));
 
 builder.Services.Configure<JwtSettings>(configuration.GetSection("JwtSettings"));
 

@@ -1,3 +1,4 @@
+using Serilog;
 using UsersService.Application;
 using UsersService.Infrastructure;
 using UsersService.Infrastructure.Security;
@@ -6,6 +7,7 @@ using UsersService.Presentation;
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
 
+builder.Host.UseSerilog((ctx, cfg) => cfg.ReadFrom.Configuration(ctx.Configuration));
 builder.Services.Configure<JwtSettings>(configuration.GetSection("JwtSettings"));
 builder.Services.AddInfrastructure(configuration.GetConnectionString("DefaultConnection"));
 builder.Services.AddApplication();
