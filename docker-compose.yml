@@ -50,15 +50,19 @@ services:
       retries: 10
 
   prometheus:
-    image: prom/prometheus:v2.51.0
+    image: prom/prometheus:latest
     container_name: eventapi-prometheus
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
     ports:
       - "9090:9090"
+    depends_on:
+      - users-service
+      - bookings-service
+      - events-service
 
   jaeger:
-    image: jaegertracing/all-in-one:1.56
+    image: jaegertracing/all-in-one:latest
     container_name: eventapi-jaeger
     ports:
       - "16686:16686"   # UI
@@ -67,7 +71,7 @@ services:
       COLLECTOR_OTLP_ENABLED: "true"
 
   grafana:
-    image: grafana/grafana:10.4.2
+    image: grafana/grafana-oss:latest
     container_name: eventapi-grafana
     ports:
       - "3000:3000"
@@ -147,7 +151,6 @@ services:
       depends_on:
         - users-db
         - kafka
-        - prometheus
         - jaeger
 
   bookings-service:
@@ -167,7 +170,6 @@ services:
       depends_on:
         - bookings-db
         - kafka
-        - prometheus
         - jaeger
   
   events-service:
@@ -189,7 +191,6 @@ services:
         - events-db
         - kafka
         - redis
-        - prometheus
         - jaeger
 
 volumes:
