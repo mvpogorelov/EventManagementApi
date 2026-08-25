@@ -4,12 +4,15 @@ using EventsService.Infrastructure.Security;
 using EventsService.Presentation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Serilog;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
 var jwtSettings = configuration.GetSection("JwtSettings").Get<JwtSettings>()
     ?? throw new InvalidOperationException("JWT конфигурация не найдена или некорректна");
+
+builder.Host.UseSerilog((ctx, cfg) => cfg.ReadFrom.Configuration(ctx.Configuration));
 
 builder.Services.Configure<JwtSettings>(configuration.GetSection("JwtSettings"));
 
@@ -39,10 +42,11 @@ builder.Services
 });
 builder.Services.AddInfrastructure(configuration);
 builder.Services.AddApplication();
-builder.Services.AddPresentation();
+builder.Services.AddPresentation(configuration);
 
 var app = builder.Build();
 
+app.MapPrometheusScrapingEndpoint();
 app.UseAuthentication();
 app.UseAuthorization();
 app.ApplyMigrations();
